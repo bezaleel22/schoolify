@@ -1,7 +1,6 @@
 /node_modules
 /public/hot
 /vendor
-Modules
 resources
 .env
 .env.backup
