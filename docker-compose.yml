@@ -1,0 +1,30 @@
+services:
+  schoolify:
+    image: mariadb:latest
+    container_name: schoolifydb
+    restart: unless-stopped
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: paxxw0rd@2791
+      MYSQL_DATABASE: schoolifydb
+      MYSQL_USER: schoolify
+      MYSQL_PASSWORD: paxxw0rd@2791
+
+  gotenberg:
+    container_name: gotenberg
+    image: gotenberg/gotenberg:8
+    restart: unless-stopped
+    ports:
+      - 4000:3000
+
+  dbbrowser:
+    depends_on:
+      - schoolify
+    image: adminer
+    container_name: dbbrowser
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: schoolify
+    ports:
+      - 8080:8080

@@ -1,0 +1,11 @@
+{
+  "version": "8.2.0",
+  "release_date": "03/07/2024",
+  "required_manual_update": false,
+  "min": "8.1.0",
+  "migrations": [
+    "database/migrations/2024_03_15_081453_update_v8.1.2_to_8.2.0_stable.php"
+  ],
+  "url": "https://spondonit.com/contact",
+  "notes": "This is a bug fixing on fees related issues."
+}
