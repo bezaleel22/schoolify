@@ -2,7 +2,7 @@
 
 // Get File Path From HELPER
 
-if (!function_exists('getFileName')) {
+if (!function_exists('getResulteData')) {
     function getFileName($data)
     {
         if ($data) {

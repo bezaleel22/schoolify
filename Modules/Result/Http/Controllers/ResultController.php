@@ -27,9 +27,22 @@ use App\Scopes\StatusAcademicSchoolScope;
 use Modules\University\Entities\UnSemesterLabel;
 use Modules\BehaviourRecords\Entities\AssignIncident;
 use Modules\BehaviourRecords\Entities\BehaviourRecordSetting;
+use Modules\Result\Services\ResultService;
 
 class ResultController extends Controller
 {
+    private $resultService;
+
+    /**
+     * Inject ResultService via constructor.
+     * 
+     * @param ResultService $resultService
+     */
+    public function __construct(ResultService $resultService)
+    {
+        $this->resultService = $resultService;
+    }
+
     /**
      * Display a listing of the resource.
      * @return Renderable
@@ -65,7 +78,6 @@ class ResultController extends Controller
      */
     public function show(Request $request, $id, $type = null)
     {
-
         try {
             $next_labels = null;
             $student_detail = SmStudent::withoutGlobalScope(StatusAcademicSchoolScope::class)->find($id);
@@ -140,7 +152,18 @@ class ResultController extends Controller
             $studentBehaviourRecords = (moduleStatusCheck('BehaviourRecords')) ? AssignIncident::where('student_id', $id)->with('incident', 'user', 'academicYear')->get() : null;
             $behaviourRecordSetting = BehaviourRecordSetting::where('id', 1)->first();
 
-            return view('result::student_view', compact('timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
+            $exam_types = SmExamType::where('school_id', Auth::user()->school_id)
+                ->where('academic_id', getAcademicId())
+                ->get();
+
+            $results = [
+                'exam_types' => $exam_types,
+            ];
+            // foreach ($exam_types as $exam_type) {
+            //     $results[] = $this->resultService->getStudentResult($id, $exam_type);
+            // }
+
+            return view('result::student_view', compact('results', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
         } catch (\Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();

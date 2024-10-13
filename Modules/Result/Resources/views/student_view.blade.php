@@ -200,7 +200,7 @@ $currency = '$';
                         <!-- End leave Tab -->
 
                         <!-- Start Exam Tab -->
-                        @include('result::include.exam_tab')
+                        @include('result::include.exam_tab', ['results' => $results])
                         <!-- End Exam Tab -->
 
                         @if (moduleStatusCheck('University'))

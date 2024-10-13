@@ -6,7 +6,8 @@ use Modules\Result\Console\InstallApp;
 use Modules\Result\Console\SeedStudents;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
-use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
 use Modules\Result\Console\SeedStaffs;
 use Modules\Result\Http\Middleware\ResultMiddleware;
 
@@ -32,7 +33,10 @@ class ResultServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerHelpers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+        Route::aliasMiddleware('result.student.view', ResultMiddleware::class);
+        
         if ($this->app->runningInConsole()) {
             $this->commands([SeedStudents::class, SeedStaffs::class, InstallApp::class]);
         }
@@ -104,10 +108,10 @@ class ResultServiceProvider extends ServiceProvider
      * @return array
      */
 
-    protected function registerHelpers()
+    public function registerHelpers()
     {
-        foreach (glob(__DIR__ . '/../Helpers/*.php') as $filename) {
-            require_once($filename);
+        if (File::exists(module_path($this->moduleName, 'Helpers/Functions.php'))) {
+            require_once module_path($this->moduleName, 'Helpers/Functions.php');
         }
     }
 

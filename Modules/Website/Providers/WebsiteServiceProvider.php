@@ -1,21 +1,21 @@
 <?php
 
-namespace Modules\Chat\Providers;
+namespace Modules\Website\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
 
-class ChatServiceProvider extends ServiceProvider
+class WebsiteServiceProvider extends ServiceProvider
 {
     /**
      * @var string $moduleName
      */
-    protected $moduleName = 'Chat';
+    protected $moduleName = 'Website';
 
     /**
      * @var string $moduleNameLower
      */
-    protected $moduleNameLower = 'chat';
+    protected $moduleNameLower = 'website';
 
     /**
      * Boot the application events.
@@ -28,7 +28,6 @@ class ChatServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-        $this->registerHelpers();
     }
 
     /**
@@ -52,8 +51,7 @@ class ChatServiceProvider extends ServiceProvider
             module_path($this->moduleName, 'Config/config.php') => config_path($this->moduleNameLower . '.php'),
         ], 'config');
         $this->mergeConfigFrom(
-            module_path($this->moduleName, 'Config/config.php'),
-            $this->moduleNameLower
+            module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower
         );
     }
 
@@ -88,13 +86,6 @@ class ChatServiceProvider extends ServiceProvider
             $this->loadTranslationsFrom($langPath, $this->moduleNameLower);
         } else {
             $this->loadTranslationsFrom(module_path($this->moduleName, 'Resources/lang'), $this->moduleNameLower);
-        }
-    }
-
-    public function registerHelpers()
-    {
-        if (\File::exists(module_path($this->moduleName, 'Helpers/Functions.php'))) {
-            require_once module_path($this->moduleName, 'Helpers/Functions.php');
         }
     }
 

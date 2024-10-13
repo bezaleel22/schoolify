@@ -60,7 +60,7 @@
             @php
             $grand_total = 0;
             $grand_total_marks = 0;
-            $result = 0;
+            $result = 0;exam_type
             $temp_grade = [];
             $total_gpa_point = 0;
             $total_subject = count($get_results);

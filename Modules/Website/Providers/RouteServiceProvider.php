@@ -1,10 +1,9 @@
 <?php
 
-namespace Modules\Result\Providers;
+namespace Modules\Website\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
-use Modules\Result\Http\Middleware\ResultMiddleware;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -13,7 +12,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected $moduleNamespace = 'Modules\Result\Http\Controllers';
+    protected $moduleNamespace = 'Modules\Website\Http\Controllers';
 
     /**
      * Called before routes are registered.
@@ -34,7 +33,6 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function map()
     {
-
         $this->mapApiRoutes();
 
         $this->mapWebRoutes();
@@ -51,7 +49,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::middleware('web')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('Result', '/Routes/web.php'));
+            ->group(module_path('Website', '/Routes/web.php'));
     }
 
     /**
@@ -66,6 +64,6 @@ class RouteServiceProvider extends ServiceProvider
         Route::prefix('api')
             ->middleware('api')
             ->namespace($this->moduleNamespace)
-            ->group(module_path('Result', '/Routes/api.php'));
+            ->group(module_path('Website', '/Routes/api.php'));
     }
 }
