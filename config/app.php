@@ -160,7 +160,6 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
-        Brian2694\Toastr\ToastrServiceProvider::class,
       
         // RobinCSamuel\LaravelMsg91\LaravelMsg91ServiceProvider::class,
         Unicodeveloper\Paystack\PaystackServiceProvider::class,

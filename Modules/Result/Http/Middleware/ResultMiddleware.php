@@ -20,7 +20,7 @@ class InterceptStudentView
         if ($request->routeIs('student_view')) {
             // Perform any logic here (e.g., check conditions)
             // For example, if you want to redirect to the result.student.view route
-            return redirect()->route('result.student.view', [
+            return redirect()->route('student_view_detail', [
                 'id' => $request->id, // Pass the same parameters
                 'type' => $request->type, // Pass the optional parameter
             ]);

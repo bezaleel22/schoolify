@@ -16,11 +16,11 @@ use Modules\Gmeet\Repositories\Interfaces\GmeetVirtualClassRepositoryInterface;
 class GMeetController extends Controller
 {
     protected $virtualClassRepository;
-    public function __construct(
-        GmeetVirtualClassRepositoryInterface $virtualClassRepository
-    ) {
-        $this->virtualClassRepository = $virtualClassRepository;
-    }
+    // public function __construct(
+    //     GmeetVirtualClassRepositoryInterface $virtualClassRepository
+    // ) {
+    //     $this->virtualClassRepository = $virtualClassRepository;
+    // }
 
     public function index()
     {

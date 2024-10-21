@@ -26,15 +26,15 @@ class SidebarComponent extends Component
         // deActivePermissions();
         // $this->modulePermissionSidebar();
         // Sidebar::where('user_id', auth()->user()->id)->delete();
-        $this->defaultSidebarStore();
-        $this->modulePermissionSidebar();
+        $this->defaultSidebarStore();       
+        $this->modulePermissionSidebar();     
         $this->deActiveForPgsql();
         $this->deActiveForSaas();
         session()->put('role_permission_user_type', '');
         $user = auth()->user();
         $data['sidebar_menus'] = sidebar_menus();
         $data['paid_modules'] = $this->allActivePaidModules();
-
+       
         $data['childrens'] = SmParent::myChildrens();
         #dd($data);
         return view('components.sidebar-component', $data);

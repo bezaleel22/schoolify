@@ -11,7 +11,7 @@
     @php
         $gs = generalSetting();
     @endphp
-    <section classstudent-="bradcrumb_area">
+    <section class="bradcrumb_area">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">

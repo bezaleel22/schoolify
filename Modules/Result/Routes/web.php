@@ -16,4 +16,7 @@ Route::prefix('result')->group(function() {
     Route::get('/', 'ResultController@index');
 });
 
-Route::get('student-view/{id}/{type?}', 'ResultController@show')->name('result.student.view'); 
+Route::post('publish', 'ResultController@publish')->name('result.publish');
+Route::post('remark', 'ResultController@remark')->name('result.remark');
+Route::post('rating', 'ResultController@rating')->name('result.rating'); 
+Route::get('student-view/{id}/{type?}', 'ResultController@show')->name('student_view'); 

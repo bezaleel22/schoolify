@@ -35,7 +35,7 @@ class ResultServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerHelpers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-        Route::aliasMiddleware('result.student.view', ResultMiddleware::class);
+        // Route::aliasMiddleware('result.student.view', ResultMiddleware::class);
         
         if ($this->app->runningInConsole()) {
             $this->commands([SeedStudents::class, SeedStaffs::class, InstallApp::class]);

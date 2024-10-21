@@ -7,15 +7,6 @@ use App\SmClass;
 use App\SmParent;
 use App\SmStaff;
 use App\SmSection;
-use App\YearCheck;
-use Gotenberg\Stream;
-use Gotenberg\Gotenberg;
-use App\SmLeaveDefine;
-use App\SmAcademicYear;
-use App\SmstaffTimeline;
-use App\SmstaffCategory;
-use App\Models\staffRecord;
-use App\Models\SmExpertTeacher;
 use App\SmAssignClassTeacher;
 use App\SmAssignSubject;
 use App\SmClassTeacher;
@@ -24,13 +15,8 @@ use App\SmHumanDepartment;
 use App\SmSubject;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Console\Command;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Cache;
-use Brian2694\Toastr\Facades\Toastr;
-use Illuminate\Support\Facades\Auth;
 use Modules\RolePermission\Entities\InfixRole;
 
 class SeedStaffs extends Command
@@ -133,12 +119,7 @@ class SeedStaffs extends Command
             $user->school_id = 1;
             $user->save();
 
-            if ($staffData->role_id == 5) {
-                $this->assignChatGroup($user);
-            }
-
             $basic_salary = !empty($staffData->basic_salary) ? $staffData->basic_salary : 0;
-
             $staff = new SmStaff();
             $staff->staff_no = $staffData->staff_no;
             $staff->role_id = $this->getRole($role);

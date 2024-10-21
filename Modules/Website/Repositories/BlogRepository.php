@@ -14,15 +14,18 @@ class BlogRepository
     public function getBlogs($skip = 0)
     {
         try {
-            $data['total_items'] = SmNews::count();
+
+            $blog = SmNews::where('school_id', app('school')->id)->take(5);
+            $count = SmNews::count();
+            $data['total_items'] = $count;
             if ($skip) {
-                $data['skip'] = $skip;
-                $data['limit'] = $data['count'] - $data['skip'];
+                $data['skip'] = (int)$skip;
+                $data['limit'] = $count - $skip;
+                $data['blogs'] = $blog->skip($skip);
             }
 
-            $data['blogs'] = SmNews::skip($data['skip'])->where('school_id', app('school')->id)->take(5)->get();
+            $data['blogs'] = $blog->get();
             $data['categories'] = SmNewsCategory::where('school_id', app('school')->id)->get();
-            $data['newsPage'] = SmNewsPage::where('school_id', app('school')->id)->first();
             return $data;
         } catch (\Exception $e) {
             throw $e;
@@ -57,7 +60,7 @@ class BlogRepository
             }
             $store->save();
         } catch (\Exception $e) {
-           throw $e;
+            throw $e;
         }
     }
 
@@ -70,11 +73,11 @@ class BlogRepository
             }
 
             $data['comments'] = SmNewsComment::skip($data['skip'])
-            ->where('news_id', $id)
-            ->where('school_id', app('school')->id)->take(5)
-            ->get();
+                ->where('news_id', $id)
+                ->where('school_id', app('school')->id)->take(5)
+                ->get();
 
-           return $data;
+            return $data;
         } catch (\Exception $e) {
             throw $e;
         }

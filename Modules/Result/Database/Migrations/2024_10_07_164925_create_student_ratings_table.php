@@ -26,6 +26,9 @@ class CreateStudentRatingsTable extends Migration
 
             $table->integer('exam_type_id')->nullable()->unsigned();
             $table->foreign('exam_type_id')->references('id')->on('sm_exam_types')->onDelete('set null');
+
+            $table->integer('academic_id')->nullable()->unsigned();
+            $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('set null');
         });
     }
 

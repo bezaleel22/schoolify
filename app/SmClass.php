@@ -30,11 +30,12 @@ class SmClass extends Model
 
     public function classSection()
     {
-        return $this->hasMany('App\SmClassSection', 'class_id')->with('sectionName');
+      return $this->hasMany('App\SmClassSection', 'class_id')->with('sectionName');
+
+      
     }
-    public function classSectionAll()
-    {
-        return $this->belongsToMany('App\SmSection', 'sm_class_sections', 'class_id', 'section_id');
+    public function classSectionAll(){
+        return $this->belongsToMany('App\SmSection','sm_class_sections','class_id','section_id');
     }
 
     public function sectionName()
@@ -68,7 +69,7 @@ class SmClass extends Model
 
     public function globalGroupclassSections()
     {
-        return $this->hasMany('App\SmClassSection', 'class_id', 'id')->distinct(['class_id', 'section_id'])->withoutGlobalScope(GlobalAcademicScope::class)->withoutGlobalScope(StatusAcademicSchoolScope::class)->with('sectionName');
+        return $this->hasMany('App\SmClassSection', 'class_id', 'id')->distinct(['class_id','section_id'])->withoutGlobalScope(GlobalAcademicScope::class)->withoutGlobalScope(StatusAcademicSchoolScope::class)->with('sectionName');
     }
 
     public function students()

@@ -49,7 +49,7 @@ class SeedStudents extends Command
      * 
      * @var string
      */
-    protected $jsonFilePath = 'student_data/students.json';
+    protected $jsonFilePath = 'students.json';
 
     /**
      * Path to the file where the last processed ID will be saved.
@@ -173,7 +173,7 @@ class SeedStudents extends Command
             foreach ($timelines as $i => $timelineData) {
                 $type = (object) $this->examt_types->firstWhere('title', $timelineData['title']);
                 $is_url =  filter_var($timelineData['file'], FILTER_VALIDATE_URL) !== false;
-                $url = 'api/download-result?id=' . $student->id . '&lstd_id='. $studentData->id. '&type_id=' . $type->id;
+                $url = 'api/download-result?id=' . $student->id . '&lstd_id=' . $studentData->id . '&type_id=' . $type->id;
 
                 $timeline = new SmStudentTimeline();
                 $timeline->staff_student_id = $student->id;
@@ -190,7 +190,6 @@ class SeedStudents extends Command
 
             $studentData->is_default = 1;
             $studentData->student_id = $student->id;
-            $studentData->session = getAcademicId();
             $this->insertStudentRecord($studentData);
 
             DB::commit();
@@ -211,9 +210,9 @@ class SeedStudents extends Command
         $studentRecord->is_default = $studentData->is_default;
         $studentRecord->class_id = $ids->class_id;
         $studentRecord->section_id = $ids->section_id;
-        $studentRecord->session_id = $studentData->session;
+        $studentRecord->session_id = getAcademicId();
         $studentRecord->school_id = 1;
-        $studentRecord->academic_id = $studentData->session;
+        $studentRecord->academic_id = getAcademicId();
         $studentRecord->save();
     }
 
@@ -231,11 +230,15 @@ class SeedStudents extends Command
         $class = new SmClass();
         $class->class_name = $class_name;
         $class->created_at = YearCheck::getYear() . '-' . date('m-d h:i:s');
+        $class->school_id = 1;
+        $class->academic_id = getAcademicId();
         $class->save();
 
         $section = new SmSection();
         $section->section_name = $section_name;
         $section->created_at = YearCheck::getYear() . '-' . date('m-d h:i:s');
+        $section->school_id = 1;
+        $section->academic_id = getAcademicId();
         $section->save();
 
         return (object) [

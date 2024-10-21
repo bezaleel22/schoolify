@@ -60,8 +60,6 @@ class StudentRecord extends Model
         'id'
     ];
 
-
-
     public function class()
     {
         return $this->belongsTo('App\SmClass', 'class_id', 'id')->withDefault()->withoutGlobalScope(StatusAcademicSchoolScope::class);

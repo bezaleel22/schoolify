@@ -2,15 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\SmUser;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use App\SmStaff;
 use App\SmSchool;
 use App\SmGeneralSettings;
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
-
 
 class MakeAdmin extends Command
 {
@@ -69,7 +67,7 @@ class MakeAdmin extends Command
     {
         try {
             $user_model_name = config('spondonit.user_model');
-            $user_class = new SmUser();
+            $user_class = new $user_model_name;
             $user = $user_class->find(1);
             if (!$user) {
                 $user = new $user_model_name;

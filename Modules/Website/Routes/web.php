@@ -12,7 +12,20 @@
 */
 
 use Illuminate\Support\Facades\Route;
+use Modules\Website\Http\Controllers\BlogController;
+use Modules\Website\Http\Controllers\WebsiteController;
 
-Route::prefix('website')->group(function() {
-    Route::get('/', 'WebsiteController@index');
+
+Route::group(['middleware' => ['cors', 'json.response']], function () {
+    // public routes
+
+    // Route::post('/logout', 'AuthController@logout')->name('logout.api');
+
+
+});
+
+
+Route::middleware('auth:web')->group(function () {
+    // our routes to be protected will go in here
+    // Route::post('/logout', 'Auth\ApiAuthController@logout')->name('logout.api');
 });

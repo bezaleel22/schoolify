@@ -46,13 +46,13 @@ class GenerateController extends Controller
                 ->html(Stream::string('index.html', $result));
             $filename = Gotenberg::save($req, 'public/uploads/student/timeline/');
 
-            // if (ApiBaseMethod::checkUrl($request->fullUrl())) {
-            return ApiBaseMethod::sendResponse([
-                'student_id' => $result_data->student->id,
-                'exam_type_id' => $result_data->student->exam_type_id,
-                'result_file' => 'public/uploads/student/timeline/' . $filename,
-            ], null);
-            // }
+            if (ApiBaseMethod::checkUrl($request->fullUrl())) {
+                return ApiBaseMethod::sendResponse([
+                    'student_id' => $result_data->student->id,
+                    'exam_type_id' => $result_data->student->exam_type_id,
+                    'result_file' => 'public/uploads/student/timeline/' . $filename,
+                ], null);
+            }
         } catch (\Exception $e) {
             ApiBaseMethod::sendResponse(null, $e->getMessage());
         }

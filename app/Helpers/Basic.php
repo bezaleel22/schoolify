@@ -26,7 +26,9 @@ if (!function_exists('color_theme')) {
         } else if (auth()->user()) {
             return userColorThemeActive(auth()->user()->id);
         }
+
     }
+
 }
 
 if (!function_exists('userColorThemeActive')) {
@@ -78,7 +80,7 @@ if (!function_exists('activeStyle')) {
             if ($active_style == null) {
                 $active_style = Theme::where('school_id', 1)->where('is_default', 1)->first();
             }
-            if ($active_style == null) {
+            if($active_style == null){
                 $active_style = Theme::first();
             }
 
@@ -150,6 +152,7 @@ if (!function_exists('sections')) {
             }, function ($q) {
                 $q->where('academic_id', getAcademicId());
             })->get();
+
     }
 }
 if (!function_exists('subjects')) {
@@ -166,6 +169,7 @@ if (!function_exists('subjects')) {
             })->select('class_id', 'section_id', 'subject_id')->distinct(['class_id', 'section_id', 'subject_id'])->get();
 
         return $subjects;
+
     }
 }
 if (!function_exists('students')) {
@@ -181,6 +185,7 @@ if (!function_exists('students')) {
         $students = SmStudent::withOutGlobalScopes()->whereIn('id', $student_ids)->get();
 
         return $students;
+
     }
 }
 if (!function_exists('classSubjects')) {
@@ -216,6 +221,7 @@ if (!function_exists('subjectSections')) {
             ->pluck('section_id')
             ->toArray();
         return SmSection::whereIn('id', $sectionIds)->get(['id', 'section_name']);
+
     }
 }
 
@@ -246,6 +252,7 @@ if (!function_exists('validRouteUrl')) {
                 } else {
                     $url = \route($route);
                 }
+
             }
         } catch (\Exception $e) {
         }
@@ -283,6 +290,7 @@ if (!function_exists('deActivePermissions')) {
     {
         $alternativeDeActiveModuleInfo = AlternativeModule::where('status', 0)->pluck('module_name')->toArray();
         return Permission::whereIn('module', $alternativeDeActiveModuleInfo)->pluck('id')->toArray();
+
     }
 }
 if (!function_exists('sidebar_menus')) {
@@ -311,38 +319,36 @@ if (!function_exists('sidebar_menus')) {
 if (!function_exists('storePermissionData')) {
     function storePermissionData($permission, $user_id = null, $school_id = null)
     {
-        Permission::updateOrCreate(
-            [
-                'module' => $permission['module'],
-                'sidebar_menu' => $permission['sidebar_menu'],
-                'lang_name' => $permission['lang_name'],
-                'icon' => $permission['icon'],
-                'svg' => $permission['svg'],
-                'route' => $permission['route'],
-                'parent_route' => $permission['parent_route'],
-                'is_admin' => $permission['is_admin'],
-                'is_teacher' => $permission['is_teacher'],
-                'is_student' => $permission['is_student'],
-                'is_parent' => $permission['is_parent'],
+        Permission::updateOrCreate([
+            'module' => $permission['module'],
+            'sidebar_menu' => $permission['sidebar_menu'],
+            'lang_name' => $permission['lang_name'],
+            'icon' => $permission['icon'],
+            'svg' => $permission['svg'],
+            'route' => $permission['route'],
+            'parent_route' => $permission['parent_route'],
+            'is_admin' => $permission['is_admin'],
+            'is_teacher' => $permission['is_teacher'],
+            'is_student' => $permission['is_student'],
+            'is_parent' => $permission['is_parent'],
 
-                'is_saas' => $permission['is_saas'],
-                'is_menu' => $permission['is_menu'],
-                'status' => $permission['status'],
-                'menu_status' => $permission['menu_status'],
-                'relate_to_child' => $permission['relate_to_child'],
-                'alternate_module' => $permission['alternate_module'],
-                'permission_section' => $permission['permission_section'],
-                'type' => $permission['type'],
-                'user_id' => $permission['permission_section'] == 1 && $user_id ? $user_id : null,
-                'old_id' => $permission['old_id'],
-                'school_id' => $school_id ?? 1,
-            ],
+            'is_saas' => $permission['is_saas'],
+            'is_menu' => $permission['is_menu'],
+            'status' => $permission['status'],
+            'menu_status' => $permission['menu_status'],
+            'relate_to_child' => $permission['relate_to_child'],
+            'alternate_module' => $permission['alternate_module'],
+            'permission_section' => $permission['permission_section'],
+            'type' => $permission['type'],
+            'user_id' => $permission['permission_section'] == 1 && $user_id ? $user_id : null,
+            'old_id' => $permission['old_id'],
+            'school_id' => $school_id ?? 1,
+        ],
             [
                 'name' => $permission['name'],
                 'position' => $permission['position'],
 
-            ]
-        );
+            ]);
 
         if (isset($permission['child'])) {
             foreach ($permission['child'] as $child) {
@@ -382,6 +388,7 @@ if (!function_exists('sidebarPermission')) {
             } else {
                 $access = false;
             }
+
         } elseif (!$permission->module) {
             $access = true;
         }
@@ -401,6 +408,8 @@ if (!function_exists('sidebarPermission')) {
             } else {
                 $access = false;
             }
+
+
         }
         if ($permission->module == 'Fees') {
             if ((int)generalSetting()->fees_status == 1) {
@@ -411,6 +420,7 @@ if (!function_exists('sidebarPermission')) {
             } else {
                 $access = false;
             }
+
         }
         if ($permission->alternate_module == 'OnlineExam') {
             if (moduleStatusCheck('OnlineExam')) {
@@ -430,6 +440,7 @@ if (!function_exists('sidebarPermission')) {
             if (!$permission->module || $permission->alternate_module == 'OnlineExam') {
                 $access = isMenuAllowToShow($permission->sidebar_menu);
             }
+
         }
 
         if (userPermission($permission->route) == true && $access == true) {
@@ -457,4 +468,6 @@ function hasDueFees($children_id)
     $student_ids = Cache::get('have_due_fees_' . auth()->user()->id);
 
     return $student_ids && in_array($children_id, $student_ids);
+
+
 }

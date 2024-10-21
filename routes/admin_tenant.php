@@ -31,6 +31,7 @@ use Modules\RolePermission\Entities\InfixModuleStudentParentInfo;
 use App\Http\Controllers\Admin\FrontSettings\ThemeManageController;
 use App\Http\Controllers\Admin\FeesCollection\SmFeesCarryForwardController;
 use App\Http\Controllers\Admin\FeesCollection\DueFeesLoginPermissionController;
+use App\Http\Controllers\Admin\StudentInfo\SmStudentAdmissionController;
 use App\Http\Controllers\UserNewsController;
 use App\Http\Controllers\UserPDFController;
 use App\Http\Controllers\UserForumController;
@@ -1259,8 +1260,8 @@ Route::group(['middleware' => ['XSS', 'subscriptionAccessUrl']], function () {
         Route::get('student-list-search', 'SmStudentAdmissionController@studentDetails');
 
         //student list
-        Route::get('student-view/{id}/{type?}', ['as' => 'student_view', 'uses' => 'Admin\StudentInfo\SmStudentAdmissionController@view']);
-
+        // Route::get('student-view/{id}/{type?}', ['as' => 'student_view', 'uses' => 'Admin\StudentInfo\SmStudentAdmissionController@view']);
+        Route::get('student-view/{id}/{type?}', [SmStudentAdmissionController::class, 'view'])->name('student_view');
         //student delete
         Route::post('student-delete', 'SmStudentAdmissionController@studentDelete')->name('student-delete');
 

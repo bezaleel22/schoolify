@@ -4,6 +4,9 @@ namespace Modules\Website\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\File;
+use Laravel\Passport\Passport;
 
 class WebsiteServiceProvider extends ServiceProvider
 {
@@ -27,7 +30,14 @@ class WebsiteServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
+        $this->registerHelpers();
+        $this->registerResource();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        Passport::cookie('schoolify_token');
+        Passport::tokensExpireIn(Carbon::now()->addHours(24));
+        Passport::refreshTokensExpireIn(Carbon::now()->addDays(30));
+        // Passport::personalAccessTokensExpireIn(Carbon::now()->addMonth(6));
     }
 
     /**
@@ -87,6 +97,25 @@ class WebsiteServiceProvider extends ServiceProvider
         } else {
             $this->loadTranslationsFrom(module_path($this->moduleName, 'Resources/lang'), $this->moduleNameLower);
         }
+    }
+
+    /**
+     * Register helpers file
+     *
+     * @return array
+     */
+
+    public function registerHelpers()
+    {
+        if (File::exists(module_path($this->moduleName, 'Helpers/Functions.php'))) {
+            require_once module_path($this->moduleName, 'Helpers/Functions.php');
+        }
+    }
+
+    public function registerResource (){
+        $this->publishes([
+            __DIR__ . '/../Resources/assets/js' => public_path('modules/website/js'),
+        ], 'public');
     }
 
     /**

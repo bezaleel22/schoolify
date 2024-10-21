@@ -8,225 +8,168 @@
         padding-left: 20px !important;
     }
 
+    textarea {
+        overflow-x: hidden;
+    }
+
 </style>
 @endpush
 
 <div role="tabpanel" class="tab-pane fade" id="studentExam">
-    @if (moduleStatusCheck('University'))
-    {{-- @includeIf('university::exam.partials._exam_report') --}}
-    @includeIf('university::exam.admin_student_exam_tab')
-    @else
     @php
     $exam_count = count($exam_terms);
     @endphp
-    @if ($exam_count > 1)
-    <div class="no-search no-paginate no-table-info mb-2">
+
+    @if ($exam_count < 0) <div class="no-search no-paginate no-table-info mb-2">
         <div class="table-responsive">
             <table class="table school-table-style shadow-none pb-0" cellspacing="0" width="100%">
                 <thead>
                     <tr>
-                        <th>
-                            @lang('student.subject')
-                        </th>
-                        <th>
-                            @lang('student.full_marks')
-                        </th>
-                        <th>
-                            @lang('student.passing_marks')
-                        </th>
-                        <th>
-                            @lang('student.obtained_marks')
-                        </th>
-                        <th>
-                            @lang('student.results')
-                        </th>
+                        <th>@lang('result::student.subject')</th>
+                        <th>@lang('result::student.mta1')</th>
+                        <th>@lang('result::student.mta2')</th>
+                        <th>@lang('result::student.oral')</th>
+                        <th>@lang('result::student.exam')</th>
+                        <th>@lang('result::student.score')</th>
+                        <th>@lang('result::student.grade')</th>
                     </tr>
                 </thead>
             </table>
         </div>
-    </div>
-    @endif
-    <div class="no-search no-paginate no-table-info mb-2">
-        @foreach ($student_detail->studentRecords as $record)
-        @foreach ($exam_terms as $key=>$exam)
-        @php
-        $get_results = App\SmStudent::getExamResult(@$exam->id, @$record);
-        @endphp
-        @if ($get_results)
-        <div class=@if ($key !=0) mt-40 @endif>
-            <div class="main-title">
-                <h3 class="mb-0">{{ @$exam->title }}</h3>
-            </div>
-            @php
-            $grand_total = 0;
-            $grand_total_marks = 0;
-            $result = 0;exam_type
-            $temp_grade = [];
-            $total_gpa_point = 0;
-            $total_subject = count($get_results);
-            $optional_subject = 0;
-            $optional_gpa = 0;
-            @endphp
+</div>
+@endif
+<div class="no-search no-paginate no-table-info mb-2">
+    @foreach ($results as $key=>$result)
+    @php
+    $records = $result->records;
+    $student = $result->student;
+    $exam = $result->exam_type;
+    $record_count = count($result->records);
+    @endphp
+    @if ($record_count > 1)
+    <div class=@if($key !=0) mt-40 @endif>
+        <div class="col-lg-12">
+            <div class="d-flex align-items-center mb-0">
+                <div class="main-title">
+                    <h3 class="mb-0">{{ @$exam->title }}</h3>
+                </div>
+                <button type="button" data-pdf-url="http://localhost/public/uploads/student/timeline/stu-0ac59f3663dd7437b7f264b58784476e.pdf" data-exam-id="{{ $exam->id }}" data-toggle="modal" data-target="#pdfPreviewModal" class="btn btn-link btn-sm open-preview-modal">
+                    @lang('result::student.preview')
+                </button>
 
-
-            <div class="table-responsive">
-                <table id="table_id" class="table student-exam-data-table mt-5" cellspacing="0" width="100%">
-                    <thead>
-                        <tr>
-                            <th>@lang('student.date')</th>
-                            <th>@lang('exam.subject_full_marks')</th>
-                            <th>@lang('exam.obtained_marks')</th>
-                            @if (@generalSetting()->result_type == 'mark')
-                            <th>@lang('exam.pass_fail')</th>
-                            @else
-                            <th>@lang('exam.grade')</th>
-                            <th>@lang('exam.gpa')</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($get_results as $mark)
-                        @php
-                        if (!is_null($student_detail->optionalSubjectSetup) && !is_null($student_detail->optionalSubject)) {
-                        if ($mark->subject_id != @$student_detail->optionalSubject->subject_id) {
-                        $temp_grade[] = $mark->total_gpa_grade;
-                        }
-                        } else {
-                        $temp_grade[] = $mark->total_gpa_grade;
-                        }
-                        $total_gpa_point += $mark->total_gpa_point;
-                        if (!is_null(@$student_detail->optionalSubject)) {
-                        if (@$student_detail->optionalSubject->subject_id == $mark->subject->id && $mark->total_gpa_point < @$student_detail->optionalSubjectSetup->gpa_above) {
-                            $total_gpa_point = $total_gpa_point - $mark->total_gpa_point;
-                            }
-                            }
-                            $temp_gpa[] = $mark->total_gpa_point;
-                            $get_subject_marks = subjectFullMark($mark->exam_type_id, $mark->subject_id, $mark->studentRecord->class_id, $mark->studentRecord->section_id);
-
-                            $subject_marks = App\SmStudent::fullMarksBySubject($exam->id, $mark->subject_id);
-                            $schedule_by_subject = App\SmStudent::scheduleBySubject($exam->id, $mark->subject_id, @$record);
-                            $result_subject = 0;
-                            if (@generalSetting()->result_type == 'mark') {
-                            $grand_total_marks += subject100PercentMark();
-                            } else {
-                            $grand_total_marks += $get_subject_marks;
-                            }
-                            if (@$mark->is_absent == 0) {
-                            if (@generalSetting()->result_type == 'mark') {
-                            $grand_total += @subjectPercentageMark(@$mark->total_marks, @subjectFullMark($mark->exam_type_id, $mark->subject_id, $mark->studentRecord->class_id, $mark->studentRecord->section_id));
-                            } else {
-                            $grand_total += @$mark->total_marks;
-                            }
-                            if ($mark->marks < $subject_marks->pass_mark) {
-                                $result_subject++;
-                                $result++;
-                                }
-                                } else {
-                                $result_subject++;
-                                $result++;
-                                }
-                                @endphp
-                                <tr>
-                                    <td>
-                                        {{ !empty($schedule_by_subject->date) ? dateConvert($schedule_by_subject->date) : '' }}
-                                    </td>
-                                    <td>
-                                        {{ @$mark->subject->subject_name }}
-                                        @if (@generalSetting()->result_type == 'mark')
-                                        ({{ subject100PercentMark() }})
-                                        @else
-                                        ({{ @subjectFullMark($mark->exam_type_id, $mark->subject_id, $mark->studentRecord->class_id, $mark->studentRecord->section_id) }})
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if (@generalSetting()->result_type == 'mark')
-                                        {{ @subjectPercentageMark(@$mark->total_marks, @subjectFullMark($mark->exam_type_id, $mark->subject_id, $mark->studentRecord->class_id, $mark->studentRecord->section_id)) }}
-                                        @else
-                                        {{ @$mark->total_marks }}
-                                        @endif
-                                    </td>
-                                    @if (@generalSetting()->result_type == 'mark')
-                                    <td>
-                                        @php
-                                        $totalMark = subjectPercentageMark(@$mark->total_marks, @subjectFullMark($mark->exam_type_id, $mark->subject_id, $mark->studentRecord->class_id, $mark->studentRecord->section_id));
-                                        $passMark = $mark->subject->pass_mark;
-                                        @endphp
-                                        @if ($passMark <= $totalMark) @lang('exam.pass') @else @lang('exam.fail') @endif </td>
-                                            @else
-                                    <td>
-                                        {{ @$mark->total_gpa_grade }}
-                                    </td>
-                                    <td>
-                                        {{ number_format(@$mark->total_gpa_point, 2, '.', '') }}
-                                    </td>
-                                    @endif
-                                </tr>
-                                @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th></th>
-                            <th>@lang('exam.position'):
-                                {{ getStudentMeritPosition($record->class_id, $record->section_id, $exam->id, $record->id) }}
-                            </th>
-                            <th>
-                                @lang('exam.grand_total'): {{ $grand_total }}/{{ $grand_total_marks }}
-                            </th>
-                            @if (@generalSetting()->result_type == 'mark')
-                            <th></th>
-                            @else
-                            <th>@lang('exam.grade'):
-                                @php
-                                if (in_array($fail_gpa_name->grade_name, $temp_grade)) {
-                                echo $fail_gpa_name->grade_name;
-                                } else {
-                                $final_gpa_point = ($total_gpa_point - $optional_gpa) / ($total_subject - $optional_subject);
-                                $average_grade = 0;
-                                $average_grade_max = 0;
-                                if ($result == 0 && $grand_total_marks != 0) {
-                                $gpa_point = number_format($final_gpa_point, 2, '.', '');
-                                if ($max_gpa && $gpa_point >= $max_gpa) {
-                                $average_grade_max = App\SmMarksGrade::where('school_id', Auth::user()->school_id)
-                                ->where('academic_id', getAcademicId())
-                                ->where('from', '<=', $max_gpa) ->where('up', '>=', $max_gpa)
-                                    ->first('grade_name');
-
-                                    echo @$average_grade_max->grade_name;
-                                    } else {
-                                    $average_grade = App\SmMarksGrade::where('school_id', Auth::user()->school_id)
-                                    ->where('academic_id', getAcademicId())
-                                    ->where('from', '<=', $final_gpa_point) ->where('up', '>=', $final_gpa_point)
-                                        ->first('grade_name');
-                                        echo @$average_grade->grade_name;
-                                        }
-                                        } else {
-                                        echo $fail_gpa_name->grade_name;
-                                        }
-                                        }
-                                        @endphp
-                            </th>
-                            <th>
-                                @lang('exam.gpa')
-                                @php
-                                $final_gpa_point = 0;
-                                $final_gpa_point = ($total_gpa_point - $optional_gpa) / ($total_subject - $optional_subject);
-                                $float_final_gpa_point = number_format($final_gpa_point, 2);
-                                if ($float_final_gpa_point >= $max_gpa) {
-                                echo $max_gpa;
-                                } else {
-                                echo $float_final_gpa_point;
-                                }
-                                @endphp
-                            </th>
-                            @endif
-                        </tr>
-                    </tfoot>
-                </table>
             </div>
         </div>
-        @endif
-        @endforeach
-        @endforeach
+
+        <div class="text-right mb-2">
+            <button type="button" data-opened="{{ $student->opened }}" data-absent="{{ $student->absent }}" data-present="{{ $student->present }}" data-exam-id=" {{ $exam->id }}" data-toggle="modal" data-target="#perf_madal" class="primary-btn btn-sm tr-bg text-uppercase bord-rad open-perf-modal">
+                @lang('result::student.performance')
+                <span class="pl ti-plus"></span>
+            </button>
+        </div>
+        <div class="table-responsive pb-10">
+            <table id="table_id" class="table student-exam-data-table mt-5" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <th>@lang('result::student.subject')</th>
+                        <th>@lang('result::student.mta1')</th>
+                        <th>@lang('result::student.mta2')</th>
+                        <th>@lang('result::student.oral')</th>
+                        <th>@lang('result::student.exam')</th>
+                        <th>@lang('result::student.score')</th>
+                        <th>@lang('result::student.grade')</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($records as $record)
+                    <tr>
+                        <td>{{ @$record->subject }}</td>
+                        @foreach ($record->marks as $mark)
+                        <td>{{ $mark }}</td>
+                        @endforeach
+                        <td>{{ @$record->total_score }}</td>
+                        <td>{{ @$record->grade }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                @php
+                $score = $result->score;
+                $remark = $result->remark;
+                $min_average = $score->min_average->value;
+                $max_average = $score->max_average->value;
+                @endphp
+                <tfoot>
+                    <tr>
+                        <th>@lang('result::student.total_score'): {{ @$score->total }}</th>
+                        <th>@lang('result::student.average'): {{ @$score->average }}</th>
+                        <th></th>
+                        <th colspan="2">@lang('result::student.max_average'): {{ $max_average }}</th>
+                        <th colspan="2">@lang('result::student.min_average'): {{ $min_average }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div class="col-lg-12 mt-10">
+                <div class="input-effect">
+                    <div class="d-flex justify-content-between align-items-center mb-0">
+                        <label class="mb-0">@lang('result::student.remark')<span></span></label>
+                        <button type="button" data-remark="{{ @$remark->comment }}" data-exam-id="{{ $exam->id }}" data-toggle="modal" data-target="#add_remark_modal" class="btn btn-link btn-sm open-remark-modal">
+                            @lang('result::student.add_remark')
+                        </button>
+                    </div>
+                    <textarea class="primary_input_field form-control" cols="0" rows="2" name="remark" id="Remark">{{ @$remark->comment }}</textarea>
+                    <span class="focus-border textarea"></span>
+                </div>
+            </div>
+        </div>
     </div>
     @endif
+    @endforeach
 </div>
+</div>
+
+
+@include('result::include.performance_modal')
+@include('result::include.remark_modal')
+@include('result::include.preview_modal')
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.open-perf-modal').on('click', function() {
+            var examId = $(this).data('exam-id');
+            $('#examTypeId').val(examId);
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.open-preview-modal').on('click', function() {
+            var examId = $(this).data('exam-id');
+            $('#previewExamTypeId').val(examId);
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('.open-remark-modal').on('click', function() {
+            var examId = $(this).data('exam-id');
+            var remark = $(this).data('remark');
+            $('#remarkExamTypeId').val(examId);
+            $('#selectedRemark').val(remark);
+        });
+    });
+</script>
+
+
+{{-- <script type="text/javascript">
+    $('#deleteModal').on('show.bs.modal', function(event) {
+        var button = $(event.relatedTarget);
+        var id = button.data('id');
+
+        $('#userForm').attr("action", "{{ url('/companies') }}" + "/" + id);
+});
+
+</script> --}}

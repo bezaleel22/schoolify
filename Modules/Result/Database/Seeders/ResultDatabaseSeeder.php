@@ -16,6 +16,6 @@ class ResultDatabaseSeeder extends Seeder
     {
         Model::unguard();
 
-        // $this->call("OthersTableSeeder");
+        $this->call(CommentTableSeeder::class);
     }
 }

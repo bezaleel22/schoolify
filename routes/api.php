@@ -8,10 +8,10 @@ Route::post('deviceInfo', 'api\ApiSmStudentAttendanceController@deviceInfo');
 // Route::post('system-disable', 'SmApiController@systemDisbale');
 
 // admin section visitor
-Route::get('result-pdf/{id}', 'api\ApiRenderController@index');
 Route::any('login', 'SmApiController@mobileLogin');
 Route::get('user-demo', 'SmApiController@DemoUser');
 Route::any('saas-login', 'SmApiController@saasLogin');
+
 
 Route::any('login', 'SmApiController@mobileLogin');
 

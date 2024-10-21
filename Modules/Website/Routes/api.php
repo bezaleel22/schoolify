@@ -2,6 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Modules\Website\Http\Controllers\BlogController;
+use Modules\Website\Http\Controllers\WebsiteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,16 +16,33 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->group(function () {
-    Route::prefix('blog')->group(function () {
-        Route::get('/', 'BlogController@index');
-        Route::get('/show/{id}', 'BlogController@show');
-        Route::get('/comments/{blog_id}', 'BlogController@comments');
-        Route::get('/update/{id}', 'BlogController@update');
-        Route::get('/destroy/{id}', 'BlogController@destroy');
+Route::group(['middleware' => ['cors', 'json.response']], function () {
+    Route::post('auth/login', 'AuthController@login');
+    Route::get('/auth',  function () {
+        return response()->json(['message' => 'healthy.'], 200);
     });
 
-    Route::prefix('event')->group(function () {
-        Route::get('/', 'WebsiteController@index');
+    Route::controller(BlogController::class)->as('webapp.')->group(function ($routes) {
+        $routes->get('home', 'index')->name('home-page');
+        $routes->get('blogs/{skip?}', 'index')->name('blog-list');
+        $routes->get('blog-view/{id}', 'show')->name('blog-view');
+        $routes->get('blog-comments/{id}/{skip?}', 'comments')->name('blog-comments');
+        $routes->get('blog-edit-comment/{id}', 'destroy')->name('edit-comment');
+        $routes->get('blog-delete-comment/{id}', 'destroy')->name('delete-comment');
+        $routes->middleware(['auth', 'subdomain'])->group(function ($routes) {
+            $routes->post('store-blog-comment', 'update')->name('store-blog-comment');
+        });
     });
+
+    Route::controller(WebsiteController::class)->as('webapp.')->group(function ($routes) {
+        $routes->get('home', 'index')->name('home-page');
+        $routes->middleware(['auth', 'subdomain'])->group(function ($routes) {
+            $routes->post('store-blog-comment', 'update')->name('store-blog-comment');
+        });
+    });
+});
+
+Route::middleware('auth:api')->group(function () {
+    // our routes to be protected will go in here
+    // Route::post('/logout', 'Auth\ApiAuthController@logout')->name('logout.api');
 });

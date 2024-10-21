@@ -79,16 +79,11 @@ class InstallApp extends Command
             $this->info('Creating the admin usuer...');
             $admin = $this->makeAdmin($email, $password);
 
-            // $this->info('Seeding Database...');
-            // $this->seed(true);
+            $this->info('Seeding Database...');
+            $this->seed(true);
             $this->postInstallScript($admin, $email, $password);
 
             Artisan::call('key:generate', ['--force' => true]);
-
-            envu([
-                'APP_ENV' => 'production',
-                'APP_DEBUG'     =>  'false',
-            ]);
 
             $this->info('Done Intsalling');
         } catch (\Exception $e) {

@@ -29,11 +29,11 @@ use Modules\Zoom\Repositories\Interfaces\VirtualClassRepositoryInterface;
 class ZoomController extends Controller
 {
     protected $virtualClassRepository;
-    public function __construct(
-        VirtualClassRepositoryInterface $virtualClassRepository
-    ) {
-        $this->virtualClassRepository = $virtualClassRepository;
-    }
+    // public function __construct(
+    //     VirtualClassRepositoryInterface $virtualClassRepository
+    // ) {
+    //     $this->virtualClassRepository = $virtualClassRepository;
+    // }
 
     public function makeMeeting(Request $request)
     {

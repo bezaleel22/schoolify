@@ -71,7 +71,8 @@ class SmStaffController extends Controller
                 ->get();
 
             return view('backEnd.humanResource.staff_list', compact('roles'));
-        } catch (\Exception $e) {
+
+        } catch (\Exception $e) {           
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
@@ -101,6 +102,7 @@ class SmStaffController extends Controller
             } else {
                 return view('backEnd.humanResource.staff_list', compact('staffs', 'roles'));
             }
+
         } catch (\Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
@@ -118,6 +120,7 @@ class SmStaffController extends Controller
 
                 Toastr::error('Your staff limit has been crossed.', 'Failed');
                 return redirect()->back();
+
             }
         }
         try {
@@ -219,7 +222,7 @@ class SmStaffController extends Controller
                 $user->school_id = Auth::user()->school_id;
                 $user->save();
 
-                if ($request->role_id == 5) {
+                if($request->role_id == 5){
                     $this->assignChatGroup($user);
                 }
 
@@ -293,10 +296,10 @@ class SmStaffController extends Controller
                 $results = $staff->save();
                 $staff->toArray();
 
-                $st_role_id = $request->role_id;
-                $school_id = Auth::user()->school_id;
-                $academic_id = getAcademicId();
-                $user_id = $user->id;
+                $st_role_id = $request->role_id; 
+                $school_id = Auth::user()->school_id; 
+                $academic_id = getAcademicId(); 
+                $user_id = $user->id; 
 
                 $existingLeaveDefines = SmLeaveDefine::where('role_id', $st_role_id)
                     ->where('school_id', $school_id)
@@ -324,10 +327,10 @@ class SmStaffController extends Controller
                     }
                 }
 
-
+            
                 DB::commit();
                 //Expert Staff Start
-                if ($request->show_public == 1) {
+                if($request->show_public == 1){
                     $expertTeacher = new SmExpertTeacher();
                     $expertTeacher->staff_id = $staff->id;
                     $expertTeacher->created_by = auth()->user()->id;
@@ -376,17 +379,17 @@ class SmStaffController extends Controller
         try {
             $editData = SmStaff::withOutGlobalScopes()->where('school_id', auth()->user()->school_id)->find($id);
             // $has_permission = [];
-            if (auth()->user()->staff->id == $id && auth()->user()->role_id != 1) {
+            if (auth()->user()->staff->id == $id && auth()->user()->role_id !=1) {
                 $has_permission = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)
-                    ->where('staff_edit', 1)->pluck('field_name')->toArray();
+                ->where('staff_edit', 1)->pluck('field_name')->toArray();
             } else {
                 $has_permission = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)
-                    ->pluck('field_name')->toArray();
+                ->pluck('field_name')->toArray();
             }
-
+      
             $max_staff_no = SmStaff::withOutGlobalScopes()->where('is_saas', 0)->where('school_id', Auth::user()->school_id)->max('staff_no');
 
-            $roles = InfixRole::where('is_saas', 0)->where('active_status', '=', 1)
+            $roles = InfixRole::where('is_saas',0)->where('active_status', '=', 1)
                 ->where(function ($q) {
                     $q->where('school_id', Auth::user()->school_id)->orWhere('type', 'System');
                 })
@@ -395,21 +398,21 @@ class SmStaffController extends Controller
                 ->get();
 
             $departments = SmHumanDepartment::where('active_status', '=', '1')
-                ->where('school_id', Auth::user()->school_id)->get();
+            ->where('school_id', Auth::user()->school_id)->get();
             $designations = SmDesignation::where('active_status', '=', '1')
-                ->where('school_id', Auth::user()->school_id)->get();
+            ->where('school_id', Auth::user()->school_id)->get();
             $marital_ststus = SmBaseSetup::where('active_status', '=', '1')
-                ->where('base_group_id', '=', '4')
-                ->where('school_id', auth()->user()->school_id)
-                ->get();
+            ->where('base_group_id', '=', '4')
+            ->where('school_id', auth()->user()->school_id)
+            ->get();
             $genders = SmBaseSetup::where('active_status', '=', '1')
-                ->where('base_group_id', '=', '1')
-                ->where('school_id', auth()->user()->school_id)
-                ->get();
+            ->where('base_group_id', '=', '1')
+            ->where('school_id', auth()->user()->school_id)
+            ->get();
 
             // Custom Field Start
             $custom_fields = SmCustomField::where('form_name', 'staff_registration')
-                ->where('school_id', Auth::user()->school_id)->get();
+            ->where('school_id', Auth::user()->school_id)->get();
             $custom_filed_values = json_decode($editData->custom_field);
             $student = $editData;
             // Custom Field End
@@ -492,13 +495,13 @@ class SmStaffController extends Controller
             'logo_pic' => 'sometimes|required|mimes:jpg,png|max:40000',
 
         ]);
-
+        
         if ($validator->fails()) {
             return response()->json(['error' => 'Image Validation Failed'], 201);
         }
-
+        
         try {
-
+           
             if (checkAdmin()) {
                 $data = SmStaff::withOutGlobalScopes()->where('school_id', auth()->user()->school_id)->find($id);
             } else {
@@ -677,14 +680,14 @@ class SmStaffController extends Controller
             //Custom Field End
             //Expert Staff Start
             $expertExists = SmExpertTeacher::where('staff_id', $request->staff_id)->where('school_id', auth()->user()->school_id)->first();
-            if ($request->show_public == 1 && $expertExists == null) {
+            if($request->show_public == 1 && $expertExists == null){
                 $expertTeacher = new SmExpertTeacher();
                 $expertTeacher->staff_id = $staff->id;
                 $expertTeacher->created_by = auth()->user()->id;
                 $expertTeacher->school_id = auth()->user()->school_id;
                 $expertTeacher->save();
             }
-            if ($request->show_public == 0 && $expertExists != null) {
+            if($request->show_public == 0 && $expertExists != null){
                 $expertExists->delete();
             }
             //Expert Staff End
@@ -700,12 +703,12 @@ class SmStaffController extends Controller
                 $user->email = $request->email;
             }
             if ($request->filled('role_id')) {
-                if ($user->role_id != 5 && $request->role_id == 5) {
+                if($user->role_id != 5 && $request->role_id == 5){
                     //assign to group
                     $this->assignChatGroup($user);
                 }
 
-                if ($user->role_id == 5 && $request->role_id != 5) {
+                if($user->role_id == 5 && $request->role_id != 5){
                     // remove chat group
                     $this->removeChatGroup($user);
                 }
@@ -793,7 +796,7 @@ class SmStaffController extends Controller
 
     public function searchStaff(Request $request)
     {
-
+      
         try {
             $data = [];
             $data['role_id'] = $request->role_id;
@@ -802,9 +805,10 @@ class SmStaffController extends Controller
             $staff = SmStaff::withOutGlobalScope(ActiveStatusSchoolScope::class);
             $staff->where('is_saas', 0)->where('active_status', 1);
             if ($request->role_id != "") {
-                $staff->where(function ($q) use ($request) {
+                $staff->where(function($q) use ($request) {
                     $q->where('role_id', $request->role_id)->orWhere('previous_role_id', $request->role_id);
                 });
+
             }
             if ($request->staff_no != "") {
                 $staff->where('staff_no', $request->staff_no);
@@ -830,8 +834,8 @@ class SmStaffController extends Controller
                 })->get();
             }
 
-
-            return view('backEnd.humanResource.staff_list', compact('all_staffs', 'roles', 'data'));
+            
+            return view('backEnd.humanResource.staff_list', compact('all_staffs', 'roles','data'));
         } catch (\Exception $e) {
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
@@ -1063,7 +1067,7 @@ class SmStaffController extends Controller
         try {
             $id = $request->id;
             $expertStaff = SmExpertTeacher::where('staff_id', $id)->where('school_id', auth()->user()->school_id)->first();
-            if ($expertStaff != null) {
+            if($expertStaff != null){
                 $expertStaff->delete();
             }
             $tables = \App\tableList::getTableList('staff_id', $id);
@@ -1102,25 +1106,25 @@ class SmStaffController extends Controller
             if ($status == 1 && isSubscriptionEnabled() && auth()->user()->school_id != 1) {
                 $active_staff = SmStaff::withOutGlobalScope(ActiveStatusSchoolScope::class)->where('role_id', '!=', 1)->where('school_id', Auth::user()->school_id)->where('active_status', 1)->where('is_saas', 0)->count();
                 if (\Modules\Saas\Entities\SmPackagePlan::staff_limit() <= $active_staff) {
-                    $canUpdate = false;
-                    return response()->json(['message' => 'Your staff limit has been crossed.', 'status' => false]);
+                    $canUpdate = false;                  
+                    return response()->json(['message' => 'Your staff limit has been crossed.', 'status'=>false]);
                 }
             }
             if ($canUpdate == true) {
 
                 $staff = SmStaff::withOutGlobalScope(ActiveStatusSchoolScope::class)
-                    ->when(checkAdmin(), function ($q) {
-                        $q->where('school_id', Auth::user()->school_id);
-                    })->where('id', $request->id)->first();
-
+                ->when(checkAdmin(), function($q) {
+                    $q->where('school_id', Auth::user()->school_id);
+                })->where('id', $request->id)->first();
+                   
                 $staff->active_status = $status;
                 $staff->save();
-
-                $user = User::find($staff->user_id);
-                $user->active_status = $status;
+    
+                $user = User::find($staff->user_id);    
+                $user->active_status = $status;    
                 $user->save();
-
-                return response()->json(['status' => true]);
+    
+                return response()->json(['status'=>true]);
             }
         } catch (\Exception $e) {
             throw ValidationException::withMessages(['message' => 'Operation Failed']);
@@ -1160,7 +1164,7 @@ class SmStaffController extends Controller
     public function settings()
     {
         try {
-            $staff_settings = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)->get()->filter(function ($field) {
+            $staff_settings = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)->get()->filter(function ($field){
                 return $field->field_name != 'custom_fields' || isMenuAllowToShow('custom_field');
             });
             return view('backEnd.humanResource.staff_settings', compact('staff_settings'));
@@ -1172,71 +1176,70 @@ class SmStaffController extends Controller
     public function statusUpdate(Request $request)
     {
         $field = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)
-            ->where('id', $request->filed_id)->firstOrFail();
+                    ->where('id', $request->filed_id)->firstOrFail();
 
-        if ($request->filed_value == 'phone_number') {
+        if ($request->filed_value =='phone_number') {
             $emailField = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)
-                ->where('field_name', 'email_address')->firstOrFail();
+                        ->where('field_name', 'email_address')->firstOrFail();
 
-            if ($emailField->is_required == 0 && $request->field_status == 0) {
+            if ($emailField->is_required==0 && $request->field_status==0) {
                 $emailField->is_required = 1;
             }
             $emailField->save();
-        } elseif ($request->filed_value == 'email_address') {
+        } elseif ($request->filed_value =='email_address') {
             $phoneNumberField = SmStaffRegistrationField::where('school_id', auth()->user()->school_id)->where('field_name', 'phone_number')
-                ->firstOrFail();
+            ->firstOrFail();
 
-            if ($phoneNumberField->is_required == 0 && $request->field_status == 0) {
+            if ($phoneNumberField->is_required==0 && $request->field_status==0) {
                 $phoneNumberField->is_required = 1;
             }
             $phoneNumberField->save();
         }
         if ($field) {
-            if ($request->type == 'required') {
+            if ($request->type =='required') {
 
                 $field->is_required = $request->field_status;
             }
-            if ($request->type == 'staff') {
+            if ($request->type =='staff') {
                 $field->staff_edit = $request->field_status;
             }
 
             $field->save();
-            return response()->json(['message' => 'Operation Success']);
+                return response()->json(['message'=>'Operation Success']);
         }
-        return response()->json(['error' => 'Operation Failed']);
+        return response()->json(['error'=>'Operation Failed']);
+
     }
 
-    public function teacherFieldView(Request $request)
-    {
+    public function teacherFieldView(Request $request){
 
         $field = $request->filed_value;
         $status = $request->field_status;
-        $gs = SmGeneralSettings::where('school_id', Auth::user()->school_id)->first();
-        if ($gs) {
-            if ($field == "email") {
+        $gs = SmGeneralSettings::where('school_id',Auth::user()->school_id)->first();
+        if($gs){
+            if($field == "email"){
                 $gs->teacher_email_view = $status;
-            } elseif ($field == "phone") {
+            }
+            elseif($field == "phone"){
                 $gs->teacher_phone_view = $status;
             }
             $gs->save();
             session()->forget('generalSetting');
             session()->put('generalSetting', $gs);
-            return response()->json(['message' => 'Operation Success']);
+            return response()->json(['message'=>'Operation Success']);
         }
     }
 
-    private function assignChatGroup($user)
-    {
+    private function assignChatGroup($user){
         $groups = \Modules\Chat\Entities\Group::where('school_id', auth()->user()->school_id)->get();
-        foreach ($groups as $group) {
+        foreach($groups as $group){
             createGroupUser($group, $user->id);
         }
     }
 
-    private function removeChatGroup($user)
-    {
+    private function removeChatGroup($user){
         $groups = \Modules\Chat\Entities\Group::where('school_id', auth()->user()->school_id)->get();
-        foreach ($groups as $group) {
+        foreach($groups as $group){
             removeGroupUser($group, $user->id);
         }
     }

@@ -14,7 +14,7 @@ class SmNewsComment extends Model
     public function onlyChildrenFrontend()
     {
         return $this->hasMany(SmNewsComment::class, 'parent_id', 'id')
-            ->with(['onlyChildrenFrontend'])->where('status', 1);
+                    ->with(['onlyChildrenFrontend'])->where('status', 1);
     }
 
     public function onlyChildrenBackend()

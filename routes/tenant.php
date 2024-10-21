@@ -6,7 +6,7 @@ use App\Http\Controllers\Theme\Edulia\FrontendController;
 
 
 
-Route::get('result-pdf/{id}', 'api\ApiRenderController@index');
+
 Route::get('logout', '\App\Http\Controllers\Auth\LoginController@logout');
 Route::post('login', 'Auth\LoginController@login');
 Route::get('school-secret-login', '\App\Http\Controllers\Auth\LoginController@secretLogin')->name('scl.secret-login');
@@ -252,7 +252,7 @@ Route::group(['middleware' => []], function () {
 
     Route::post('student-update-pic/{id}', ['as' => 'student_update_pic', 'uses' => 'SmStudentAdmissionController@studentUpdatePic']);
     Route::post('student-document-delete', ['as' => 'student_document_delete', 'uses' => 'SmStudentAdmissionController@deleteStudentDocument']);
-    Route::post('staff-document-delete', ['as' => 'staff-document-delete', 'uses' => 'SmStaffController@deleteStaffDoc']);
+    Route::post('staff-document-delete', ['as' => 'staff-document-delete', 'uses' => 'Admin\Hr\SmStaffController@deleteStaffDoc']);
     Route::get('view-leave-details-apply/{id}', 'Admin\Leave\SmLeaveRequestController@viewLeaveDetails')->name('view-leave-details-apply');
 
     Route::group(['middleware' => ['auth']], function () {

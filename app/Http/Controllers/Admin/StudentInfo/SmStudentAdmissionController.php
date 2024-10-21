@@ -377,10 +377,10 @@ class SmStudentAdmissionController extends Controller
             $student->save();
 
             // instert into student define leave
-            $st_role_id = 2;
-            $school_id = Auth::user()->school_id;
-            $academic_id = getAcademicId();
-            $user_id = $user_stu->id;
+            $st_role_id = 2; 
+            $school_id = Auth::user()->school_id; 
+            $academic_id = getAcademicId(); 
+            $user_id = $user_stu->id; 
 
             $existingLeaveDefines = SmLeaveDefine::where('role_id', $st_role_id)
                 ->where('school_id', $school_id)
@@ -408,8 +408,8 @@ class SmStudentAdmissionController extends Controller
                 }
             }
 
-
-
+            
+      
             if (!empty($request->route) && !empty($request->vehicle)) {
                 $data['route'] = $student->route->title;
                 $data['vehicle_no'] = $student->vehicle->vehicle_no;
@@ -435,7 +435,7 @@ class SmStudentAdmissionController extends Controller
                 $data['teacher_name'] = $class_teacher->teacher->full_name;
                 $this->sent_notifications('Student_Admission', (array)$class_teacher->teacher->user_id, $data, ['Teacher']);
             }
-            $this->sent_notifications('Student_Admission', [$user_stu->id], $data, ['Student', 'Parent', 'Super admin']);
+            $this->sent_notifications('Student_Admission', [$user_stu->id], $data, ['Student', 'Parent','Super admin']);
 
             $student->toArray();
             if (moduleStatusCheck('Lead') == true) {
@@ -539,11 +539,11 @@ class SmStudentAdmissionController extends Controller
         if ($request->relation == 'Father') {
             $guardians_photo = fileUpdate($student->parents->guardians_photo, $request->fathers_photo, $student_file_destination);
         } elseif ($request->relation == 'Mother') {
-            if ($request->mothers_photo != null) {
+            if($request->mothers_photo != null) {
                 $guardians_photo = fileUpdate($student->parents->guardians_photo, $request->mothers_photo, $student_file_destination);
             }
         } else {
-            if ($request->guardians_photo != null) {
+            if($request->guardians_photo != null) {
                 $guardians_photo = fileUpdate($student->parents->guardians_photo, $request->guardians_photo, $student_file_destination);
             }
         }
@@ -594,13 +594,13 @@ class SmStudentAdmissionController extends Controller
                     $parent->fathers_name = $request->fathers_name;
                     $parent->fathers_mobile = $request->fathers_phone;
                     $parent->fathers_occupation = $request->fathers_occupation;
-                    if ($request->fathers_photo != null) {
+                    if($request->fathers_photo != null ) {
                         $parent->fathers_photo = fileUpdate($parent->fathers_photo, $request->fathers_photo, $student_file_destination);
                     }
                     $parent->mothers_name = $request->mothers_name;
                     $parent->mothers_mobile = $request->mothers_phone;
                     $parent->mothers_occupation = $request->mothers_occupation;
-                    if ($request->mothers_photo != null) {
+                    if($request->mothers_photo != null) {
                         $parent->mothers_photo = fileUpdate($parent->mothers_photo, $request->mothers_photo, $student_file_destination);
                     }
                     $parent->guardians_name = $request->guardians_name;
@@ -609,7 +609,7 @@ class SmStudentAdmissionController extends Controller
                     $parent->guardians_occupation = $request->guardians_occupation;
                     $parent->guardians_relation = $request->relation;
                     $parent->relation = $request->relationButton;
-                    if ($request->guardians_photo != null) {
+                    if($request->guardians_photo != null) {
                         $parent->guardians_photo = $guardians_photo;
                     }
                     $parent->guardians_address = $request->guardians_address;
@@ -642,7 +642,7 @@ class SmStudentAdmissionController extends Controller
             $student->email = $request->email_address;
             $student->mobile = $request->phone_number;
             $student->admission_date = date('Y-m-d', strtotime($request->admission_date));
-            if ($request->photo) {
+            if($request->photo) {
                 $student->student_photo = fileUpdate($student->student_photo, $request->photo, $student_file_destination);
             }
             $student->bloodgroup_id = $request->blood_group;
@@ -720,7 +720,7 @@ class SmStudentAdmissionController extends Controller
                 $data['room'] = $student->room->name;
                 $this->sent_notifications('Assign_Dormitory', [$user_stu->id], $data, ['Student', 'Parent']);
             }
-
+            
             $student->save();
             if ($studentRecord && generalSetting()->multiple_roll == 0 && $request->roll_number) {
                 $studentRecord->update(['roll_no' => $request->roll_number]);
@@ -1095,7 +1095,7 @@ class SmStudentAdmissionController extends Controller
             'school_id' => auth()->user()->school_id
         ])->get();
         $student = SmStudent::where('school_id', auth()->user()->school_id)->find($request->student_id);
-
+        
         if ($student) {
             $student->roll_no = $request->roll_number;
             $student->save();
@@ -1702,5 +1702,7 @@ class SmStudentAdmissionController extends Controller
         return view('backEnd.studentInformation.mm');
     }
 
-    public static function staffAsParent(int $staff_id) {}
+    public static function staffAsParent(int $staff_id)
+    {
+    }
 }
