@@ -1,30 +1,68 @@
 services:
-  schoolify:
+  edusms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: edusms
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "3000:3000"
+    networks:
+      - dokploy-network
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_ENV: ${APP_ENV}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_URL: ${APP_URL}
+      FORCE_HTTPS: ${FORCE_HTTPS}
+      LOG_CHANNEL: ${LOG_CHANNEL}
+
+      DB_CONNECTION: ${DB_CONNECTION}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+  schoolifydb:
     image: mariadb:latest
     container_name: schoolifydb
     restart: unless-stopped
     ports:
-      - 3307:3306
+      - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: paxxw0rd@2791
-      MYSQL_DATABASE: schoolifydb
-      MYSQL_USER: schoolify
-      MYSQL_PASSWORD: paxxw0rd@2791
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - dokploy-network
 
   gotenberg:
-    container_name: gotenberg
     image: gotenberg/gotenberg:8
+    container_name: gotenberg
     restart: unless-stopped
     ports:
-      - 4000:3000
+      - "4000:3000"
+    networks:
+      - dokploy-network
 
-  dbbrowser:
+  adminer:
     depends_on:
-      - schoolify
+      - schoolifydb
     image: adminer
     container_name: dbbrowser
     restart: always
     environment:
-      ADMINER_DEFAULT_SERVER: schoolify
+      ADMINER_DEFAULT_SERVER: ${DB_HOST}
     ports:
-      - 8080:8080
+      - "8080:8080"
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
