@@ -2,7 +2,6 @@
 /resources
 /public
 /database
-/app/Http
 
 # Laravel / PHP
 /vendor/
