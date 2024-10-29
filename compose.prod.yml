@@ -7,8 +7,6 @@ services:
     restart: unless-stopped
     volumes:
       - .:/var/www/html
-    ports:
-      - "3000:3000"
     networks:
       - dokploy-network
     environment:
@@ -18,7 +16,6 @@ services:
       APP_DEBUG: ${APP_DEBUG}
       APP_URL: ${APP_URL}
       FORCE_HTTPS: ${FORCE_HTTPS}
-
       LOG_CHANNEL: ${LOG_CHANNEL}
 
       DB_CONNECTION: ${DB_CONNECTION}
@@ -27,6 +24,34 @@ services:
       DB_DATABASE: ${DB_DATABASE}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+
+      PHP_UPLOAD_MAX_FILESIZE: 100M
+      PHP_POST_MAX_SIZE: 120M
+
+  schoolifydb:
+    image: mariadb:latest
+    container_name: schoolifydb
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - dokploy-network
+
+  adminer:
+    depends_on:
+      - schoolifydb
+    image: adminer
+    container_name: dbbrowser
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: ${DB_HOST}
+    networks:
+      - dokploy-network
 
 networks:
   dokploy-network:

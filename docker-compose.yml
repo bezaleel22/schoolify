@@ -46,7 +46,7 @@ services:
     container_name: gotenberg
     restart: unless-stopped
     ports:
-      - "4000:3000"
+      - "3000:3000"
     networks:
       - dokploy-network
 
