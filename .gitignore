@@ -20,7 +20,7 @@
 *.code-workspace
 
 # Ignore Composer files
-composer.lock
+# composer.lock
 
 # Ignore Laravel Mix and Vite generated files
 /public/hot
@@ -29,7 +29,7 @@ composer.lock
 /public/css/*.css
 /public/js/*.js
 /public/build/
-/public/uploads/
+/public/uploads/*
 
 # Ignore npm/Yarn files
 npm-debug.log
