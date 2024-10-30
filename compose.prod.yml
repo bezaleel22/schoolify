@@ -1,9 +1,9 @@
 services:
-  edusms:
+  schoolify:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: edusms
+    container_name: schoolify_host
     restart: unless-stopped
     networks:
       - dokploy-network
@@ -30,8 +30,6 @@ services:
     image: mariadb:latest
     container_name: schoolifydb
     restart: unless-stopped
-    ports:
-      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -44,7 +42,7 @@ services:
     depends_on:
       - schoolifydb
     image: adminer
-    container_name: dbbrowser
+    container_name: adminer
     restart: always
     environment:
       ADMINER_DEFAULT_SERVER: ${DB_HOST}
