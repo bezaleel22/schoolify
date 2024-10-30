@@ -37,6 +37,4 @@ RUN composer install \
     --optimize-autoloader
 
 RUN chown -R application:application . \
-    && find . -type d -exec chmod 755 {} \; \
-    && find . -type f -exec chmod 644 {} \; \
     && chmod -R 775 ./storage ./bootstrap/cache ./public/uploads \   
