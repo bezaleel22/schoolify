@@ -29,7 +29,6 @@
 /public/css/*.css
 /public/js/*.js
 /public/build/
-/public/uploads/*
 
 # Ignore npm/Yarn files
 npm-debug.log
