@@ -1,3 +1,4 @@
+# Ignore files and directories for Git
 services:
   schoolify:
     build:
