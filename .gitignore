@@ -6,13 +6,6 @@
 
 # Laravel specific directories
 /storage/*.key
-/storage/app/public
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/testing/*
-/storage/framework/views/*
-/storage/logs/*
-/bootstrap/cache/*
 
 # Ignore IDE specific files
 /.idea
