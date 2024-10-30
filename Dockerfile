@@ -26,15 +26,7 @@ RUN apk add --no-cache --update \
 
 # Copy Composer binary from the Composer official Docker image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-COPY . .
+COPY --chown=application:application . .
 
-RUN composer install \
-    --no-interaction \
-    --no-plugins \
-    --no-scripts \
-    --no-dev \
-    --prefer-dist\
-    --optimize-autoloader
-
-RUN chown -R application:application . \
-    && chmod -R 775 ./storage ./bootstrap/cache ./public/uploads \   
+RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefer-dist --optimize-autoloader \
+    && chmod -R 775 storage bootstrap/cache
