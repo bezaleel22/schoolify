@@ -17,15 +17,6 @@ docker-compose.override.yml
 # Ignore node modules if using Node.js for assets
 node_modules
 
-# Ignore logs and caches
-storage/*.log
-storage/framework/*
-storage/logs/*
-storage/temp/*
-storage/sessions/*
-storage/views/*
-bootstrap/cache/*
-
 # Ignore IDE and editor files
 .idea
 .vscode
