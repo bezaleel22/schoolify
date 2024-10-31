@@ -56,6 +56,7 @@ class InstallApp extends Command
                 return;
             }
 
+            $ac = env('ACCES_CODE', '');
             $email = env('ADMIN_EMAIL', 'onosbrown.saved@gmail.com');
             $password = env('ADMIN_PASSWORD', '#1414bruno#'); // Default password if not set in .env
             $this->info(sprintf('Installing Schoolify Application...'));
@@ -68,7 +69,6 @@ class InstallApp extends Command
             $this->info('Migrating Database...');
             if ($this->migrateDB()) {
                 $this->info('Done Migrating Database.');
-                $ac = Storage::exists('.access_code') ? Storage::get('.access_code') : null;
                 Storage::put('.app_installed', $ac);
                 Storage::put('.user_email', $email);
                 Storage::put('.user_pass', $password);
@@ -96,11 +96,8 @@ class InstallApp extends Command
 
     protected function checkDatabaseConnection()
     {
-        if (config('spondonit.support_multi_connection', false)) {
-            $db_connection = env('DB_CONNECTION', 'mysql');
-        } else {
-            $db_connection = 'mysql';
-        }
+
+        $db_connection = 'mysql';
         $db_host = env('DB_HOST', '127.0.0.1');
         $db_port = env('DB_PORT', 3306);
         $db_username = env('DB_USERNAME');
