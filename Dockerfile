@@ -1,6 +1,8 @@
 FROM webdevops/php-nginx:8.2-alpine
 ENV DOCUMENT_ROOT=/var/www/html
 ENV WEB_DOCUMENT_ROOT ${DOCUMENT_ROOT}
+ENV PHP_UPLOAD_MAX_FILESIZE: 100M
+ENV PHP_POST_MAX_SIZE: 120M
 ENV PHP_DISMOD=bz2,calendar,exiif,ffi,intl,gettext,ldap,imap,pdo_pgsql,pgsql,soap,sockets,sysvmsg,sysvsm,sysvshm,shmop,apcu,vips,yaml,mongodb,amqp
 
 WORKDIR ${DOCUMENT_ROOT}

@@ -33,12 +33,14 @@ class ResultServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $router = $this->app['router'];
+        // $router->pushMiddlewareToGroup('web', ResultMiddleware::class);
+
         $this->registerTranslations();
         $this->registerConfig();
         $this->registerViews();
         $this->registerHelpers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-
         if ($this->app->runningInConsole()) {
             $this->commands([SeedStudents::class, SeedStaffs::class, InstallApp::class, ResultCleanup::class, SeedApp::class]);
         }
