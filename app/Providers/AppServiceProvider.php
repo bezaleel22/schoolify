@@ -33,11 +33,6 @@ class AppServiceProvider extends ServiceProvider
     {
 
         try {
-
-            if (env('FORCE_HTTPS' && App::environment() === 'production')) {
-                URL::forceScheme('https');
-            }
-
             Paginator::useBootstrapFour();
             Builder::defaultStringLength(191);
 
