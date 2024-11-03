@@ -19,8 +19,6 @@
 /public/hot
 /public/storage
 /public/mix-manifest.json
-/public/css/*.css
-/public/js/*.js
 /public/build/
 
 # Ignore npm/Yarn files
