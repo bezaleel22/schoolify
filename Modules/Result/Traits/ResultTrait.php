@@ -40,13 +40,13 @@ trait ResultTrait
         }
     }
 
-    protected function fetchStudentRecords()
+    protected function fetchStudentRecords($id, $exam_id)
     {
         if (!$this->token)
             $this->login();
 
         $url = env('LOCAL_BASE_URL', null);
-        $url = $url . '/api/marks-grade?id=339&exam_id=5';
+        $url = "$url/api/marks-grade?id=$id&exam_id=$exam_id";
         $response = Http::withHeaders([
             'Authorization' => $this->token, // Replace $token with your actual token
         ])->get($url);

@@ -7,24 +7,6 @@ ENV PHP_DISMOD=bz2,calendar,exiif,ffi,intl,gettext,ldap,imap,pdo_pgsql,pgsql,soa
 
 WORKDIR ${DOCUMENT_ROOT}
 
-RUN apk add --no-cache --update \
-    nginx \
-    curl \
-    zip \
-    unzip \
-    shadow \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    libwebp-dev \
-    libxml2-dev \
-    libzip-dev \
-    icu-dev \
-    freetype-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) gd pdo_mysql bcmath mysqli opcache zip intl \
-    && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && rm -rf /var/cache/apk/*
-
 # Copy Composer binary from the Composer official Docker image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY --chown=application:application . .
@@ -36,5 +18,4 @@ RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefe
     && php artisan view:clear \
     && php artisan cache:clear \
     && php artisan route:clear \
-    && php artisan config:clear \
-    && php artisan app:install
+    && php artisan config:clear

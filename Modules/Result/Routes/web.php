@@ -1,5 +1,7 @@
 <?php
 
+use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 /*
 |--------------------------------------------------------------------------
@@ -12,10 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix('result')->group(function() {
-    Route::get('/', 'ResultController@index');
-});
-
+Route::get('upload-data', 'ImportController@upload')->name('result.upload');
 Route::get('download-result/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
 Route::post('publish/{id}', 'ResultController@publish')->name('result.publish');
 Route::post('preview/{id}/{exam_id}', 'ResultController@preview')->name('result.preview');
@@ -25,5 +24,5 @@ Route::post('comments/{id}', 'ResultController@comments')->name('result.comment'
 
 Route::post('rating/{id}/{exam_id?}', 'ResultController@rating')->name('result.rating');
 
-Route::get('student-view/{id}/{type?}', 'ResultController@show')->name('student_view'); 
-
+Route::get('student-view/{id}/{type?}', 'ResultController@show')->name('student_view');
+Route::get('utility', 'UtilityController@index')->name('utility');

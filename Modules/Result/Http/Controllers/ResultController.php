@@ -86,7 +86,6 @@ class ResultController extends Controller
                 ->first();
 
             $timelines = SmStudentTimeline::where('staff_student_id', $id)
-                ->where('type', 'stu')->where('academic_id', getAcademicId())
                 ->where('school_id', Auth::user()->school_id)
                 ->get();
 
@@ -134,7 +133,7 @@ class ResultController extends Controller
             $studentBehaviourRecords = (moduleStatusCheck('BehaviourRecords')) ? AssignIncident::where('student_id', $id)->with('incident', 'user', 'academicYear')->get() : null;
             $behaviourRecordSetting = BehaviourRecordSetting::where('id', 1)->first();
 
-            $re = $this->fetchStudentRecords();
+            $re = $this->fetchStudentRecords(339, 5);
             $results = [];
             if ($exam_terms) {
                 foreach ($exam_terms as $term) {
@@ -312,7 +311,7 @@ class ResultController extends Controller
                 $this->login();
             }
 
-            $result_data = $this->fetchStudentRecords();
+            $result_data = $this->fetchStudentRecords(339, 5);
             if (!$result_data) {
                 return response()->json([
                     'error' => 1,
@@ -339,41 +338,51 @@ class ResultController extends Controller
         }
     }
 
-    public function download(Request $request, $id, $exam_id)
+    public function download(Request $request, $id, $exam_id = null)
     {
         try {
             $directory = 'student/timeline';
-            $filename = md5($id . $exam_id);
-            $filepath = $directory . '/' . $filename . '.pdf';
-            if (!Storage::exists($filepath)) {
+            $filename = md5($id . $exam_id ?? $request->exam_id);
+            $filepath = "$directory/$filename.pdf";
+
+            if (Storage::exists($filepath)) {
+                return Storage::response($filepath);
+            }
+
+            if ($request->has('local_stu_id')) {
                 if (!$this->token) {
                     $this->login();
                 }
 
-                $result_data = $this->fetchStudentRecords();
+                $result_data = $this->fetchStudentRecords($request->local_stu_id, $request->exam_id);
                 if (!$result_data) {
-                    abort(404, 'Failed to retrieve student records.');
+                    throw new \Exception('Failed to retrieve student records.');
                 }
-
-                $timeline = SmStudentTimeline::where('staff_student_id', $id)
-                    ->where('type', "exam-$exam_id")
-                    ->where('academic_id', getAcademicId())
-                    ->first();
-
-                if (!$timeline) abort(404, 'Timeline not found');
-
-                $filepath = $this->generatePDF($result_data, $id, $exam_id);
-                $timeline->file = $filepath;
-                $timeline->save();
+                
+                $filepath = $this->generatePDF($result_data, $request->local_stu_id, $request->exam_id);
+                return Storage::response($filepath);
             }
+
+            $result_data = $this->getResultData($id, $exam_id);
+            if (!$result_data) {
+                throw new \Exception('Failed to retrieve student records.');
+            }
+
+            $timeline = SmStudentTimeline::where('staff_student_id', $id)
+                ->where('type', "exam-$exam_id")
+                ->where('academic_id', getAcademicId())
+                ->first();
+
+            if (!$timeline) throw new \Exception('Timeline not found.');
+
+            $filepath = $this->generatePDF($result_data, $id, $exam_id);
+            $timeline->file = $filepath;
+            $timeline->save();
 
             return Storage::response($filepath);
         } catch (\Exception $e) {
-            abort(404, 'PDF download failed: ' . $e->getMessage());
-            return response()->json([
-                'error' => 1,
-                'message' => $e->getMessage(),
-            ]);
+            Toastr::error($e->getMessage(), 'Failed');
+            return redirect()->back();
         }
     }
 

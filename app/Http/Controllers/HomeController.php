@@ -333,7 +333,6 @@ class HomeController extends Controller
 
                 'year' => YearCheck::getYear(),
             ];
-            // dd($data);
             if (moduleStatusCheck('Wallet')) {
                 $data['monthlyWalletBalance'] = $monthlyWalletBalance;
                 $data['yearlyWalletBalance'] = $yearlyWalletBalance;

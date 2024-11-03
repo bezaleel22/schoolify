@@ -68,8 +68,7 @@
 
     <div class="avatar flex flex-col justify-center items-center ml-3">
         <div class="w-24 rounded-full ring ring-neutral print:ring-violet-900 ring-offset-2 mb-4">
-            <img src="https://llacademy.ng/{{ $student->student_photo }}" alt="Student Photo" />
+            <img src="{{ url($student->student_photo) }}" alt="Student Photo" />
         </div>
     </div>
 </div>
-

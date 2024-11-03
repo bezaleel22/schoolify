@@ -30,6 +30,10 @@
                               <a href="{{ url($timeline->file) }}" class="primary-btn tr-bg text-uppercase bord-rad" download>
                                   @lang('common.download')<span class="pl ti-download"></span>
                               </a>
+                              @else
+                              <a href="{{ url($timeline->file) }}" class="primary-btn tr-bg text-uppercase bord-rad">
+                                  @lang('common.download')<span class="pl ti-download"></span>
+                              </a>
                               @endif
                           </div>
                       </div>

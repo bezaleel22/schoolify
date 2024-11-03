@@ -386,7 +386,7 @@ class SeedApp extends Command
                     'date_of_birth' => date('Y-m-d', strtotime($student['date_of_birth'])),
                     'mobile' => $student['mobile'],
                     'admission_date' => date('Y-m-d', strtotime($student['admission_date'])),
-                    'student_photo' => $this->fileUpload($student['student_photo']),
+                    'student_photo' => $student['student_photo'],
                     'school_id' => 1,
                     'academic_id' => $this->academic_id,
                     'created_at' => now(),
@@ -427,15 +427,16 @@ class SeedApp extends Command
         $student_timeline_data = collect($json_data['timelines'])
             ->map(function ($timeline) {
                 $student_id = $this->student_ids[$timeline['staff_student_id']];
-                $type = (object) $this->exam_types->firstWhere('title', $timeline['title']);
                 $is_url =  filter_var($timeline['file'], FILTER_VALIDATE_URL) !== false;
-                if (!$student_id) {
+                $local_id = $timeline['staff_student_id'];
+                $type = (object) $this->exam_types->firstWhere('title', $timeline['title']);
+                if (!isset($type->id)) {
                     $this->info(print_r($timeline, true));
+                    $this->info(print_r($this->exam_types, true));
+                    $this->info(print_r($type, true));
                     throw new \Exception('Debug');
                 }
-
-                $url = route('result.download', ['id' => $student_id]);
-                $url = $url . '?local_stu_id=' . $timeline['staff_student_id'] . '&exam_id=' . $type->id;
+                $route = "download-result/$student_id?local_stu_id=$local_id&exam_id=$type->id";
 
                 return [
                     'staff_student_id' =>  $student_id,
@@ -443,11 +444,12 @@ class SeedApp extends Command
                     'title' => $timeline['title'],
                     'date' =>  date('Y-m-d', strtotime($timeline['date'])),
                     'description' => $timeline['description'],
-                    'file' => $is_url ? $url : $this->fileUpload($timeline['file']),
+                    'file' => $is_url ? $route : $timeline['file'],
+                    'visible_to_student' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
-            })->toArray();
+            })->filter(fn($timeline) => $timeline !== null)->toArray();
         SmStudentTimeline::insert($student_timeline_data);
         $this->info('Student timelines seeded successfully.');
     }
@@ -497,42 +499,5 @@ class SeedApp extends Command
 
         SmClassTeacher::insert($class_teachers_data);
         $this->info('Assigned class teachers seeded successfully.');
-    }
-
-    protected function fileUpload($file)
-    {
-        if (!$file) return null;
-
-        $base_url = 'http://localhost:9000/';
-        $fileContent = null;
-        $fileInfo = pathinfo($file);
-
-        $temp = tempnam(sys_get_temp_dir(), 'downloaded_');
-        try {
-            $fileContent = @file_get_contents($base_url . $file);
-            if ($fileContent === false) {
-                $headers = @get_headers($base_url . $file, 1);
-                if (strpos($headers[0], '404') !== false) {
-                    return null;
-                }
-                throw new \Exception("Failed to download file from URL.");
-            }
-
-            file_put_contents($temp, $fileContent);
-            $dirname = $fileInfo['dirname'];
-            if (!is_dir($dirname)) {
-                mkdir($dirname, 0777, true);
-            }
-
-            $destPath = $dirname . DIRECTORY_SEPARATOR . $fileInfo['basename'];
-            rename($temp, $destPath);
-
-            return $destPath;
-        } catch (\Exception $e) {
-            if ($fileContent !== null) {
-                unlink($temp);
-            }
-            throw $e;
-        }
     }
 }
