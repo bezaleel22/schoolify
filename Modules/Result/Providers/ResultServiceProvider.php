@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\File;
 use Modules\Result\Console\ResultCleanup;
 use Modules\Result\Console\SeedApp;
 use Modules\Result\Console\SeedStaffs;
+use Modules\Result\Console\Setup;
 use Modules\Result\Http\Middleware\ResultMiddleware;
 
 class ResultServiceProvider extends ServiceProvider
@@ -42,7 +43,7 @@ class ResultServiceProvider extends ServiceProvider
         $this->registerHelpers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
         if ($this->app->runningInConsole()) {
-            $this->commands([SeedStudents::class, SeedStaffs::class, InstallApp::class, ResultCleanup::class, SeedApp::class]);
+            $this->commands([Setup::class, InstallApp::class, ResultCleanup::class, SeedApp::class]);
         }
 
         // $this->app->booted(function () {
