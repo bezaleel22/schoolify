@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace App\Providers;
 
 use App\SmParent;
@@ -13,7 +14,9 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Builder;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Modules\MenuManage\Entities\Sidebar;
 use Modules\MenuManage\Entities\SidebarNew;
@@ -28,18 +31,21 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        
-        try{
+
+        try {
+
+            if (env('FORCE_HTTPS' && App::environment() === 'production')) {
+                URL::forceScheme('https');
+            }
+
             Paginator::useBootstrapFour();
             Builder::defaultStringLength(191);
-    
+
             view()->composer('backEnd.partials.parents_sidebar', function ($view) {
-                $data =[
+                $data = [
                     'childrens' => SmParent::myChildrens(),
                 ];
                 $view->with($data);
-       
-
             });
 
 
@@ -48,7 +54,7 @@ class AppServiceProvider extends ServiceProvider
                     ->where('read_at', null)
                     ->get();
 
-                foreach ($notifications as $notification){
+                foreach ($notifications as $notification) {
                     $notification->data = json_decode($notification->data);
                 }
 
@@ -56,23 +62,23 @@ class AppServiceProvider extends ServiceProvider
             });
 
             view()->composer(['backEnd.master', 'backEnd.partials.menu'], function ($view) {
-                    $data =[
-                        'notifications' => SmNotification::notifications(),
-                    ];
-                    $view->with($data);
+                $data = [
+                    'notifications' => SmNotification::notifications(),
+                ];
+                $view->with($data);
             });
 
 
             view()->composer(['plugins.tawk_to'], function ($view) {
-                $data =[
+                $data = [
                     'agent' => new \Jenssegers\Agent\Agent(),
-                    'tawk_setting' => Plugin::where('name','tawk')->where('school_id',app('school')->id)->first()
+                    'tawk_setting' => Plugin::where('name', 'tawk')->where('school_id', app('school')->id)->first()
                 ];
                 $view->with($data);
             });
 
             view()->composer(['backEnd.partials.menu', 'layouts.pb-site', 'frontEnd.home.front_master'], function ($view) {
-                $pluginCheck = Plugin::whereIn('name',['tawk', 'messenger'])->where('school_id',app('school')->id)->get();
+                $pluginCheck = Plugin::whereIn('name', ['tawk', 'messenger'])->where('school_id', app('school')->id)->get();
                 $tawk = $pluginCheck->where('name', 'tawk')->first();
                 $messenger = $pluginCheck->where('name', 'messenger')->first();
                 $data = [
@@ -83,22 +89,21 @@ class AppServiceProvider extends ServiceProvider
             });
 
             view()->composer(['plugins.messenger'], function ($view) {
-                $data =[
+                $data = [
                     'agent' => new \Jenssegers\Agent\Agent(),
-                    'messenger_setting' => Plugin::where('name','messenger')->where('school_id',app('school')->id)->first()
+                    'messenger_setting' => Plugin::where('name', 'messenger')->where('school_id', app('school')->id)->first()
                 ];
                 $view->with($data);
             });
 
-            if(Storage::exists('.app_installed') && Storage::get('.app_installed')){
+            if (Storage::exists('.app_installed') && Storage::get('.app_installed')) {
                 config(['broadcasting.default' => saasEnv('chatting_method')]);
                 config(['broadcasting.connections.pusher.key' => saasEnv('pusher_app_key')]);
                 config(['broadcasting.connections.pusher.secret' => saasEnv('pusher_app_secret')]);
                 config(['broadcasting.connections.pusher.app_id' => saasEnv('pusher_app_id')]);
                 config(['broadcasting.connections.pusher.options.cluster' => saasEnv('pusher_app_cluster')]);
             }
-
-        } catch(\Exception $e){
+        } catch (\Exception $e) {
             return false;
         }
     }
@@ -117,19 +122,18 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton('school_menu_permissions', function () {
             $module_ids = getPlanPermissionMenuModuleId();
-            return InfixModuleInfo::where('parent_id', 0)->with(['children' ])->whereIn('id', $module_ids)->get();
+            return InfixModuleInfo::where('parent_id', 0)->with(['children'])->whereIn('id', $module_ids)->get();
         });
 
         $this->app->singleton('permission', function () {
-            
+
             $infixRole = InfixRole::find(Auth::user()->role_id);
             $permissionIds = AssignPermission::where('role_id', Auth::user()->role_id)
-            ->when($infixRole->is_saas == 0, function($q) {
-                $q->where('school_id', Auth::user()->school_id);
-            })->pluck('permission_id')->toArray();
-            
-            $permissions = Permission::whereIn('id', $permissionIds)->pluck('route')->toArray();  
+                ->when($infixRole->is_saas == 0, function ($q) {
+                    $q->where('school_id', Auth::user()->school_id);
+                })->pluck('permission_id')->toArray();
 
+            $permissions = Permission::whereIn('id', $permissionIds)->pluck('route')->toArray();
         });
 
         $this->app->singleton('saasSettings', function () {
@@ -140,9 +144,5 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('sidebar_news', function () {
             return  Sidebar::get();
         });
-
-
-
-
     }
 }
