@@ -8,7 +8,6 @@ RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY --chown=application:application . .
-USER application
 
 RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefer-dist --optimize-autoloader \
     && chmod -R 775 storage bootstrap/cache \
