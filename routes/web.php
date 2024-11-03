@@ -2,12 +2,6 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\App;
-
-if (env('FORCE_HTTPS' && App::environment() === 'production')) {
-    URL::forceScheme('https');
-}
 
 if (config('app.app_sync')) {
     Route::get('/', 'LandingController@index')->name('/');

@@ -4,12 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\v2\Auth\AuthenticationController;
 use Modules\Chat\Http\Controllers\Api\ChatController;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\URL;
-
-if (env('FORCE_HTTPS' && App::environment() === 'production')) {
-    URL::forceScheme('https');
-}
 
 Route::controller(AuthenticationController::class)->group(function () {
     Route::any('login', 'login');

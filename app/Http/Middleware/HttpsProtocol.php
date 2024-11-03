@@ -26,7 +26,6 @@ class HttpsProtocol
                     $currentURL = str_replace("http", "https", $currentURL);
                     return redirect()->to($currentURL);
                 }
-
             }
         }
         return $next($request);
