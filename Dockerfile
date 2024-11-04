@@ -1,7 +1,7 @@
 FROM webdevops/php-nginx:8.2-alpine
 ENV DOCUMENT_ROOT=/app
 ENV WEB_DOCUMENT_ROOT ${DOCUMENT_ROOT}
-ENV PHP_DISMOD=bz2,calendar,exiif,ffi,intl,gettext,ldap,imap,pdo_pgsql,pgsql,soap,sockets,sysvmsg,sysvsm,sysvshm,shmop,apcu,vips,yaml,mongodb,amqp
+ENV PHP_DISMOD=bz2,exiif,ffi,gettext,ldap,imap,pdo_pgsql,pgsql,soap,sockets,sysvmsg,sysvsm,sysvshm,shmop,apcu,vips,yaml,mongodb,amqp
 
 WORKDIR ${DOCUMENT_ROOT}
 RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
