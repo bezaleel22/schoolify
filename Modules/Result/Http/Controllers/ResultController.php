@@ -133,7 +133,7 @@ class ResultController extends Controller
             $studentBehaviourRecords = (moduleStatusCheck('BehaviourRecords')) ? AssignIncident::where('student_id', $id)->with('incident', 'user', 'academicYear')->get() : null;
             $behaviourRecordSetting = BehaviourRecordSetting::where('id', 1)->first();
 
-            $re = $this->fetchStudentRecords(339, 5);
+            // $re = $this->fetchStudentRecords(339, 5);
             $results = [];
             if ($exam_terms) {
                 foreach ($exam_terms as $term) {
