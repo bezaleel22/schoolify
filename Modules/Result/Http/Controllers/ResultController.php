@@ -341,7 +341,7 @@ class ResultController extends Controller
     public function download(Request $request, $id, $exam_id = null)
     {
         try {
-            $directory = 'student/timeline';
+            $directory = 'uploads/student/timeline';
             $filename = md5($id . $exam_id ?? $request->exam_id);
             $filepath = "$directory/$filename.pdf";
 

@@ -169,7 +169,6 @@ class SeedApp extends Command
             ];
         })->toArray();
         SmClass::insert($class_data);
-        $this->class_ids = SmClass::whereIn('class_name', collect($class_data)->pluck('class_name'))->pluck('id', 'class_name')->toArray();
         $this->info('Classes seeded successfully.');
     }
 
@@ -185,7 +184,6 @@ class SeedApp extends Command
             ];
         })->toArray();
         SmSection::insert($section_data);
-        $this->section_ids = SmSection::whereIn('section_name', collect($section_data)->pluck('section_name'))->pluck('id', 'section_name')->toArray();
         $this->info('Sections seeded successfully.');
     }
 
@@ -265,7 +263,6 @@ class SeedApp extends Command
         })->toArray();
 
         SmSubject::insert($subject_data);
-        $this->subject_ids = SmSubject::whereIn('subject_name', collect($subject_data)->pluck('subject_name'))->pluck('id', 'subject_name')->toArray();
         $this->info('Subjects seeded successfully.');
     }
 
@@ -331,7 +328,6 @@ class SeedApp extends Command
             ];
         })->toArray();
         SmStaff::insert($staff_data);
-        $this->staff_ids = SmStaff::whereIn('staff_no', collect($staff_data)->pluck('staff_no'))->pluck('id', 'staff_no')->toArray();
         $this->info('Staff members seeded successfully.');
     }
 
@@ -361,23 +357,24 @@ class SeedApp extends Command
                 ];
             })->toArray();
         SmParent::insert($parent_data);
-        $this->parent_ids = SmParent::whereIn('guardians_email', collect($parent_data)->pluck('guardians_email'))->pluck('id', 'guardians_email')->toArray();
         $this->info('Parents seeded successfully.');
     }
 
     protected function seedStudents($json_data)
     {
+        $user_ids = User::all()->pluck('id', 'username')->toArray();
+        $parent_ids = SmParent::all()->pluck('id', 'guardians_email')->toArray();
         $category_ids = SmStudentCategory::all()->pluck('id', 'category_name')->toArray();
         $student_data = collect($json_data['students'])
-            ->map(function ($student) use ($category_ids) {
+            ->map(function ($student) use ($category_ids, $user_ids, $parent_ids) {
                 $username = $student['user']['username'];
                 $guardians_email = $student['parents']['guardians_email'] ?? null;
                 $cat_name = $student['category'] ? $student['category']['category_name'] : null;
                 $category_id = $cat_name ? $category_ids[$cat_name] : $category_ids['NONE'];
 
                 $data = [
-                    'user_id' => $this->user_ids[$username],
-                    'parent_id' => $this->parent_ids[$guardians_email] ?? null,
+                    'user_id' => $user_ids[$username],
+                    'parent_id' => $parent_ids[$guardians_email] ?? null,
                     'role_id' => 2,
                     'admission_no' => $student['id'],
                     'first_name' => $student['first_name'],
@@ -404,16 +401,32 @@ class SeedApp extends Command
 
     protected function seedStudentRecords($json_data)
     {
+        $class_ids = SmClass::all()->pluck('id', 'class_name')->toArray();
+        $section_ids = SmSection::all()->pluck('id', 'section_name')->toArray();
+        $student_ids = SmStudent::all()->pluck('id', 'admission_no')->toArray();
+
         $student_records_data = collect($json_data['student_records'])
             ->filter(fn($record) => $record['section_id'] !== null && $record['class_id'] !== null)
-            ->map(function ($record) {
+            ->map(function ($record) use ($class_ids, $section_ids, $student_ids) {
                 $student_id = $record['student_id'];
                 $class_name = $record['class']['class_name'];
                 $section_name = $record['section']['section_name'];
+                // if (!isset($student_ids[$student_id]) || !isset($class_ids[$class_name]) || !isset($section_ids[$section_name])) {
+                //     $this->info(print_r($class_ids, true));
+                //     $this->info(print_r($section_ids, true));
+                //     $this->info(print_r($student_id, true));
+                //     $this->info(print_r($class_name, true));
+                //     $this->info(print_r($section_name, true));
+                //     $this->info(print_r($student_ids[$student_id], true));
+                //     $this->info(print_r($class_ids[$class_name], true));
+                //     $this->info(print_r($section_ids[$section_name], true));
+                //     throw new \Exception('DEBUG', 1);
+                // }
+
                 return [
-                    'student_id' => $this->student_ids[$student_id] ?? null,
-                    'class_id' => $this->class_ids[$class_name] ?? null,
-                    'section_id' => $this->section_ids[$section_name] ?? null,
+                    'student_id' => $student_ids[$student_id],
+                    'class_id' => $class_ids[$class_name],
+                    'section_id' => $section_ids[$section_name],
                     'is_promote' => $record['is_promote'] ?? 0,
                     'is_default' => $record['is_default'],
                     'school_id' => 1,
@@ -428,9 +441,10 @@ class SeedApp extends Command
 
     protected function seedStudentTimelines($json_data)
     {
+        $student_ids = SmStudent::all()->pluck('id', 'admission_no')->toArray();
         $student_timeline_data = collect($json_data['timelines'])
-            ->map(function ($timeline) {
-                $student_id = $this->student_ids[$timeline['staff_student_id']];
+            ->map(function ($timeline) use ($student_ids) {
+                $student_id = $student_ids[$timeline['staff_student_id']];
                 $is_url =  filter_var($timeline['file'], FILTER_VALIDATE_URL) !== false;
                 $local_id = $timeline['staff_student_id'];
                 $type = (object) $this->exam_types->firstWhere('title', $timeline['title']);
@@ -454,18 +468,24 @@ class SeedApp extends Command
 
     protected function seedAssignSubjects($json_data)
     {
-        $assign_subject_data = collect($json_data['assign_subjects'])->map(function ($assign_subject) {
-            return [
-                'class_id' => $this->class_ids[$assign_subject['class']['class_name']],
-                'section_id' => $this->section_ids[$assign_subject['section']['section_name']],
-                'subject_id' => $this->subject_ids[$assign_subject['subject']['subject_name']],
-                'teacher_id' => $this->staff_ids[$assign_subject['teacher']['staff_no']],
-                'school_id' => 1,
-                'academic_id' => $this->academic_id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        })->toArray();
+        $class_ids = SmClass::all()->pluck('id', 'class_name')->toArray();
+        $section_ids = SmSection::all()->pluck('id', 'section_name')->toArray();
+        $subject_ids = SmSubject::all()->pluck('id', 'subject_code')->toArray();
+        $staff_ids = SmStaff::all()->pluck('id', 'staff_no')->toArray();
+
+        $assign_subject_data = collect($json_data['assign_subjects'])
+            ->map(function ($assign_subject) use ($class_ids, $section_ids, $subject_ids, $staff_ids) {
+                return [
+                    'class_id' => $class_ids[$assign_subject['class']['class_name']],
+                    'section_id' => $section_ids[$assign_subject['section']['section_name']],
+                    'subject_id' => $subject_ids[$assign_subject['subject']['subject_code']],
+                    'teacher_id' => $staff_ids[$assign_subject['teacher']['staff_no']],
+                    'school_id' => 1,
+                    'academic_id' => $this->academic_id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
 
         SmAssignSubject::insert($assign_subject_data);
         $this->info('Assigned subjects seeded successfully.');
@@ -473,27 +493,31 @@ class SeedApp extends Command
 
     protected function seedClassTeachers($json_data)
     {
-        $class_teachers_data = collect($json_data['class_teachers'])->map(function ($class_teacher) use ($json_data) {
-            $class_id = $this->class_ids[$class_teacher['class_name']];
-            $section_id =  $this->section_ids[$class_teacher['section_name']];
-            $teacher_id =  $this->staff_ids[$class_teacher['staff_no']];
+        $class_ids = SmClass::all()->pluck('id', 'class_name')->toArray();
+        $section_ids = SmSection::all()->pluck('id', 'section_name')->toArray();
+        $staff_ids = SmStaff::all()->pluck('id', 'staff_no')->toArray();
+        $class_teachers_data = collect($json_data['class_teachers'])
+            ->map(function ($class_teacher) use ($class_ids, $section_ids, $staff_ids) {
+                $class_id = $class_ids[$class_teacher['class_name']];
+                $section_id = $section_ids[$class_teacher['section_name']];
+                $teacher_id = $staff_ids[$class_teacher['staff_no']];
 
-            $assign_class_teacher = new SmAssignClassTeacher();
-            $assign_class_teacher->class_id = $class_id;
-            $assign_class_teacher->section_id = $section_id;
-            $assign_class_teacher->school_id = 1;
-            $assign_class_teacher->academic_id = $this->academic_id;
-            $assign_class_teacher->save();
+                $assign_class_teacher = new SmAssignClassTeacher();
+                $assign_class_teacher->class_id = $class_id;
+                $assign_class_teacher->section_id = $section_id;
+                $assign_class_teacher->school_id = 1;
+                $assign_class_teacher->academic_id = $this->academic_id;
+                $assign_class_teacher->save();
 
-            return [
-                'assign_class_teacher_id' => $assign_class_teacher->id,
-                'teacher_id' => $teacher_id,
-                'school_id' => 1,
-                'academic_id' => $this->academic_id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        })->toArray();
+                return [
+                    'assign_class_teacher_id' => $assign_class_teacher->id,
+                    'teacher_id' => $teacher_id,
+                    'school_id' => 1,
+                    'academic_id' => $this->academic_id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            })->toArray();
 
         SmClassTeacher::insert($class_teachers_data);
         $this->info('Assigned class teachers seeded successfully.');

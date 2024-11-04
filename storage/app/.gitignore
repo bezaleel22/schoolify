@@ -2,4 +2,6 @@
 !.gitignore
 !.version
 !chat/
-!chat/default_settings.json
+!default_settings.json
+!uploads/
+!.keep

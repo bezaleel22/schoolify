@@ -321,7 +321,7 @@ trait ResultTrait
             ]);
         }
 
-        $directory = 'student/timeline';
+        $directory = 'uploads/student/timeline';
         if (!Storage::exists($directory)) {
             Storage::makeDirectory($directory);
         }
