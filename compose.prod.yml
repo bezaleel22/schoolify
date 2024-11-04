@@ -9,12 +9,14 @@ services:
     ports:
       - 80
     volumes:
-      - schoolify_data:/app/public/uploads
+      - uploads:/app/public/uploads
+      - storage:/app/storage
     networks:
       - dokploy-network
 
 volumes:
-  schoolify_data:
+  uploads:
+  storage:
 
 networks:
   dokploy-network:

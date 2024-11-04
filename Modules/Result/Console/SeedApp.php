@@ -247,7 +247,6 @@ class SeedApp extends Command
                 'updated_at' => now(),
             ];
         })->toArray();
-        $this->category_ids = SmStudentCategory::whereIn('category_name', collect($category_data)->pluck('category_name'))->pluck('id', 'category_name')->toArray();
         SmStudentCategory::insert($category_data);
         $this->info('Student categories seeded successfully.');
     }
@@ -368,12 +367,15 @@ class SeedApp extends Command
 
     protected function seedStudents($json_data)
     {
+        $category_ids = SmStudentCategory::all()->pluck('id', 'category_name')->toArray();
         $student_data = collect($json_data['students'])
-            ->map(function ($student) {
+            ->map(function ($student) use ($category_ids) {
                 $username = $student['user']['username'];
                 $guardians_email = $student['parents']['guardians_email'] ?? null;
-                $category_id = $this->category_ids[$student['category']['category_name'] ?? null] ?? $this->category_id;
-                return [
+                $cat_name = $student['category'] ? $student['category']['category_name'] : null;
+                $category_id = $cat_name ? $category_ids[$cat_name] : $category_ids['NONE'];
+
+                $data = [
                     'user_id' => $this->user_ids[$username],
                     'parent_id' => $this->parent_ids[$guardians_email] ?? null,
                     'role_id' => 2,
@@ -392,6 +394,8 @@ class SeedApp extends Command
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
+
+                return $data;
             })->toArray();
         SmStudent::insert($student_data);
         $this->student_ids = SmStudent::whereIn('admission_no', collect($student_data)->pluck('admission_no'))->pluck('id', 'admission_no')->toArray();
@@ -430,12 +434,6 @@ class SeedApp extends Command
                 $is_url =  filter_var($timeline['file'], FILTER_VALIDATE_URL) !== false;
                 $local_id = $timeline['staff_student_id'];
                 $type = (object) $this->exam_types->firstWhere('title', $timeline['title']);
-                if (!isset($type->id)) {
-                    $this->info(print_r($timeline, true));
-                    $this->info(print_r($this->exam_types, true));
-                    $this->info(print_r($type, true));
-                    throw new \Exception('Debug');
-                }
                 $route = "download-result/$student_id?local_stu_id=$local_id&exam_id=$type->id";
 
                 return [
