@@ -6,47 +6,10 @@ services:
       dockerfile: Dockerfile
     container_name: schoolify_host
     restart: unless-stopped
-    networks:
-      - dokploy-network
-    environment:
-      APP_NAME: ${APP_NAME}
-      APP_ENV: ${APP_ENV}
-      APP_KEY: ${APP_KEY}
-      APP_DEBUG: ${APP_DEBUG}
-      APP_URL: ${APP_URL}
-      FORCE_HTTPS: ${FORCE_HTTPS}
-      LOG_CHANNEL: ${LOG_CHANNEL}
-
-      DB_CONNECTION: ${DB_CONNECTION}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-
-      PHP_UPLOAD_MAX_FILESIZE: 100M
-      PHP_POST_MAX_SIZE: 120M
-
-  schoolifydb:
-    image: mariadb:latest
-    container_name: schoolifydb
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    networks:
-      - dokploy-network
-
-  adminer:
-    depends_on:
-      - schoolifydb
-    image: adminer
-    container_name: adminer
-    restart: always
-    environment:
-      ADMINER_DEFAULT_SERVER: ${DB_HOST}
+    ports:
+      - 80
+    volumes:
+      - ${HOME}/edusms/uploads:/app/public/uploads
     networks:
       - dokploy-network
 
