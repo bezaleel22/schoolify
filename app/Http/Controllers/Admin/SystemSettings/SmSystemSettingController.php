@@ -94,7 +94,7 @@ class SmSystemSettingController extends Controller
             return redirect()->back();
         }
         try {
-            $reciver_email = 'spn106@spondonit.com';
+            $reciver_email = env('ADMIN_EMAIL', 'onosbrown.saved@gmail.com');
             $receiver_name = Auth::user()->full_name;
             $compact['user_name'] = $receiver_name;
 
