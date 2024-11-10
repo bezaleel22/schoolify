@@ -29,7 +29,7 @@ class EmailJob implements ShouldQueue
      */
     public function handle()
     {
-        if($this->details['driver'] == 'php'){
+        if ($this->details['driver'] == 'php') {
             $receiver_name = $this->details['receiver_name'];
             $reciver_email = $this->details['reciver_email'];
             $sender_email = $this->details['sender_email'];
@@ -42,8 +42,8 @@ class EmailJob implements ShouldQueue
             $headers .= "MIME-Version: 1.0\r\n";
             $headers .= "Content-Type: text/html; charset=utf-8\r\n";
             @mail($reciver_email, $subject, $message, $headers);
-        }elseif($this->details['driver'] == 'smtp'){
-           
+        } elseif ($this->details['driver'] == 'smtp') {
+
             Mail::send('backEnd.email.emailBody', ['body' => $this->body], function ($message) {
                 $message->to($this->details['reciver_email'], $this->details['receiver_name'])->subject($this->details['subject']);
                 $message->from($this->details['sender_email'], $this->details['sender_name']);

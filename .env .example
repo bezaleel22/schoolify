@@ -10,17 +10,17 @@ LOG_CHANNEL=daily
 
 GOTENBERG_URL='http://localhost:4000'
 LOCAL_BASE_URL='http://localhost:9000'
-ADMIN_EMAIL='onosbrown.saved@gmail.com'
+ADMIN_EMAIL='demo@example.com'
 ADMIN_USERNAME='admin'
 ADMIN_PASSWORD='123456'
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=schoolifydb
-DB_USERNAME=schoolify
-DB_PASSWORD=paxxw0rd@2791
-DB_ROOT_PASSWORD=paxxw0rd@2791
+DB_DATABASE=dbname
+DB_USERNAME=dbuser
+DB_PASSWORD="password"
+DB_ROOT_PASSWORD="password"
 
 BROADCAST_DRIVER=log
 CACHE_DRIVER=file
