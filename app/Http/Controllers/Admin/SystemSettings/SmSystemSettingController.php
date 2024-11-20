@@ -94,7 +94,7 @@ class SmSystemSettingController extends Controller
             return redirect()->back();
         }
         try {
-            $reciver_email = env('ADMIN_EMAIL', 'onosbrown.saved@gmail.com');
+            $reciver_email = Auth::user()->email ?? User::find(1)->email;
             $receiver_name = Auth::user()->full_name;
             $compact['user_name'] = $receiver_name;
 

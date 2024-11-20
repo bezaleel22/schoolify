@@ -67,6 +67,16 @@
                         </div>
                     </a>
                 </div>
+
+                <div class="col-md-4 col-lg-3 col-sm-6">
+                    <a class="white-box single-summery fuchsia d-block btn-ajax" href="{{ route('result.send_emails') }}">
+                        <div class="d-block mt-10 text-center ">
+                            <h3><i class="ti-import font_30"></i></h3>
+                            <h1 class="gradient-color2 total_purchase">Send Result Emails</h1>
+                        </div>
+                    </a>
+                </div>
+
             </div>
         </div>
         <div class="row mt-40">

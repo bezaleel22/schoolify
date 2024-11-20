@@ -2,48 +2,25 @@
 
 namespace Modules\Result\Http\Controllers;
 
-use App\ApiBaseMethod;
-use Illuminate\Contracts\Support\Renderable;
-use App\User;
-use App\SmClass;
-use App\SmRoute;
 use App\SmStaff;
-use App\SmStudent;
-use App\SmVehicle;
 use Carbon\Carbon;
 use App\SmExamType;
-use Gotenberg\Stream;
-use App\SmMarksGrade;
-use App\SmAcademicYear;
-use App\SmExamSchedule;
 use App\SmStudentTimeline;
-use App\CustomResultSetting;
-use App\SmStudentAttendance;
-use App\SmSubjectAttendance;
 use Illuminate\Http\Request;
-use App\Models\StudentRecord;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
-use App\Scopes\StatusAcademicSchoolScope;
-use App\SmGeneralSettings;
-use Attribute;
-use Gotenberg\Gotenberg;
-use Illuminate\Support\Facades\Http;
+use App\SmEmailSetting;
+use App\SmStudent;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Modules\University\Entities\UnSemesterLabel;
-use Modules\BehaviourRecords\Entities\AssignIncident;
-use Modules\BehaviourRecords\Entities\BehaviourRecordSetting;
 use Modules\Result\Entities\ClassAttendance;
 use Modules\Result\Entities\Comment;
 use Modules\Result\Entities\CommentTag;
 use Modules\Result\Entities\StudentRating;
 use Modules\Result\Entities\TeacherRemark;
-use Modules\Result\Services\ResultService;
+use Modules\Result\Jobs\SendResultEmail;
 use Modules\Result\Traits\ResultTrait;
-
-use function PHPSTORM_META\map;
 
 class ResultController extends Controller
 {
@@ -51,102 +28,6 @@ class ResultController extends Controller
     protected $token = '';
 
     use ResultTrait;
-
-    /**
-     * Show the specified resource.
-     * @param int $id
-     * @return Renderable
-     */
-    public function show(Request $request, $id, $type = null)
-    {
-        try {
-            $next_labels = null;
-            $student_detail = SmStudent::withoutGlobalScope(StatusAcademicSchoolScope::class)->find($id);
-            $records = $student_detail->allRecords;
-            $siblings = SmStudent::where('parent_id', '!=', 0)->where('parent_id', $student_detail->parent_id)->where('id', '!=', $id)->status()->withoutGlobalScope(StatusAcademicSchoolScope::class)->get();
-            $exams = SmExamSchedule::where('class_id', $student_detail->class_id)
-                ->where('section_id', $student_detail->section_id)
-                ->where('school_id', Auth::user()->school_id)
-                ->get();
-
-            $academic_year = $student_detail->academicYear;
-
-            $result_setting = CustomResultSetting::where('school_id', auth()->user()->school_id)->where('academic_id', getAcademicId())->get();
-
-            $grades = SmMarksGrade::where('active_status', 1)
-                ->where('academic_id', getAcademicId())
-                ->where('school_id', Auth::user()->school_id)
-                ->get();
-
-            $max_gpa = $grades->max('gpa');
-
-            $fail_gpa = $grades->min('gpa');
-
-            $fail_gpa_name = $grades->where('gpa', $fail_gpa)
-                ->first();
-
-            $timelines = SmStudentTimeline::where('staff_student_id', $id)
-                ->where('school_id', Auth::user()->school_id)
-                ->get();
-
-            if (!empty($student_detail->vechile_id)) {
-                $driver_id = SmVehicle::where('id', '=', $student_detail->vechile_id)->first();
-                $driver_info = SmStaff::where('id', '=', $driver_id->driver_id)->first();
-            } else {
-                $driver_id = '';
-                $driver_info = '';
-            }
-
-            $exam_terms = SmExamType::where('school_id', Auth::user()->school_id)
-                ->where('academic_id', getAcademicId())
-                ->get();
-
-            $custom_field_data = $student_detail->custom_field;
-
-            if (!is_null($custom_field_data)) {
-                $custom_field_values = json_decode($custom_field_data);
-            } else {
-                $custom_field_values = null;
-            }
-            $sessions = SmAcademicYear::get(['id', 'year', 'title']);
-
-            $now = Carbon::now();
-            $year = $now->year;
-            $month  = $now->month;
-            $days = cal_days_in_month(CAL_GREGORIAN, $now->month, $now->year);
-            $studentRecord = StudentRecord::where('student_id', $student_detail->id)
-                ->where('academic_id', getAcademicId())
-                ->where('school_id', $student_detail->school_id)
-                ->get();
-
-            $attendance = SmStudentAttendance::where('student_id', $student_detail->id)
-                ->whereIn('academic_id', $studentRecord->pluck('academic_id'))
-                ->whereIn('student_record_id', $studentRecord->pluck('id'))
-                ->get();
-
-            $subjectAttendance = SmSubjectAttendance::with('student')
-                ->whereIn('academic_id', $studentRecord->pluck('academic_id'))
-                ->whereIn('student_record_id', $studentRecord->pluck('id'))
-                ->where('school_id', $student_detail->school_id)
-                ->get();
-
-            $studentBehaviourRecords = (moduleStatusCheck('BehaviourRecords')) ? AssignIncident::where('student_id', $id)->with('incident', 'user', 'academicYear')->get() : null;
-            $behaviourRecordSetting = BehaviourRecordSetting::where('id', 1)->first();
-
-            // $re = $this->fetchStudentRecords(339, 5);
-            $results = [];
-            if ($exam_terms) {
-                foreach ($exam_terms as $term) {
-                    $results[] = $this->getResultData($id, $term);
-                }
-            }
-            $student_info = $results[0]->student ?? null;
-            return view('result::student_view', compact('results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
-        } catch (\Exception $e) {
-            Toastr::error($e->getMessage(), 'Failed');
-            return redirect()->back();
-        }
-    }
 
     public function comments(Request $request, $id)
     {
@@ -170,12 +51,10 @@ class ResultController extends Controller
                 'content' => view('result::partials.comments', compact('comments'))->render(),
             ]);
         } catch (\Exception $e) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'error' => 1,
-                    'message' => $e->getMessage(),
-                ]);
-            }
+            return response()->json([
+                'error' => 1,
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -210,7 +89,6 @@ class ResultController extends Controller
                 ]);
             }
 
-            $teachar_id = null;
             $user_id = Auth::user()->id;
             $teacher = SmStaff::where('user_id', $user_id)->first();
             $remark = new TeacherRemark();
@@ -223,7 +101,7 @@ class ResultController extends Controller
             $remark->save();
 
             Toastr::success('Remark added successfully', 'Success');
-            return redirect()->back();
+            return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([
@@ -233,7 +111,7 @@ class ResultController extends Controller
             }
             dd($e->getMessage());
             Toastr::error('Operation failed', 'Failed');
-            return redirect()->back();
+            return redirect()->back()->with(['studentExam' => 'active']);
         }
     }
 
@@ -290,7 +168,7 @@ class ResultController extends Controller
             StudentRating::insert($studentRatings);
 
             Toastr::success('Rating added successfully', 'Success');
-            return redirect()->back();
+            return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
             Log::error('Error in rating method: ' . $e->getMessage()); // Log the error for debugging
             if ($request->ajax()) {
@@ -300,18 +178,14 @@ class ResultController extends Controller
                 ]);
             }
             Toastr::error('Operation failed: ' . $e->getMessage(), 'Failed');
-            return redirect()->back();
+            return redirect()->back()->with(['studentExam' => 'active']);
         }
     }
 
     public function preview(Request $request, $id, $exam_id)
     {
         try {
-            if (!$this->token) {
-                $this->login();
-            }
-
-            $result_data = $this->fetchStudentRecords(339, 5);
+            $result_data = $this->getResultData($id, $exam_id);
             if (!$result_data) {
                 return response()->json([
                     'error' => 1,
@@ -322,12 +196,14 @@ class ResultController extends Controller
             $filepath = $this->generatePDF($result_data, $id, $exam_id);
             $exam_type = SmExamType::findOrFail($exam_id);
             $params = ['id' => $id, 'exam_id' => $exam_type->id];
+            $student = $result_data->student;
+            $student->filepath = $filepath;
 
             return response()->json([
                 'preview' => true,
                 'title' => "Result Preview",
                 'pdfUrl' => route('result.download', $params),
-                'content' => view('result::partials.preview', compact('filepath', 'id', 'exam_type'))->render(),
+                'content' => view('result::partials.preview', compact('student'))->render(),
             ]);
         } catch (\Exception $e) {
             Log::error('PDF preview generation failed: ' . $e->getMessage());
@@ -342,7 +218,7 @@ class ResultController extends Controller
     {
         try {
             $directory = 'uploads/student/timeline';
-            $filename = md5($id . $exam_id ?? $request->exam_id);
+            $filename = md5($id . ($exam_id ?? $request->exam_id));
             $filepath = "$directory/$filename.pdf";
 
             if (Storage::exists($filepath)) {
@@ -358,14 +234,9 @@ class ResultController extends Controller
                 if (!$result_data) {
                     throw new \Exception('Failed to retrieve student records.');
                 }
-                
+
                 $filepath = $this->generatePDF($result_data, $request->local_stu_id, $request->exam_id);
                 return Storage::response($filepath);
-            }
-
-            $result_data = $this->getResultData($id, $exam_id);
-            if (!$result_data) {
-                throw new \Exception('Failed to retrieve student records.');
             }
 
             $timeline = SmStudentTimeline::where('staff_student_id', $id)
@@ -373,11 +244,16 @@ class ResultController extends Controller
                 ->where('academic_id', getAcademicId())
                 ->first();
 
-            if (!$timeline) throw new \Exception('Timeline not found.');
+            if (!$timeline) {
+                throw new \Exception('Timeline not found.');
+            }
 
+            $result_data = $this->getResultData($id, $exam_id);
+            if (!$result_data) {
+                throw new \Exception('Failed to retrieve student records.');
+            }
             $filepath = $this->generatePDF($result_data, $id, $exam_id);
-            $timeline->file = $filepath;
-            $timeline->save();
+            $timeline->update(['file' => $filepath]);
 
             return Storage::response($filepath);
         } catch (\Exception $e) {
@@ -385,6 +261,8 @@ class ResultController extends Controller
             return redirect()->back();
         }
     }
+
+
 
     public function publish(Request $request, $id)
     {
@@ -407,13 +285,90 @@ class ResultController extends Controller
                 $timeline->school_id = Auth::user()->school_id;
                 $timeline->academic_id = getAcademicId();
                 $timeline->save();
+
+                $data = [
+                    'subject' => 'Result Notification',
+                    'reciver_email' => $request->parent_email,
+                    'receiver_name' => $request->parent_name,
+                    'attachments' => [$request->filepath], // Attachments as an array
+                ];
+
+                $student = (object) [
+                    'student_id' => $id,
+                    'exam_id' => $timeline->type,
+                    'term' => $timeline->title,
+                    'title' => $timeline->description,
+                    'full_name' => $request->full_name,
+                    "gender" => $request->gender_id,
+                    'admin' => 'Miss. Abigal Ojone',
+                    'support' => '+2348096041650'
+                ];
+
+                post_mail($student, $data);
             }
 
             Toastr::success('Operation successful', 'Success');
-            return redirect()->back()->with(['studentTimeline' => 'active']);
+            return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
             Log::error('Failed to publish timeline: ' . $e->getMessage());
             Toastr::error('Operation Failed', 'Failed');
+            return redirect()->back()->with(['studentExam' => 'active']);
+        }
+    }
+
+    public function sendEmails()
+    {
+        try {
+            // Get the active students and their associated timelines and parents
+            $students = SmStudent::where('active_status', 1)
+                ->where('academic_id', getAcademicId())
+                ->with(['studentTimeline' => function ($query) {
+                    $query->where('file', 'like', 'uploads')
+                    ->where('');
+                }, 'parents'])
+                ->get(['id', 'full_name']);
+
+            // Iterate over the students
+            foreach ($students as $stu) {
+                // Ensure the student has a timeline and parent data
+                $timeline = $stu->studentTimeline;
+                $parent = $stu->parents;
+
+                // Skip if no timeline or parent found
+                if ($timeline->isEmpty() || !$parent) {
+                    continue;
+                }
+
+                // Prepare email data
+                $data = [
+                    'subject' => 'Result Notification',
+                    'reciver_email' => $parent->parent_email,
+                    'receiver_name' => $parent->parent_name,
+                    'attachments' => $timeline->pluck('file', 'id'), // Attachments as an array
+                ];
+
+                $body = (object) [
+                    'student_id' => $stu->id,
+                    'exam_id' => $timeline->type,
+                    'term' => $timeline->title,
+                    'title' => $timeline->description,
+                    'full_name' => $stu->full_name,
+                    "gender" => $stu->gender_id,
+                    'admin' => 'Miss. Abigal Ojone',
+                    'support' => '+2348096041650'
+                ];
+
+                // Dispatch the email sending job
+                post_mail($body, $data);
+            }
+
+            // Success response
+            Toastr::success('Emails Queued successfully', 'Success');
+            return redirect()->back()->with(['studentTimeline' => 'active']);
+        } catch (\Exception $e) {
+            // Error logging and failure response
+            Log::error('Failed to send result emails: ' . $e->getMessage());
+            Toastr::error('Operation Failed: ' . $e->getMessage(), 'Failed');
             return redirect()->back()->with(['studentTimeline' => 'active']);
         }
     }

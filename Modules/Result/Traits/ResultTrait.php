@@ -103,11 +103,18 @@ trait ResultTrait
             ->first();
 
         $academic = SmAcademicYear::find(getAcademicId());
-
+        $parent_name = $student_data->parents->fathers_name ?? $student_data->parents->mothers_name;
         $student = (object) [
             'id' => $student_data->id,
+            'exam_id' => $type->id,
             'full_name' => $student_data->full_name,
-            'term' => $this->removeDate($type->title),
+            'gender' => $student_data->gender_id,
+            'admin' => '',
+            'support' => '',
+            'parent_email' => $student_data->parents->guardians_email,
+            'parent_name' => $parent_name,
+            'term' => $type->title,
+            'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
             'type' => $category->name,
             'class_name' => $student_data->class_name,
             'section_name' => $student_data->section_name,
@@ -116,7 +123,8 @@ trait ResultTrait
             'opened' => $attendance->days_opened ?? 0,
             'absent' => $attendance->days_opened ?? 0,
             'present' => $attendance->days_opened ?? 0,
-            'student_photo' => $student_data->student_photo, // Placeholder for the photo path
+            'student_photo' => $student_data->student_photo,
+            'filepath' => ''
         ];
 
         $school_data = schoolConfig();
@@ -310,7 +318,6 @@ trait ResultTrait
 
         $view = $this->getView($result_data);
         $result = $view->render();
-        $student = $result_data->student;
         $fileName = md5($id . $exam_id);
 
         $url = env('GOTENBERG_URL');

@@ -167,6 +167,7 @@ return [
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
         App\Providers\EventServiceProvider::class,
+        App\Providers\HorizonServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         'Maatwebsite\Excel\ExcelServiceProvider',
         Intervention\Image\ImageServiceProvider::class,
@@ -180,7 +181,7 @@ return [
         // Vimeo\Laravel\VimeoServiceProvider::class
         Larabuild\Optionbuilder\ServiceProvider::class,
         Larabuild\Pagebuilder\ServiceProvider::class,
-
+        Brian2694\Toastr\ToastrServiceProvider::class,
 
     ],
 
@@ -243,7 +244,7 @@ return [
         'DataTables' => Yajra\DataTables\Facades\DataTables::class,
         'Str' => Illuminate\Support\Str::class,
         // 'Vimeo' => Vimeo\Laravel\Facades\Vimeo::class,
-
+        'Toastr'  => Brian2694\Toastr\Facades\Toastr::class,
     ],
 
 ];
