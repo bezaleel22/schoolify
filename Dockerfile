@@ -14,11 +14,12 @@ USER application
 
 RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefer-dist --optimize-autoloader \
     && chmod -R 775 storage bootstrap/cache \
+    && php artisan app:setup\
     && php artisan key:generate --force \
     && php artisan view:clear \
     && php artisan cache:clear \
     && php artisan route:clear \
-    && php artisan config:clear \
-    && php artisan app:setup
+    && php artisan config:clear 
+
 
 EXPOSE 80

@@ -229,13 +229,13 @@ class SmExamAttendanceController extends Controller
     {
         try {
             if (moduleStatusCheck('University')) {
-
+       
                 $SmExam = SmExam::query();
                 $sm_exam = universityFilter($SmExam, $request)
                     ->where('exam_type_id', $request->exam_id)
                     ->where('un_subject_id', $request->un_subject_id)
                     ->first();
-
+      
                 $SmExamAttendance  = SmExamAttendance::query();
                 $alreday_assigned = universityFilter($SmExamAttendance, $request)
                     ->where('un_subject_id', $request->un_subject_id)
@@ -266,7 +266,7 @@ class SmExamAttendanceController extends Controller
                 if ($alreday_assigned != "") {
                     SmExamAttendanceChild::where('exam_attendance_id', $exam_attendance->id)->delete();
                 }
-
+         
                 foreach ($request->attendance as $record_id => $record) {
                     $exam_attendance_child = new SmExamAttendanceChild();
                     $exam_attendance_child->exam_attendance_id = $exam_attendance->id;
@@ -279,6 +279,7 @@ class SmExamAttendanceController extends Controller
                     $exam_attendance_child->save();
                 }
             } else {
+          
                 $exam = SmExam::where('exam_type_id', $request->exam_id)
                     ->where('class_id', $request->class_id)
                     ->where('section_id', $request->section_id)
@@ -374,7 +375,7 @@ class SmExamAttendanceController extends Controller
         $exam_attendance->academic_id = getAcademicId();
         $exam_attendance->save();
         $exam_attendance->toArray();
-
+ 
         if ($alreday_assigned != "") {
             SmExamAttendanceChild::where('exam_attendance_id', $exam_attendance->id)->delete();
         }
