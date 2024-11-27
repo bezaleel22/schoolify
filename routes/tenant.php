@@ -350,7 +350,7 @@ Route::group(['middleware' => []], function () {
         $routes->get('gallery-details/{id}', 'singleGalleryDetails')->name('gallery-details')->where('id', '[0-9]+');
         $routes->get('indiviual-result', 'indiviualResult')->name('indiviual-result');
         $routes->get('notice-details/{id}', 'singleNoticeDetails')->name('notice-details')->where('id', '[0-9]+');
-        $routes->get('news-list', 'allBlogList')->name('blog-list');
+        $routes->get('news-list', 'allBlogList')->name('news-list');
         $routes->post('load-more-blog', 'loadMoreBlogs')->name('load-more-blog');
         $routes->get('event-details/{id}', 'singleEventDetails')->name('event-details')->where('id', '[0-9]+');
         $routes->get('blog-list', 'blogList')->name('blog-list');

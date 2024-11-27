@@ -16,6 +16,7 @@ RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefe
     && chmod -R 775 storage bootstrap/cache \
     && php artisan key:generate --force \
     && php artisan optimize \
+    && php artisan route:cache \
     && php artisan app:setup
 
 

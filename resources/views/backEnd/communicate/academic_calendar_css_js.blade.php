@@ -233,7 +233,7 @@
             var data_type = 'ajax';
             console.log(event_title);
             $.ajax({
-                url: '{{ route('event') }}',
+                url: '{{ route('event-store') }}',
                 type: 'POST',
                 dataType: 'json',
                 data: {

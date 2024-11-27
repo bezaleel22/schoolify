@@ -2398,7 +2398,7 @@ Route::group(['middleware' => ['XSS', 'subscriptionAccessUrl']], function () {
     Route::controller('Admin\Communicate\SmEventController')->group(function () {
         Route::get('event', 'index')->name('event')->middleware('userRolePermission:event');
         Route::get('new-design', 'newDesign');
-        Route::post('event', 'store')->name('event')->middleware('userRolePermission:event-store');
+        Route::post('event', 'store')->name('event-store')->middleware('userRolePermission:event-store');
         Route::get('event/{id}', 'edit')->name('event-edit')->middleware('userRolePermission:event-edit');
         Route::put('event/{id}', 'update')->name('event-update')->middleware('userRolePermission:event-edit');
         Route::get('delete-event-view/{id}', 'deleteEventView')->name('delete-event-view')->middleware('userRolePermission:delete-event-view');
