@@ -1,7 +1,7 @@
 services:
-  postgres:
+  mariadb:
     image: mariadb:latest
-    container_name: schoolifydb
+    container_name: mariadb
     restart: unless-stopped
     ports:
       - "3306:3306"
@@ -20,20 +20,30 @@ services:
 
   adminer:
     depends_on:
-      - postgres
+      - mariadb
     image: adminer
     container_name: adminer
     restart: always
     environment:
-      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DEFAULT_SERVER: mariadb
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "8080:8080"
+      - "8000:8080"
 
   php-dev:
     image: "webdevops/php-nginx-dev:8.2-alpine"
+    container_name: php-dev
     working_dir: /var/www
+    user: "application"
+    # environment:
+    #   - XDEBUG_REMOTE_AUTOSTART=On
+    #   - XDEBUG_PROFILER_ENABLE=On
+    #   - XDEBUG_REMOTE_HOST=192.168.0.145
+    #   - XDEBUG_REMOTE_PORT=9001
+    #   - PHP_DEBUGGER=xdebug
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./:/var/www
       - ./docker/default.conf:/opt/docker/etc/nginx/vhost.conf

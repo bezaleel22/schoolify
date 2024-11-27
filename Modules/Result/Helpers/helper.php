@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Result\Jobs\SendResultEmail;
 
+if (!function_exists('showTimelineDocName')) {
+    function showTimelineDocName($data)
+    {
+        $name = explode('/', $data);
+        $number = count($name);
+        return $name[$number - 1];
+    }
+}
+
+if (!function_exists('showDocumentName')) {
+    function showDocumentName($data)
+    {
+        $name = explode('/', $data);
+        $number = count($name);
+        return $name[$number - 1];
+    }
+}
+
 if (!function_exists('getResulteData')) {
     function getFileName($data)
     {

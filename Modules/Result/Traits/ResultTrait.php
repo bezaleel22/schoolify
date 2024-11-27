@@ -60,50 +60,59 @@ trait ResultTrait
 
     public function getClassAverages($student_results)
     {
-        if (!$student_results)
+        if (empty($student_results)) {
             return null;
-
-        foreach ($student_results as $id => $subject_totals) {
-            $total_marks = $subject_totals->sum('total_marks');
-            $student_results['avarage'] = floor($total_marks / $subject_totals->count());
         }
 
-        $ids = $student_results->pluck('student_id', 'avarage');
-        $min = $student_results->min('avarage');
-        $min_average = (object)[
-            'student_id' => $ids[$min] ?? null,
-            'value' => $min,
+        $student_averages = [];
+
+        foreach ($student_results as $id => $subject_totals) {
+            $student_averages[] = [
+                'student_id' => $id,
+                'average' => floor($subject_totals->sum('total_marks') / $subject_totals->count()),
+            ];
+        }
+
+        $averages = collect($student_averages);
+
+        // Find min and max averages
+        $min_average_value = $averages->min('average');
+        $max_average_value = $averages->max('average');
+
+        // Find the corresponding students
+        $min_average = (object) [
+            'student_id' => $averages->firstWhere('average', $min_average_value)['student_id'] ?? null,
+            'value' => $min_average_value ?? 0,
         ];
 
-        $max = $student_results->max('avarage');
-        $max_average = (object)[
-            'student_id' => $ids[$max] ?? null,
-            'value' => $max,
+        $max_average = (object) [
+            'student_id' => $averages->firstWhere('average', $max_average_value)['student_id'] ?? null,
+            'value' => $max_average_value ?? 0,
         ];
 
         return (object) [
             'min_average' => $min_average,
-            'min_average' => $min_average,
+            'max_average' => $max_average,
         ];
     }
 
-    public function getResultData($id, $type)
+
+    public function getResultData($id, $exam_id)
     {
-        $result_data = $this->queryResultData($id, $type->id);
+        $result_data = $this->queryResultData($id, $exam_id);
 
         $result = $result_data->result;
-        $student_results = $result_data->results;
-        if (!count($result) && !count($student_results))
-            return null;
+        if (!count($result)) return null;
 
         $student_data = $result_data->student;
         $category = $student_data->category;
 
+        $type = SmExamType::find($exam_id);
+        $academic = SmAcademicYear::find(getAcademicId());
         $attendance = ClassAttendance::where('student_id', $id)
-            ->where('exam_type_id', $type->id)
+            ->where('exam_type_id', $exam_id)
             ->first();
 
-        $academic = SmAcademicYear::find(getAcademicId());
         $parent_name = $student_data->parents->fathers_name ?? $student_data->parents->mothers_name;
         $student = (object) [
             'id' => $student_data->id,
@@ -142,25 +151,24 @@ trait ResultTrait
         $over_all = 0;
         foreach ($result as $subject_name => $marks_data) {
             $sum = $marks_data->sum('total_marks');
-            $marks = $marks_data->pluck('total_marks')->toArray();
+            $marks = $marks_data->pluck('total_marks', 'exam_title')->toArray();
             $grade = $this->getGrade($sum, $student->type);
-            $rows[] = [
+            $rows[] = (object)[
                 'subject' => $subject_name,
                 'marks' => $marks,
                 'total_score' => $sum,
                 'grade' => $grade->grade,
                 'color' => $grade->color
             ];
-            dd($rows);
-
             $over_all += $sum;
         }
-        $class_average = $this->getClassAverages($student_results);
+
+        $class_average = $this->getClassAverages($result_data->results);
         $score = (object) [
             'total' => $over_all,
             'average' => $rows ? floor($over_all / count($rows)) : 0,
-            'min_average' => $class_average->min_average ?? 0,
-            'max_average' => $class_average->max_average ?? 0,
+            'min_average' => $class_average->min_average,
+            'max_average' => $class_average->max_average,
             'max_scores' => count($rows) * 100,
         ];
         $ratings = StudentRating::where('student_id', $id)
@@ -215,13 +223,14 @@ trait ResultTrait
 
         $result = SmMarkStore::where('sm_mark_stores.academic_id', getAcademicId())
             ->join('sm_subjects', 'sm_subjects.id', '=', 'sm_mark_stores.subject_id')
+            ->join('sm_exam_setups', 'sm_exam_setups.id', '=', 'sm_mark_stores.exam_setup_id')
             ->where('sm_mark_stores.student_id', $id)
             ->where('sm_mark_stores.class_id', $student->class_id)
             ->where('sm_mark_stores.section_id', $student->section_id)
             ->where('sm_mark_stores.exam_term_id', $exam_type_id)
             ->where('sm_mark_stores.is_absent', 0)
             ->where('sm_mark_stores.total_marks', '!=', 0)
-            ->select('sm_mark_stores.*', 'sm_subjects.subject_name')
+            ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_exam_setups.exam_title')
             ->get()
             ->groupBy('subject_name');
 

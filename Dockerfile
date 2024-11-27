@@ -8,7 +8,8 @@ WORKDIR ${DOCUMENT_ROOT}
 RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
 
 COPY --chown=application:application . .
-COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.config
+COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.conf
+# COPY docker/default.conf /opt/docker/etc/nginx/vhost.conf
 
 USER application
 
@@ -16,8 +17,6 @@ RUN composer install --no-interaction --no-plugins --no-scripts --no-dev --prefe
     && chmod -R 775 storage bootstrap/cache \
     && php artisan key:generate --force \
     && php artisan optimize \
-    && php artisan route:cache \
     && php artisan app:setup
-
 
 EXPOSE 80

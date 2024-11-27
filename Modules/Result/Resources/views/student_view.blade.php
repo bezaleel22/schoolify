@@ -58,7 +58,7 @@
 
 @section('mainContent')
 
-@php
+{{-- @php
 function showTimelineDocName($data)
 {
 $name = explode('/', $data);
@@ -71,7 +71,7 @@ $name = explode('/', $data);
 $number = count($name);
 return $name[$number - 1];
 }
-@endphp
+@endphp --}}
 @php
 $setting = app('school_info');
 if (!empty($setting->currency_symbol)) {

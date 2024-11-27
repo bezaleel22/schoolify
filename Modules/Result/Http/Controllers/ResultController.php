@@ -12,6 +12,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use App\SmEmailSetting;
 use App\SmStudent;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Result\Entities\ClassAttendance;
@@ -185,13 +186,9 @@ class ResultController extends Controller
     public function preview(Request $request, $id, $exam_id)
     {
         try {
-            $result_data = $this->getResultData($id, $exam_id);
-            if (!$result_data) {
-                return response()->json([
-                    'error' => 1,
-                    'message' => 'Failed to retrieve student records.',
-                ]);
-            }
+            $cacheKey = "result_{$id}_{$exam_id}";
+            $cachedResult = Cache::get($cacheKey);
+            $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
 
             $filepath = $this->generatePDF($result_data, $id, $exam_id);
             $exam_type = SmExamType::findOrFail($exam_id);
@@ -211,6 +208,10 @@ class ResultController extends Controller
                 'error' => 1,
                 'message' => $e->getMessage(),
             ]);
+            // return response()->json([
+            //     'error' => 1,
+            //     'message' => 'There was an error generating the preview. Please try again later.',
+            // ]);
         }
     }
 
@@ -248,10 +249,9 @@ class ResultController extends Controller
                 throw new \Exception('Timeline not found.');
             }
 
-            $result_data = $this->getResultData($id, $exam_id);
-            if (!$result_data) {
-                throw new \Exception('Failed to retrieve student records.');
-            }
+            $cachedResult = Cache::get("result_{$id}_{$exam_id}");
+            $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
+
             $filepath = $this->generatePDF($result_data, $id, $exam_id);
             $timeline->update(['file' => $filepath]);
 
@@ -319,7 +319,6 @@ class ResultController extends Controller
     public function sendEmails()
     {
         try {
-            // Get the active students and their associated timelines and parents
             $students = SmStudent::where('active_status', 1)
                 ->where('academic_id', getAcademicId())
                 ->with(['studentTimeline' => function ($query) {
@@ -328,23 +327,17 @@ class ResultController extends Controller
                 }, 'parents'])
                 ->get(['id', 'full_name']);
 
-            // Iterate over the students
             foreach ($students as $stu) {
-                // Ensure the student has a timeline and parent data
                 $timeline = $stu->studentTimeline;
                 $parent = $stu->parents;
-
-                // Skip if no timeline or parent found
                 if ($timeline->isEmpty() || !$parent) {
                     continue;
                 }
-
-                // Prepare email data
                 $data = [
                     'subject' => 'Result Notification',
                     'reciver_email' => $parent->parent_email,
                     'receiver_name' => $parent->parent_name,
-                    'attachments' => $timeline->pluck('file', 'id'), // Attachments as an array
+                    'attachments' => $timeline->pluck('file'),
                 ];
 
                 $body = (object) [
@@ -357,8 +350,6 @@ class ResultController extends Controller
                     'admin' => 'Miss. Abigal Ojone',
                     'support' => '+2348096041650'
                 ];
-
-                // Dispatch the email sending job
                 post_mail($body, $data);
             }
 

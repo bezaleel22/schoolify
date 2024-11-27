@@ -74,10 +74,9 @@
                     <thead>
                         <tr>
                             <th>@lang('result::student.subject')</th>
-                            <th>@lang('result::student.mta1')</th>
-                            <th>@lang('result::student.mta2')</th>
-                            <th>@lang('result::student.oral')</th>
-                            <th>@lang('result::student.exam')</th>
+                            @foreach ($records[0]->marks as $exam_title => $record)
+                            <th>{{ $exam_title }}</th>
+                            @endforeach
                             <th>@lang('result::student.score')</th>
                             <th>@lang('result::student.grade')</th>
                         </tr>
@@ -102,11 +101,19 @@
                     @endphp
                     <tfoot>
                         <tr>
-                            <th>@lang('result::student.total_score'): {{ @$score->total }}</th>
-                            <th>@lang('result::student.average'): {{ @$score->average }}</th>
-                            <th></th>
-                            <th colspan="2">@lang('result::student.max_average'): {{ $max_average }}</th>
-                            <th colspan="2">@lang('result::student.min_average'): {{ $min_average }}</th>
+                            @if($student->type == 'GRADERS')
+                            <th colspan="3"></th>
+                            @endif
+                            <th colspan="2" style="text-align: right;">
+                                @lang('result::student.total_score'): {{ @$score->total }}
+                                <br>
+                                @lang('result::student.average'): {{ @$score->average }}
+                            </th>
+                            <th colspan="2" style="text-align: right;">
+                                @lang('result::student.max_average'): {{ $max_average }}
+                                <br>
+                                @lang('result::student.min_average'): {{ $min_average }}
+                            </th>
                         </tr>
                     </tfoot>
                 </table>

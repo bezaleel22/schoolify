@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use App\Scopes\StatusAcademicSchoolScope;
+use Illuminate\Support\Facades\Cache;
 use Modules\BehaviourRecords\Entities\AssignIncident;
 use Modules\BehaviourRecords\Entities\BehaviourRecordSetting;
 use Modules\Result\Traits\ResultTrait;
@@ -113,7 +114,11 @@ class StudentController extends Controller
 
             $results = [];
             foreach ($exam_terms as $term) {
-                $results[] = $this->getResultData($id, $term);
+                $cacheKey = "result_{$id}_{$term->id}";
+                Cache::forget($cacheKey);
+                $results[] = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($id, $term) {
+                    return $this->getResultData($id, $term->id);
+                });
             }
 
             $student_info = $results[0]->student ?? null;
