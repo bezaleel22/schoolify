@@ -324,7 +324,7 @@ class ResultController extends Controller
                 ->where('academic_id', getAcademicId())
                 ->with(['studentTimeline' => function ($query) {
                     $query->where('file', 'like', 'uploads')
-                    ->where('');
+                        ->where('');
                 }, 'parents'])
                 ->get(['id', 'full_name']);
 

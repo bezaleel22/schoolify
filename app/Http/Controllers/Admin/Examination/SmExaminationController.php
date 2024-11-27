@@ -628,7 +628,7 @@ class SmExaminationController extends Controller
     }
 
     public function marksRegisterCreate()
-    {
+    { 
         try {
             $exams = SmExam::where('active_status', 1)
                 ->where('academic_id', getAcademicId())

@@ -21,7 +21,7 @@ class Setup extends Command
         Storage::put('.app_installed', $ac);
         Storage::put('.user_email', $email);
         Storage::put('.user_pass', $password);
-        Storage::makeDirectory('framework/cache/data');
+        // Storage::makeDirectory('framework/cache/data');
 
         $this->info('Setup completed');
     }

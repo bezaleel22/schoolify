@@ -111,13 +111,11 @@ class StudentController extends Controller
             $studentBehaviourRecords = (moduleStatusCheck('BehaviourRecords')) ? AssignIncident::where('student_id', $id)->with('incident', 'user', 'academicYear')->get() : null;
             $behaviourRecordSetting = BehaviourRecordSetting::where('id', 1)->first();
 
-            // $re = $this->fetchStudentRecords(339, 5);
             $results = [];
-            if ($exam_terms) {
-                foreach ($exam_terms as $term) {
-                    $results[] = $this->getResultData($id, $term);
-                }
+            foreach ($exam_terms as $term) {
+                $results[] = $this->getResultData($id, $term);
             }
+
             $student_info = $results[0]->student ?? null;
             return view('result::student_view', compact('results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
         } catch (\Exception $e) {

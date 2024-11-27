@@ -90,6 +90,7 @@ trait ResultTrait
     public function getResultData($id, $type)
     {
         $result_data = $this->queryResultData($id, $type->id);
+
         $result = $result_data->result;
         $student_results = $result_data->results;
         if (!count($result) && !count($student_results))
@@ -107,7 +108,7 @@ trait ResultTrait
         $student = (object) [
             'id' => $student_data->id,
             'exam_id' => $type->id,
-            'full_name' => $student_data->full_name,
+            'full_name' => $student_data->name,
             'gender' => $student_data->gender_id,
             'admin' => '',
             'support' => '',
@@ -115,7 +116,7 @@ trait ResultTrait
             'parent_name' => $parent_name,
             'term' => $type->title,
             'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
-            'type' => $category->name,
+            'type' => $category->category_name,
             'class_name' => $student_data->class_name,
             'section_name' => $student_data->section_name,
             'admin_no' => $student_data->admission_no,
@@ -133,28 +134,26 @@ trait ResultTrait
             'name' => $school_data->school_name,
             'city' => $address->city,
             'state' => $address->state,
-            'title' => explode(' ', $exam_type->title ?? '')[4] ?? '',
+            'title' => $type->title,
             'vacation_date' => 'December 25, 2024',
         ];
 
         $rows = [];
         $over_all = 0;
+        foreach ($result as $subject_name => $marks_data) {
+            $sum = $marks_data->sum('total_marks');
+            $marks = $marks_data->pluck('total_marks')->toArray();
+            $grade = $this->getGrade($sum, $student->type);
+            $rows[] = [
+                'subject' => $subject_name,
+                'marks' => $marks,
+                'total_score' => $sum,
+                'grade' => $grade->grade,
+                'color' => $grade->color
+            ];
+            dd($rows);
 
-        foreach ($result as $subject_id => $marks_data) {
-            if ($marks_data->isNotEmpty()) {
-                $sum = $marks_data->sum('total_marks');
-                $marks = $marks_data->pluck('total_marks')->toArray();
-                $grade = $this->getGrade($sum, $student->type);
-
-                $rows[] = [
-                    'subject' => $marks_data[0]->subject_name,
-                    'marks' => $marks,
-                    'total_score' => $sum,
-                    'grade' => $grade->grade,
-                    'color' => $grade->color
-                ];
-                $over_all += $sum;
-            }
+            $over_all += $sum;
         }
         $class_average = $this->getClassAverages($student_results);
         $score = (object) [
@@ -164,7 +163,6 @@ trait ResultTrait
             'max_average' => $class_average->max_average ?? 0,
             'max_scores' => count($rows) * 100,
         ];
-
         $ratings = StudentRating::where('student_id', $id)
             ->where('exam_type_id', $type->id)
             ->first();
@@ -172,7 +170,7 @@ trait ResultTrait
         $remark = TeacherRemark::where('student_id', $student->id)
             ->where('exam_type_id', $type->id)
             ->first();;
-        // dd($remark);
+
         $data =  (object) [
             'school' => $school,
             'student' => $student,
@@ -194,23 +192,38 @@ trait ResultTrait
             ->join('student_records', 'student_records.student_id', '=', 'sm_students.id')
             ->join('sm_classes', 'sm_classes.id', '=', 'student_records.class_id')
             ->join('sm_sections', 'sm_sections.id', '=', 'student_records.section_id')
-            ->select('sm_students.id', 'sm_students.full_name', 'sm_students.school_id', 'sm_students.student_photo', 'sm_students.admission_no', 'sm_classes.class_name', 'sm_sections.section_name',)
-            ->with('school', 'academicYear', 'category')
-            ->with(array('parents' => function ($query) {
-                $query->select('id', 'fathers_name', 'mothers_name', 'guardians_email', 'guardians_mobile');
-            }))->first();
+            ->select(
+                'sm_students.id',
+                'sm_students.full_name as name',
+                'sm_students.student_category_id',
+                'sm_students.gender_id',
+                'sm_students.parent_id',
+                'sm_students.student_photo',
+                'sm_students.admission_no',
+                'sm_classes.class_name',
+                'sm_sections.section_name',
+                'student_records.class_id',
+                'student_records.section_id',
+            )
+            ->with([
+                'category',
+                'parents' => function ($query) {
+                    $query->select('id', 'fathers_name', 'mothers_name', 'guardians_email', 'guardians_mobile');
+                }
+            ])
+            ->first();
 
         $result = SmMarkStore::where('sm_mark_stores.academic_id', getAcademicId())
             ->join('sm_subjects', 'sm_subjects.id', '=', 'sm_mark_stores.subject_id')
+            ->where('sm_mark_stores.student_id', $id)
             ->where('sm_mark_stores.class_id', $student->class_id)
-            ->where('sm_mark_stores.student_id', $student->id)
             ->where('sm_mark_stores.section_id', $student->section_id)
             ->where('sm_mark_stores.exam_term_id', $exam_type_id)
             ->where('sm_mark_stores.is_absent', 0)
             ->where('sm_mark_stores.total_marks', '!=', 0)
             ->select('sm_mark_stores.*', 'sm_subjects.subject_name')
             ->get()
-            ->groupBy('subject_id');
+            ->groupBy('subject_name');
 
         $results = SmResultStore::where('academic_id', getAcademicId())
             ->where('class_id', $student->class_id)
@@ -219,7 +232,7 @@ trait ResultTrait
             ->where('is_absent', 0)
             ->where('total_marks', '!=', 0)
             ->where('exam_type_id', $exam_type_id)
-            ->select('total_marks')
+            ->select('total_marks', 'student_id')
             ->get()
             ->groupBy('student_id');
 

@@ -28,3 +28,12 @@ services:
       ADMINER_DEFAULT_SERVER: postgres
     ports:
       - "8080:8080"
+
+  php-dev:
+    image: "webdevops/php-nginx-dev:8.2-alpine"
+    working_dir: /var/www
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/default.conf:/opt/docker/etc/nginx/vhost.conf
