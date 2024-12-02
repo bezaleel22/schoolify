@@ -153,7 +153,7 @@ class ResultServiceProvider extends ServiceProvider
     {
         // Fetch the email settings for the current school
         $setting = SmEmailSetting::where('active_status', 1)
-            ->where('school_id', Auth::user()->school_id)
+            ->where('school_id', 1)
             ->first();
 
         // If the settings are found, configure the mail settings
