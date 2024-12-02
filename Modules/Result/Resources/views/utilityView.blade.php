@@ -253,7 +253,7 @@
             // Compute the hash of the entire file
             computeFileHash(file).then((hash) => {
                 fileHash = hash;
-                // console.log('File Hash (SHA-256):', fileHash); // Log the hash
+                console.log('File Hash (SHA-256):', fileHash); // Log the hash
                 filename.val(file.name)
                 $('#file_loader').removeClass('pre_loader');
                 $('#file_loader').addClass('loader');
@@ -293,7 +293,7 @@
             , processData: false
             , contentType: false
             , success: function(response) {
-               // console.log(`Chunk ${chunkIndex + 1}/${totalChunks}:`, response);
+               console.log(`Chunk ${chunkIndex + 1}/${totalChunks}:`, response);
 
                 // Update progress bar
                 const progress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
@@ -308,7 +308,7 @@
                 }
             }
             , error: function(error) {
-               // console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
+               console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
                 toastr.error('An error occurred while uploading the file.', 'Success')
             }
         });
