@@ -237,7 +237,7 @@
 </section>
 
 <script>
-    const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per chunk
+    const CHUNK_SIZE = 1 * 1024 * 1024; // 2MB per chunk
     let filename = $("#dataUploadFileInput");
     let fileChunks = [];
     let fileHash;
