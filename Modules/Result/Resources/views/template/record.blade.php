@@ -6,19 +6,16 @@
     <thead>
         <tr class="print:bg-violet-900 bg-neutral text-neutral-content tezprimary-content uppercase print:text-slate-300 text-xs leading-normal">
             @if ($student->type == 'GRADERS')
-            <th class="py-1 px-6 text-left">Subjects</th>
-            <th class="py-1 px-6 text-left">MTA1</th>
-            <th class="py-1 px-6 text-left">MTA2</th>
-            <th class="py-1 px-6 text-left">Oral Report</th>
-            <th class="py-1 px-6 text-left">Exam</th>
-            <th class="py-1 px-6 text-left">Score</th>
-            <th class="py-1 px-6 text-left">Grade</th>
+            <th class="py-1 px-6 text-left">@lang('result::student.subject')</th>
+            @foreach ($records[0]->marks as $exam_title => $record)
+            <th class="py-1 px-6 text-left">{{ $exam_title }}</th>
+            @endforeach
             @else
             <th class="py-1 px-6 text-left">Learning Areas</th>
-            <th class="py-1 px-6 text-left">Objectives</th>
-            <th class="py-1 px-6 text-left">Score</th>
-            <th class="py-1 px-6 text-left">Outcome</th>
+            <th class="py-1 px-6 text-left">@lang('result::student.objectives')</th>
             @endif
+            <th class="py-1 px-6 text-left">@lang('result::student.score')</th>
+            <th class="py-1 px-6 text-left">@lang('result::student.grade')</th>
         </tr>
     </thead>
 
@@ -46,6 +43,7 @@
                     @endforeach
                 </ul>
             </td>
+            <td class="py-3 px-6 text-center whitespace-nowrap">{{ $record->total_score }}</td>
             <td class="py-3 px-6 text-center">
                 <span class="{{ $record->color }} text-violet-600 py-1 px-3 rounded-full text-xs">
                     {{ $record->grade }}

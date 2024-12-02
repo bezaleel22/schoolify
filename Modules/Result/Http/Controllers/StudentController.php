@@ -65,7 +65,6 @@ class StudentController extends Controller
 
             $timelines = SmStudentTimeline::where('staff_student_id', $id)
                 ->where('school_id', Auth::user()->school_id)
-                ->where('type', 'like', '%exam%')
                 ->get();
 
             if (!empty($student_detail->vechile_id)) {
@@ -116,7 +115,7 @@ class StudentController extends Controller
             foreach ($exam_terms as $term) {
                 $cacheKey = "result_{$id}_{$term->id}";
                 Cache::forget($cacheKey);
-                $results[] = Cache::remember($cacheKey, now()->addMinutes(60), function () use ($id, $term) {
+                $results[] = Cache::remember($cacheKey, now()->addDay(), function () use ($id, $term) {
                     return $this->getResultData($id, $term->id);
                 });
             }

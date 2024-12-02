@@ -2,14 +2,14 @@
 <div class="flex w-full p-2">
     <div class="w-full grid grid-rows-3 grid-flow-col">
         <div class="border-b grid grid-cols-12 py-1">
-            <div class="col-span-5">
+            <div class="col-span-7">
                 <span class="print:bg-violet-900 uppercase btn btn-xs border print:text-slate-300 rounded-full">
                     Name
                 </span>
                 <span class="py-2 pl-2 text-xs print:text-slate-500 uppercase">{{ $student->full_name }}</span>
             </div>
 
-            <div class="col-span-7">
+            <div class="col-span-5">
                 <span class="print:bg-violet-900 uppercase btn btn-xs border print:text-slate-300 rounded-full">
                     Term
                 </span>
@@ -68,7 +68,7 @@
 
     <div class="avatar flex flex-col justify-center items-center ml-3">
         <div class="w-24 rounded-full ring ring-neutral print:ring-violet-900 ring-offset-2 mb-4">
-            <img src="{{ url($student->student_photo) }}" alt="Student Photo" />
+            <img src="{{ asset($student->student_photo) }}" alt="Student Photo" />
         </div>
     </div>
 </div>

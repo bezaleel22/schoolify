@@ -2,6 +2,7 @@
 
 namespace Modules\Result\Jobs;
 
+use App\SmEmailSmsLog;
 use App\SmStudentTimeline;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,15 +12,13 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Mail\Message;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class SendResultEmail implements ShouldQueue
 {
     use Queueable, InteractsWithQueue, SerializesModels;
 
-    public $data;
-    public object $student;
-    public $timelineIds = []; // Store the timeline IDs
+    public object $data;
 
     /**
      * The number of times the job should be tried before failing.
@@ -41,13 +40,9 @@ class SendResultEmail implements ShouldQueue
      * @param string $body
      * @param array $data
      */
-    public function __construct(object $student, $data)
+    public function __construct(object $data)
     {
-        $this->student = $student;
         $this->data = $data;
-
-        // Store the timeline IDs upfront
-        $this->timelineIds = $data['attachments']->keys()->toArray(); // The keys are the timeline IDs
     }
 
     /**
@@ -58,72 +53,37 @@ class SendResultEmail implements ShouldQueue
     public function handle()
     {
         try {
-            // Send the email with attachments
-            Mail::send('result::mail', ['student' => $this->student], function (Message $message) {
-                $formattedFullName = preg_replace('/\s+/', '_', $this->student->full_name);
+            Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
+                $formattedFullName = preg_replace('/\s+/', '_', $this->data->full_name);
 
                 $message->subject($this->data['subject'])
-                    ->to($this->data['reciver_email'], $this->data['receiver_name'])
-                    ->from($this->data['sender_email'], $this->data['sender_name']);
-
-                // Attach each file based on the data
-                foreach ($this->data['attachments'] as $id => $filepath) {
-                    $resolvedPath = $this->resolveFilePath($filepath);
-                    if ($resolvedPath) {
-                        $message->attach($resolvedPath, [
-                            'mime' => 'application/pdf',
-                            'as' => "$formattedFullName.pdf",
-                        ]);
-                    } else {
-                        Log::warning("File not found for attachment: $filepath");
-                    }
+                    ->to($this->data['reciver_email'], $this->data->receiver_name)
+                    ->from($this->data['sender_email'], $this->data->sender_name);
+                if (empty($this->data->links)) {
+                    $fileContents = $this->generatePdfAttachment();
+                    $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
                 }
             });
 
-            SmStudentTimeline::whereIn('id', $this->timelineIds)->update(['visible_to_student' => 2]);
-
-            $filePaths = $this->data['attachments']->toArray(); // Get the file paths
-            Storage::delete($filePaths); // Delete the files from storage
-
             Log::info("Email successfully sent to {$this->data['reciver_email']} for student ID: {$this->data['student_id']}");
+            logEmail($this->data['subject'], "Success", $this->data['reciver_email'], $this->data->exam_id);
         } catch (Exception $e) {
             Log::error("Error sending email: " . $e->getMessage());
             throw $e;
         }
     }
 
-    /**
-     * The job has failed after all retries.
-     *
-     * @param  \Exception  $exception
-     * @return void
-     */
-    public function failed(Exception $exception)
+
+    private function generatePdfAttachment(): string
     {
-        // Ensure that even if the job fails early, the timeline visibility is updated
-        if (!empty($this->timelineIds)) {
-            SmStudentTimeline::whereIn('id', $this->timelineIds)->update(['visible_to_student' => 1]);
+        $cacheKey = "result_{$this->data->student_id}_{$this->data->exam_id}";
+        $cachedResult = Cache::get($cacheKey);
+
+        if (!$cachedResult) {
+            throw new \Exception('No Result Data');
         }
 
-        Log::error("Job failed for student ID: {$this->data['student_id']}. Error: " . $exception->getMessage());
-    }
-
-    /**
-     * Resolve the full storage path for a file.
-     *
-     * @param string $filePath
-     * @return string|null
-     */
-    private function resolveFilePath($filePath)
-    {
-        if (Storage::exists($filePath)) {
-            return Storage::path($filePath);
-        }
-
-        if (file_exists($filePath)) {
-            return $filePath;
-        }
-        
-        return null;
+        $resp = generatePDF($cachedResult, $this->data->student_id, $this->data->exam_id);
+        return $resp->getBody()->getContents();
     }
 }

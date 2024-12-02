@@ -6,6 +6,7 @@ return [
     'mta2' => 'MTA2',
     'oral' => 'ORAL',
     'score' => 'SCORE',
+    'objectives' => 'OBJECTIVES',
     'exam' => 'EXAM',
     'grade' => 'GRADE',
     'total_score' => 'TOTAL SCORE',

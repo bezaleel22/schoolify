@@ -31,6 +31,8 @@ class CreateClassAttendancesTable extends Migration
 
             $table->integer('academic_id')->nullable()->unsigned();
             $table->foreign('academic_id')->references('id')->on('sm_academic_years')->onDelete('set null');
+
+            $table->unique(['student_id', 'exam_type_id'], 'student_exam_unique');
         });
     }
 

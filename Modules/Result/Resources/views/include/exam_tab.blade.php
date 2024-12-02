@@ -28,10 +28,9 @@
                 <thead>
                     <tr>
                         <th>@lang('result::student.subject')</th>
-                        <th>@lang('result::student.mta1')</th>
-                        <th>@lang('result::student.mta2')</th>
-                        <th>@lang('result::student.oral')</th>
-                        <th>@lang('result::student.exam')</th>
+                        @foreach ($records[0]->marks as $exam_title => $record)
+                        <th>{{ $exam_title }}</th>
+                        @endforeach
                         <th>@lang('result::student.score')</th>
                         <th>@lang('result::student.grade')</th>
                     </tr>
@@ -95,7 +94,7 @@
                     </tbody>
                     @php
                     $score = $result->score;
-                    $remark = $result->remark;
+                    $teacher_remark = $result->remark;
                     $min_average = $score->min_average->value;
                     $max_average = $score->max_average->value;
                     @endphp
@@ -126,7 +125,8 @@
                                 @lang('result::student.add_remark')
                             </button>
                         </div>
-                        <textarea class="primary_input_field form-control" cols="0" rows="2" name="remark" id="Remark">{{ @$remark->comment }}</textarea>
+                        <textarea disabled class="primary_input_field form-control" cols="0" rows="2" name="remark" id="Remark">{{ @$teacher_remark->remark ?? '' }}</textarea>
+
                         <span class="focus-border textarea"></span>
                     </div>
                 </div>

@@ -2,18 +2,15 @@
 
 namespace Modules\Result\Providers;
 
-use Illuminate\Console\Scheduling\Schedule;
+use App\SmEmailSetting;
 use Modules\Result\Console\InstallApp;
-use Modules\Result\Console\SeedStudents;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Factory;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Modules\Result\Console\ResultCleanup;
 use Modules\Result\Console\SeedApp;
-use Modules\Result\Console\SeedStaffs;
 use Modules\Result\Console\Setup;
-use Modules\Result\Http\Middleware\ResultMiddleware;
 
 class ResultServiceProvider extends ServiceProvider
 {
@@ -41,6 +38,7 @@ class ResultServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->registerHelpers();
+        $this->configureMailSettings();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
         if ($this->app->runningInConsole()) {
             $this->commands([Setup::class, InstallApp::class, ResultCleanup::class, SeedApp::class]);
@@ -138,11 +136,36 @@ class ResultServiceProvider extends ServiceProvider
     private function getPublishableViewPaths(): array
     {
         $paths = [];
-        foreach (\Config::get('view.paths') as $path) {
+        foreach (Config::get('view.paths') as $path) {
             if (is_dir($path . '/modules/' . $this->moduleNameLower)) {
                 $paths[] = $path . '/modules/' . $this->moduleNameLower;
             }
         }
         return $paths;
+    }
+
+    /**
+     * Configure the mail settings based on the active school's email settings.
+     *
+     * @return void
+     */
+    protected function configureMailSettings()
+    {
+        // Fetch the email settings for the current school
+        $setting = SmEmailSetting::where('active_status', 1)
+            ->where('school_id', Auth::user()->school_id)
+            ->first();
+
+        // If the settings are found, configure the mail settings
+        if ($setting) {
+            Config::set('mail.default', $setting->mail_driver);
+            Config::set('mail.from.address', $setting->mail_username);
+            Config::set('mail.from.name', $setting->from_name);
+            Config::set('mail.mailers.smtp.host', $setting->mail_host);
+            Config::set('mail.mailers.smtp.port', $setting->mail_port);
+            Config::set('mail.mailers.smtp.username', $setting->mail_username);
+            Config::set('mail.mailers.smtp.password', $setting->mail_password);
+            Config::set('mail.mailers.smtp.encryption', $setting->mail_encryption);
+        }
     }
 }

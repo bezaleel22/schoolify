@@ -4,17 +4,22 @@ namespace Modules\Result\Traits;
 
 use App\Models\StudentRecord;
 use App\SmAcademicYear;
+use App\SmDesignation;
 use App\SmExamType;
 use App\SmMarkStore;
 use App\SmResultStore;
+use App\SmStaff;
 use Gotenberg\Stream;
 use App\SmStudent;
+use App\SmStudentTimeline;
 use Brian2694\Toastr\Facades\Toastr;
 use Gotenberg\Gotenberg;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Modules\Result\Entities\ClassAttendance;
+use Modules\Result\Entities\SmOldResult;
 use Modules\Result\Entities\StudentRating;
 use Modules\Result\Entities\TeacherRemark;
 
@@ -22,41 +27,6 @@ trait ResultTrait
 {
     public $maxAttempts = 5; // Default: 5 attempts
     public $decayMinutes = 1; // Default: 1 minute
-
-    protected function login()
-    {
-        $url = env('LOCAL_BASE_URL', null);
-        $url = $url . '/api/auth/login';
-        $credentials = [
-            "email" => "onosbrown.saved@gmail.com",
-            "password" => "#1414bruno#"
-        ];
-
-        $response = Http::post($url, $credentials);
-        if ($response->successful()) {
-            $this->token = $response->json()['data']['token'];
-        } else {
-            return response()->json(['error' => 'Login failed'], 401);
-        }
-    }
-
-    protected function fetchStudentRecords($id, $exam_id)
-    {
-        if (!$this->token)
-            $this->login();
-
-        $url = env('LOCAL_BASE_URL', null);
-        $url = "$url/api/marks-grade?id=$id&exam_id=$exam_id";
-        $response = Http::withHeaders([
-            'Authorization' => $this->token, // Replace $token with your actual token
-        ])->get($url);
-
-        if ($response->successful()) {
-            return $response->object()->data;
-        } else {
-            return null;
-        }
-    }
 
     public function getClassAverages($student_results)
     {
@@ -96,22 +66,54 @@ trait ResultTrait
         ];
     }
 
-
-    public function getResultData($id, $exam_id)
+    function getObjectives($class_name)
     {
-        $result_data = $this->queryResultData($id, $exam_id);
+        $jsonContent = Storage::get('objectives.json');
+        $json_data = json_decode($jsonContent, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+        return collect($json_data)->where('class_name', $class_name);
+    }
+
+    private function generateLinks($id)
+    {
+        $timelines = SmStudentTimeline::where('staff_student_id', $id)->get();
+        $links = [];
+        foreach ($timelines as $timeline) {
+            $link = route('result.download', ['id' => $id, 'exam_id' => $timeline->type]);
+            $links[] =  ['label' => $timeline->title, 'url' => $link];
+        }
+        return $links;
+    }
+
+    function getContacts($category)
+    {
+        $principal_desig = SmDesignation::where('title', 'principal')->first();
+        $principal = SmStaff::where('designation_id', $principal_desig->id)->first();
+        $supports_desig = SmDesignation::where('title', 'LIKE', "$category%")->first();
+        $support = SmStaff::where('designation_id', $supports_desig->id)->first();
+
+        return [
+            'principal' => $principal->full_name,
+            'contact' => $principal->mobile,
+            'support' => $support->mobile,
+        ];
+    }
+    public function getResultData($id, $exam_id, $db = null)
+    {
+
+        $result_data = !$db ? $this->queryResultData($id, $exam_id)
+            : SmOldResult::queryResultData($id, $exam_id);
 
         $result = $result_data->result;
         if (!count($result)) return null;
 
         $student_data = $result_data->student;
         $category = $student_data->category;
-
-        $type = SmExamType::find($exam_id);
-        $academic = SmAcademicYear::find(getAcademicId());
-        $attendance = ClassAttendance::where('student_id', $id)
-            ->where('exam_type_id', $exam_id)
-            ->first();
+        $type = $result_data->type;
+        $academic = $result_data->academic;
+        $attendance = $result_data->attendance;
 
         $parent_name = $student_data->parents->fathers_name ?? $student_data->parents->mothers_name;
         $student = (object) [
@@ -119,8 +121,6 @@ trait ResultTrait
             'exam_id' => $type->id,
             'full_name' => $student_data->name,
             'gender' => $student_data->gender_id,
-            'admin' => '',
-            'support' => '',
             'parent_email' => $student_data->parents->guardians_email,
             'parent_name' => $parent_name,
             'term' => $type->title,
@@ -129,7 +129,7 @@ trait ResultTrait
             'class_name' => $student_data->class_name,
             'section_name' => $student_data->section_name,
             'admin_no' => $student_data->admission_no,
-            'session_year' => $academic->title,
+            'session_year' => "$academic->year-[$academic->title]",
             'opened' => $attendance->days_opened ?? 0,
             'absent' => $attendance->days_opened ?? 0,
             'present' => $attendance->days_opened ?? 0,
@@ -137,10 +137,12 @@ trait ResultTrait
             'filepath' => ''
         ];
 
+        $objectives = $this->getObjectives($student->class_name);
         $school_data = schoolConfig();
         $address = $this->parseAddress($school_data->address);
         $school = (object) [
-            'name' => $school_data->school_name,
+            'name' => $school_data->site_title,
+            'logo' => $school_data->favicon,
             'city' => $address->city,
             'state' => $address->state,
             'title' => $type->title,
@@ -153,14 +155,21 @@ trait ResultTrait
             $sum = $marks_data->sum('total_marks');
             $marks = $marks_data->pluck('total_marks', 'exam_title')->toArray();
             $grade = $this->getGrade($sum, $student->type);
+            $obj = $objectives->firstWhere('subject_code', $marks_data[0]->subject_code);
             $rows[] = (object)[
                 'subject' => $subject_name,
+                'objectives' => array_map('trim', explode('|', $obj['text'] ?? '')),
                 'marks' => $marks,
                 'total_score' => $sum,
                 'grade' => $grade->grade,
-                'color' => $grade->color
+                'color' => $grade->color,
             ];
             $over_all += $sum;
+            if ($subject_name == "BIBLE" && $db)
+                $result_data->remark = (object)[
+                    'name' => "Teacher's Remarks",
+                    'remark' => $marks_data[0]->teacher_remarks
+                ];
         }
 
         $class_average = $this->getClassAverages($result_data->results);
@@ -171,21 +180,14 @@ trait ResultTrait
             'max_average' => $class_average->max_average,
             'max_scores' => count($rows) * 100,
         ];
-        $ratings = StudentRating::where('student_id', $id)
-            ->where('exam_type_id', $type->id)
-            ->first();
-
-        $remark = TeacherRemark::where('student_id', $student->id)
-            ->where('exam_type_id', $type->id)
-            ->first();;
 
         $data =  (object) [
             'school' => $school,
             'student' => $student,
             'records' => $rows,
             'score' => $score,
-            'ratings' => $ratings,
-            'remark' => $remark,
+            'ratings' => $result_data->ratings,
+            'remark' => $result_data->remark,
             'exam_type' => $type,
         ];
 
@@ -194,9 +196,10 @@ trait ResultTrait
 
     public static function queryResultData($id, $exam_type_id)
     {
+        $academic_id = getAcademicId();
         $student = SmStudent::where('sm_students.active_status', 1)
             ->where('sm_students.id', $id)
-            ->where('student_records.academic_id', getAcademicId())
+            ->where('student_records.academic_id', $academic_id)
             ->join('student_records', 'student_records.student_id', '=', 'sm_students.id')
             ->join('sm_classes', 'sm_classes.id', '=', 'student_records.class_id')
             ->join('sm_sections', 'sm_sections.id', '=', 'student_records.section_id')
@@ -221,7 +224,7 @@ trait ResultTrait
             ])
             ->first();
 
-        $result = SmMarkStore::where('sm_mark_stores.academic_id', getAcademicId())
+        $result = SmMarkStore::where('sm_mark_stores.academic_id', $academic_id)
             ->join('sm_subjects', 'sm_subjects.id', '=', 'sm_mark_stores.subject_id')
             ->join('sm_exam_setups', 'sm_exam_setups.id', '=', 'sm_mark_stores.exam_setup_id')
             ->where('sm_mark_stores.student_id', $id)
@@ -230,14 +233,14 @@ trait ResultTrait
             ->where('sm_mark_stores.exam_term_id', $exam_type_id)
             ->where('sm_mark_stores.is_absent', 0)
             ->where('sm_mark_stores.total_marks', '!=', 0)
-            ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_exam_setups.exam_title')
+            ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_subjects.subject_code', 'sm_exam_setups.exam_title')
             ->get()
             ->groupBy('subject_name');
 
-        $results = SmResultStore::where('academic_id', getAcademicId())
+        $results = SmResultStore::where('academic_id', $academic_id)
             ->where('class_id', $student->class_id)
             ->where('section_id', $student->section_id)
-            ->where('academic_id', getAcademicId())
+            ->where('academic_id', $academic_id)
             ->where('is_absent', 0)
             ->where('total_marks', '!=', 0)
             ->where('exam_type_id', $exam_type_id)
@@ -245,7 +248,30 @@ trait ResultTrait
             ->get()
             ->groupBy('student_id');
 
-        return (object) ['student' => $student, 'result' => $result, 'results' => $results];
+        $type = SmExamType::find($exam_type_id);
+        $academic = SmAcademicYear::find($academic_id);
+        $attendance = ClassAttendance::where('student_id', $id)
+            ->where('exam_type_id', $exam_type_id)
+            ->first();
+
+        $ratings = StudentRating::where('student_id', $id)
+            ->where('exam_type_id', $type->id)
+            ->first();
+
+        $remark = TeacherRemark::where('student_id', $student->id)
+            ->where('exam_type_id', $type->id)
+            ->first();;
+
+        return (object) [
+            'student' => $student,
+            'result' => $result,
+            'results' => $results,
+            'type' => $type,
+            'academic' => $academic,
+            'attendance' => $attendance,
+            'ratings' => $ratings,
+            'remark' => $remark,
+        ];
     }
 
     private function removeDate($string)
@@ -306,66 +332,6 @@ trait ResultTrait
         }
 
         return (object) $addressComponents;
-    }
-
-    protected function mapRating($rate = 0)
-    {
-        $map = [
-            '5' => ['remark' => 'Excellent', 'color' => 'range-success'],
-            '4' => ['remark' => 'Good', 'color' => 'range-error'],
-            '3' => ['remark' => 'Average', 'color' => 'range-info'],
-            '2' => ['remark' => 'Below Average', 'color' => 'range-accent'],
-            '1' => ['remark' => 'Poor', 'color' => 'range-warning'],
-        ];
-
-        if ($rate == 0) return $map;
-
-        return $map[$rate] ?? ['remark' => 'Not Rated', 'color' => 'range-default'];
-    }
-
-    public function getView($result)
-    {
-        $school = $result->school;
-        $student = $result->student;
-        $records = $result->records;
-        $score = $result->score;
-        $ratings = $result->ratings;
-        $remark = $result->remark;
-
-        return  view('result::template.result', compact('student', 'school', 'ratings', 'records', 'score', 'remark'));
-    }
-
-    public function generatePDF($result_data, $id, $exam_id)
-    {
-
-        $view = $this->getView($result_data);
-        $result = $view->render();
-        $fileName = md5($id . $exam_id);
-
-        $url = env('GOTENBERG_URL');
-        if (!$url) {
-            return response()->json([
-                'error' => 1,
-                'message' => 'PDF generation service URL is not configured.',
-            ]);
-        }
-
-        $directory = 'uploads/student/timeline';
-        if (!Storage::exists($directory)) {
-            Storage::makeDirectory($directory);
-        }
-        $storage_path = Storage::path($directory);
-
-        $req = Gotenberg::chromium($url)
-            ->pdf()
-            ->skipNetworkIdleEvent()
-            ->preferCssPageSize()
-            ->outputFilename($fileName)
-            ->margins('2mm', '2mm', '2mm', '2mm')
-            ->html(Stream::string('index.html', $result));
-
-        $filename = Gotenberg::save($req, $storage_path);
-        return $directory . '/' . $filename;
     }
 
     public function transformComment($comment, $student)

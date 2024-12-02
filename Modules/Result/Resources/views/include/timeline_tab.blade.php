@@ -6,6 +6,10 @@
                       <span class="pl ti-plus"></span>
                   </button>
               </div>
+              @php
+              // dd($timelines);
+              @endphp
+              @endphp
               @foreach ($timelines as $timeline)
               <div class="student-activities">
                   <div class="single-activity">

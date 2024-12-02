@@ -58,16 +58,6 @@
                     </a>
                 </div>
 
-
-                <div class="col-md-4 col-lg-3 col-sm-6">
-                    <a class="white-box single-summery fuchsia d-block btn-ajax" href="{{ route('result.upload') }}">
-                        <div class="d-block mt-10 text-center ">
-                            <h3><i class="ti-import font_30"></i></h3>
-                            <h1 class="gradient-color2 total_purchase">Upload Student Data</h1>
-                        </div>
-                    </a>
-                </div>
-
                 <div class="col-md-4 col-lg-3 col-sm-6">
                     <a class="white-box single-summery fuchsia d-block btn-ajax" href="{{ route('result.send_emails') }}">
                         <div class="d-block mt-10 text-center ">
@@ -76,9 +66,56 @@
                         </div>
                     </a>
                 </div>
-
             </div>
         </div>
+        <div class="row mt-40">
+            <div class="col-lg-12">
+                <div class="white-box">
+                    <h3 class="text-center">Student Data Uplaod</h3>
+                    <hr>
+                    <form id="uploadForm">
+                        @csrf
+                        <div class="row justify-content-center">
+                            <div class="col-lg-6 col-md-8">
+                                <div class="row mb-20">
+                                    <div class="col-lg-12 mt-15">
+                                        <div class="primary_input">
+                                            <div class="primary_file_uploader">
+                                                <input class="primary_input_field form-control" readonly="true" type="text" placeholder="File" id="dataUploadFileInput">
+                                                <div class="d-flex">
+                                                    <div class="pull-right loader" id="file_loader">
+                                                        <img class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
+                                                    </div>
+                                                    <button class="" type="button">
+                                                        <label class="primary-btn small fix-gr-bg" for="upload_student_file">Browse</label>
+                                                        <input type="file" value="somefile.zip" class="d-none" name="student_file" id="upload_student_file">
+                                                    </button>
+                                                </div>
+
+                                                <code>
+                                                    (jpg,png,jpeg,pdf,doc,docx,txt,xlsx,rar,zip are allowed forupload)
+                                                </code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-20">
+                                    <div class="col-lg-12 text-center">
+                                        <button class="primary-btn fix-gr-bg">
+                                            <span class="ti-check"></span>
+                                            Upload
+                                        </button>
+                                        <div id="progressBar" class="progress-bar violet mt-10" role="progressbar" style="width: 0%;"></div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div class="row mt-40">
             <div class="col-lg-12">
                 <div class="white-box">
@@ -198,6 +235,102 @@
 
 
 </section>
+
+<script>
+    const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per chunk
+    let filename = $("#dataUploadFileInput");
+    let fileChunks = [];
+    let fileHash;
+
+    document.getElementById('upload_student_file').addEventListener('change', function(e) {
+        file = e.target.files[0];
+        if (file) {
+            let totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            fileChunks = [];
+            $('#file_loader').addClass('pre_loader');
+            $('#file_loader').removeClass('loader');
+
+            // Compute the hash of the entire file
+            computeFileHash(file).then((hash) => {
+                fileHash = hash;
+                // console.log('File Hash (SHA-256):', fileHash); // Log the hash
+                filename.val(file.name)
+                $('#file_loader').removeClass('pre_loader');
+                $('#file_loader').addClass('loader');
+
+                // Prepare the file chunks for upload
+                for (let i = 0; i < totalChunks; i++) {
+                    fileChunks.push({
+                        chunk: file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+                        , chunkIndex: i
+                        , totalChunks: totalChunks
+                    });
+                }
+            });
+        }
+    });
+
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        uploadChunk(0);
+    });
+
+    function uploadChunk(chunkIndex) {
+        let chunk = fileChunks[chunkIndex];
+        let totalChunks = chunk.totalChunks
+        let formData = new FormData();
+        formData.append('file', chunk.chunk);
+        formData.append('chunkIndex', chunk.chunkIndex);
+        formData.append('totalChunks', totalChunks);
+        formData.append('filename', file.name);
+        formData.append('fileHash', fileHash);
+
+        $.ajax({
+            url: '{{ route("result.upload") }}'
+            , type: 'POST'
+            , data: formData
+            , processData: false
+            , contentType: false
+            , success: function(response) {
+               // console.log(`Chunk ${chunkIndex + 1}/${totalChunks}:`, response);
+
+                // Update progress bar
+                const progress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+                $('#progressBar').css('width', progress + '%').text(progress + '%');
+
+                if (response.success) {
+                    $('#progressBar').css('width', '100%').text('100%');
+                    toastr.success(response.message, 'Success')
+                    return;
+                } else {
+                    uploadChunk(response.nextIndex);
+                }
+            }
+            , error: function(error) {
+               // console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
+                toastr.error('An error occurred while uploading the file.', 'Success')
+            }
+        });
+    };
+
+
+    function computeFileHash(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const buffer = e.target.result;
+                crypto.subtle.digest('SHA-256', buffer).then(function(hashBuffer) {
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+                    resolve(hashHex); // Return the SHA-256 hash
+                }).catch(reject);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+</script>
 
 
 @endsection

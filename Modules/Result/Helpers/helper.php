@@ -3,10 +3,11 @@
 // Get File Path From HELPER
 
 use App\SmEmailSetting;
+use App\SmEmailSmsLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Gotenberg\Stream;
+use Gotenberg\Gotenberg;
 use Modules\Result\Jobs\SendResultEmail;
 
 if (!function_exists('showTimelineDocName')) {
@@ -27,8 +28,42 @@ if (!function_exists('showDocumentName')) {
     }
 }
 
-if (!function_exists('getResulteData')) {
-    function getFileName($data)
+if (!function_exists('logEmail')) {
+    function logEmail($title, $dsc, $send_to, $exam_id)
+    {
+        $emailSmsData = new SmEmailSmsLog();
+        $emailSmsData->title = $title;
+        $emailSmsData->description = $dsc;
+        $emailSmsData->send_through = "exam-$exam_id";
+        $emailSmsData->send_date = date('Y-m-d');
+        $emailSmsData->send_to = $send_to;
+        $emailSmsData->school_id = auth()->school_id;
+        $emailSmsData->academic_id = getAcademicId();
+        $success = $emailSmsData->save();
+
+        return $success;
+    }
+}
+
+if (!function_exists('mapRating')) {
+    function mapRating($rate = 0)
+    {
+        $map = [
+            '5' => ['remark' => 'Excellent', 'color' => 'range-success'],
+            '4' => ['remark' => 'Good', 'color' => 'range-error'],
+            '3' => ['remark' => 'Average', 'color' => 'range-info'],
+            '2' => ['remark' => 'Below Average', 'color' => 'range-accent'],
+            '1' => ['remark' => 'Poor', 'color' => 'range-warning'],
+        ];
+
+        if ($rate == 0) return $map;
+
+        return $map[$rate] ?? ['remark' => 'Not Rated', 'color' => 'range-default'];
+    }
+}
+
+if (!function_exists('contactsForMail')) {
+    function contactsForMail($data)
     {
         if ($data) {
             $name = explode('/', $data);
@@ -39,31 +74,49 @@ if (!function_exists('getResulteData')) {
     }
 }
 
-if (!function_exists('post_mail')) {
-    function post_mail($student, $data = [])
+if (!function_exists('generatePDF')) {
+    function generatePDF($result_data, $id, $exam_id)
     {
-        $setting = SmEmailSetting::where('active_status', 1)->where('school_id', Auth::user()->school_id)->first();
+        $school = $result_data->school;
+        $student = $result_data->student;
+        $records = $result_data->records;
+        $score = $result_data->score;
+        $ratings = $result_data->ratings;
+        $remark = $result_data->remark;
+
+        $compact = compact('student', 'school', 'ratings', 'records', 'score', 'remark');
+        $result = view('result::template.result', $compact)->render();
+
+        $fileName = md5($id . $exam_id);
+        $url = env('GOTENBERG_URL');
+        $req = Gotenberg::chromium($url)
+            ->pdf()
+            ->skipNetworkIdleEvent()
+            ->preferCssPageSize()
+            ->outputFilename($fileName)
+            ->margins('2mm', '2mm', '2mm', '2mm')
+            ->html(Stream::string('index.html', $result));
+
+        $response = Gotenberg::send($req);
+        return $response->withHeader('Content-Disposition', "inline; filename='$fileName.pdf'");
+    }
+}
+
+
+if (!function_exists('post_mail')) {
+    function post_mail(object $data)
+    {
+        $setting = SmEmailSetting::where('active_status', 1)
+            ->where('school_id', Auth::user()->school_id)
+            ->first();
+
         if (!$setting) {
             throw new \Exception('');
         }
 
-        $sender_email = $setting->from_email;
-        $sender_name = $setting->from_name;
-        $email_driver = $setting->mail_driver;
+        $data->sender_name = $setting->from_email;
+        $data->sender_email = $setting->from_name;
 
-        Config::set('mail.default', $setting->mail_driver);
-        Config::set('mail.from.from', $setting->mail_username);
-        Config::set('mail.from.name', $setting->from_name);
-        Config::set('mail.mailers.smtp.host', $setting->mail_host);
-        Config::set('mail.mailers.smtp.port', $setting->mail_port);
-        Config::set('mail.mailers.smtp.username', $setting->mail_username);
-        Config::set('mail.mailers.smtp.password', $setting->mail_password);
-        Config::set('mail.mailers.smtp.encryption', $setting->mail_encryption);
-
-        $data['driver'] = $email_driver;
-        $data['sender_name'] = $sender_name;
-        $data['sender_email'] = $sender_email;
-
-        dispatch(new SendResultEmail($student, $data));
+        dispatch(new SendResultEmail($data));
     }
 }

@@ -1,35 +1,4 @@
 services:
-  mariadb:
-    image: mariadb:latest
-    container_name: mariadb
-    restart: unless-stopped
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-
-  gotenberg:
-    image: gotenberg/gotenberg:8
-    container_name: gotenberg
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-
-  adminer:
-    depends_on:
-      - mariadb
-    image: adminer
-    container_name: adminer
-    restart: always
-    environment:
-      ADMINER_DEFAULT_SERVER: mariadb
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "8000:8080"
-
   php-dev:
     image: "webdevops/php-nginx-dev:8.2-alpine"
     container_name: php-dev
@@ -47,3 +16,39 @@ services:
     volumes:
       - ./:/var/www
       - ./docker/default.conf:/opt/docker/etc/nginx/vhost.conf
+
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+
+  adminer:
+    depends_on:
+      - mariadb
+    image: adminer
+    container_name: adminer
+    restart: always
+    environment:
+      ADMINER_DEFAULT_SERVER: mariadb
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8000:8080"
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: gotenberg
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:

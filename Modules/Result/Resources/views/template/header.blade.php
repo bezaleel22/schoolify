@@ -3,7 +3,7 @@
     <div class="flex items-center">
         <div class="avatar">
             <div class="mask mask-squircle w-12 h-12">
-                <img src="{{ $school->logo_url ?? 'https://file.llacademy.ng/api/public/dl/QyerXXgt' }}" alt="School Logo" />
+                <img src="{{ asset($school->logo) }}" alt="School Logo" />
             </div>
         </div>
 

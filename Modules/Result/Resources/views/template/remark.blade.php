@@ -1,10 +1,14 @@
 <!-- resources/views/template/remark.blade.php -->
+@if (!empty($remark->name))
 <div class="border-b grid grid-cols-5 px-3 py-1">
     <div>
         <span class="print:bg-violet-900 uppercase btn btn-xs border print:text-slate-300 rounded-full">
             {{ $remark->name }}
         </span>
     </div>
-    <span class="col-span-4 pl-2 text-xs print:text-slate-500 leading-7">{{ $remark->comment }}</span>
+    <span class="col-span-4 pl-2 text-xs print:text-slate-500 leading-7">
+        {{ $remark->remark ?? 'No comment' }}
+    </span>
 </div>
+@endif
 
