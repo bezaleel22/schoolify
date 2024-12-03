@@ -75,7 +75,7 @@ class ImportController extends Controller
 
             // If this is the last chunk, assemble, verify, and unzip the zip file
             if ($chunkIndex + 1 == $totalChunks) {
-       
+
                 $finalFilePath = $this->assembleChunks($filename, $totalChunks, $tempDir, $uploadedDir);
                 if (!$this->verifyHash($finalFilePath, $fileHash)) {
                     unlink($finalFilePath);
@@ -83,7 +83,6 @@ class ImportController extends Controller
                 }
 
                 if (pathinfo($filename, PATHINFO_EXTENSION) == 'json') {
-                    Storage::put();
                     return $this->jsonResponse(true, 'File uploaded successfully.');
                 }
 
@@ -112,6 +111,7 @@ class ImportController extends Controller
     // Assemble file chunks into a complete file
     protected function assembleChunks($filename, $totalChunks, $tempDir, $uploadedDir)
     {
+
         $finalFilePath = "$uploadedDir/$filename";
         $finalFile = fopen($finalFilePath, 'wb');
 
