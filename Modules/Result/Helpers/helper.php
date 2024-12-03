@@ -126,6 +126,6 @@ if (!function_exists('post_mail')) {
         $data->sender_name = $setting->from_email;
         $data->sender_email = $setting->from_name;
 
-        dispatch(new SendResultEmail($data));
+        dispatch(new SendResultEmail($data))->onQueue("exam-$data->exam_id");
     }
 }

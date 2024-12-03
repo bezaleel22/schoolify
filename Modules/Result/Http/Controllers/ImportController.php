@@ -68,6 +68,12 @@ class ImportController extends Controller
             // Save the uploaded chunk
             $file = $request->file('file');
             $file->move($tempDir, $chunkFileName);
+            // Cache the current chunk index
+            Cache::put(
+                "progress_$fileHash",
+                $chunkIndex,
+                now()->addMinutes(60)
+            );
 
             // If this is the last chunk, assemble, verify, and unzip the zip file
             if ($chunkIndex + 1 == $totalChunks) {
@@ -80,12 +86,8 @@ class ImportController extends Controller
                 if (!$this->unzip($finalFilePath)) {
                     return $this->jsonResponse(false, 'Failed to unzip the file. Please ensure it is a valid archive.', [], 400);
                 }
-
                 return $this->jsonResponse(true, 'File uploaded successfully.');
             }
-
-            // Cache the current chunk index
-            Cache::put("progress_$fileHash", $chunkIndex, now()->addMinutes(60));
 
             return $this->jsonResponse(false, 'Chunk uploaded successfully.', ['nextIndex' => $chunkIndex + 1]);
         } catch (\Exception $e) {

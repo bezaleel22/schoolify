@@ -2,15 +2,12 @@
 
 namespace Modules\Result\Jobs;
 
-use App\SmEmailSmsLog;
-use App\SmStudentTimeline;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Exception;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Cache;
 
@@ -52,25 +49,42 @@ class SendResultEmail implements ShouldQueue
      */
     public function handle()
     {
-        try {
-            Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
-                $formattedFullName = preg_replace('/\s+/', '_', $this->data->full_name);
 
-                $message->subject($this->data['subject'])
-                    ->to($this->data['reciver_email'], $this->data->receiver_name)
-                    ->from($this->data['sender_email'], $this->data->sender_name);
-                if (empty($this->data->links)) {
-                    $fileContents = $this->generatePdfAttachment();
-                    $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
-                }
-            });
+        Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
+            $formattedFullName = preg_replace('/\s+/', '_', $this->data->full_name);
 
-            Log::info("Email successfully sent to {$this->data['reciver_email']} for student ID: {$this->data['student_id']}");
-            logEmail($this->data['subject'], "Success", $this->data['reciver_email'], $this->data->exam_id);
-        } catch (Exception $e) {
-            Log::error("Error sending email: " . $e->getMessage());
-            throw $e;
-        }
+            $message->subject($this->data['subject'])
+                ->to($this->data['reciver_email'], $this->data->receiver_name)
+                ->from($this->data['sender_email'], $this->data->sender_name);
+            if (empty($this->data->links)) {
+                $fileContents = $this->generatePdfAttachment();
+                $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
+            }
+        });
+
+        $msg = "Email sent to {$this->data['reciver_email']}";
+        $title = '<span class="text-success">Success</span> ';
+        logEmail($title, $msg, $this->data['reciver_email'], $this->data->exam_id);
+        Log::info($msg);
+    }
+
+
+    /**
+     * Handle a job failure.
+     *
+     * @param \Throwable $exception
+     * @return void
+     */
+    public function failed(\Throwable $e)
+    {
+        // Log or notify about the failure
+        $msg = $e->exception->getMessage();
+        Log::error("Job failed with exception: " . $msg, [
+            'data' => $this->data,
+            'trace' => $e->getTraceAsString(),
+        ]);
+        $title = '<span class="text-danger">Failed</span> ';
+        logEmail($title, $msg, $this->data['reciver_email'], $this->data->exam_id);
     }
 
 

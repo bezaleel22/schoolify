@@ -11,12 +11,16 @@ use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use App\SmEmailSetting;
+use App\SmEmailSmsLog;
 use App\SmStudent;
 use Illuminate\Bus\Batch;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Modules\Result\Entities\ClassAttendance;
 use Modules\Result\Entities\Comment;
@@ -331,7 +335,6 @@ class ResultController extends Controller
                 ->with(['studentTimeline', 'parents', 'category'])
                 ->get(['id', 'full_name']);
 
-            $jobs = [];
             foreach ($students as $stu) {
                 $timelines = $stu->studentTimeline;
                 $parent = $stu->parents;
@@ -358,31 +361,55 @@ class ResultController extends Controller
                     'support' => $contacts['support'],
                     'school_name' => schoolConfig()->site_title,
                     'session' => "$session->year - [$session->title]",
-                    'links' => $this->generateLinks($stu->id)
+                    'links' => $this->generateLinks($timelines)
                 ];
-                
-                $jobs[] = new SendResultEmail($data);
+
+                @post_mail($data);
             }
-
-            $batch = Bus::batch($jobs)->then(function (Batch $batch) {
-            })->catch(function (Batch $batch, Throwable $e) {
-                // First batch job failure detected...
-                // Notify admin of errors...
-            })->finally(function (Batch $batch) {
-                // The batch has finished executing...
-                // Notify admin masscreation is complete
-            })->onQueue('batches');
-
-            $batch->dispatch();
 
             // Success response
             Toastr::success('Emails Queued successfully', 'Success');
             return redirect()->back()->with(['studentTimeline' => 'active']);
         } catch (\Exception $e) {
-            // Error logging and failure response
             Log::error('Failed to send result emails: ' . $e->getMessage());
             Toastr::error('Operation Failed: ' . $e->getMessage(), 'Failed');
             return redirect()->back()->with(['studentTimeline' => 'active']);
+        }
+    }
+
+    public function resendEmails()
+    {
+        try {
+            $emailSmsLogs = SmEmailSmsLog::where('academic_id', getAcademicId())
+                ->where('title', 'failed')
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
+
+            $queue = $emailSmsLogs[0]->send_through;
+            Queue::push(function () use ($queue) {
+                Artisan::call('queue:retry', ['queue' => $queue]);
+            });
+
+            Toastr::success('Operation Successful', 'Success');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Toastr::error('Operation Failed', 'Failed');
+            return redirect()->back();
+        }
+    }
+
+    public function emailLogs()
+    {
+        try {
+            $emailSmsLogs = SmEmailSmsLog::where('academic_id', getAcademicId())
+                ->orderBy('id', 'DESC')
+                ->where('school_id', Auth::user()->school_id)
+                ->get();
+
+            return view('result::emailSmsLog', compact('emailSmsLogs'));
+        } catch (\Exception $e) {
+            Toastr::error('Operation Failed', 'Failed');
+            return redirect()->back();
         }
     }
 

@@ -22,6 +22,7 @@ use Modules\Result\Jobs\SendResultEmail;
 */
 
 Route::get('test-mail', 'ResultController@testEmails')->name('result.test_emails');
+Route::get('resend-emails', 'ResultController@resendEmails')->name('result.resend_emails');
 Route::get('send-emails', 'ResultController@sendEmails')->name('result.send_emails');
 Route::get('download-result/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
 Route::post('publish/{id}', 'ResultController@publish')->name('result.publish');
@@ -35,16 +36,12 @@ Route::post('upload-data', 'ImportController@upload')->name('result.upload');
 Route::get('student-view/{id}/{type?}', 'StudentController@show')->name('student_view');
 Route::get('my-children/{id}', 'ParentController@myChildren')->name('my_children_result');
 Route::get('utility', 'UtilityController@index')->name('utility');
+Route::get('email-sms-log', 'ResultController@emailLogs')->name('email-sms-log')->middleware('userRolePermission:email-sms-log');
+
 Event::listen(JobFailed::class, function (JobFailed $event) {
-    $exception = $event->exception;
     $payload = json_decode($event->job->getRawBody(), true); // Decode job payload
     $data = $payload['data'];
 
-    $title = $data['subject'] ?? 'Failed to send email'; // Default to a generic title if not available
-    $description = $exception->getMessage(); // Use the exception message as the description
-    $sendTo = $data['reciver_email'] ?? 'unknown'; // Get the recipient email (fallback to 'unknown' if not found)
-    $exam_id = $data['exam_id'] ?? 'unknown';
-
-    logEmail($title, $description, $sendTo, $exam_id);
-    Log::error('Job failed: ' . $exception->getMessage());
+    $msg = $event->exception->getMessage(); // Use the exception message as the description
+    Log::error('Job failed: ' . $msg);
 });

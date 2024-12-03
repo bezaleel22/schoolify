@@ -76,15 +76,13 @@ trait ResultTrait
         return collect($json_data)->where('class_name', $class_name);
     }
 
-    private function generateLinks($id)
+    private function generateLinks($timelines)
     {
-        $timelines = SmStudentTimeline::where('staff_student_id', $id)->get();
-        $links = [];
-        foreach ($timelines as $timeline) {
-            $link = route('result.download', ['id' => $id, 'exam_id' => $timeline->type]);
-            $links[] =  ['label' => $timeline->title, 'url' => $link];
-        }
-        return $links;
+        return $timelines->map(function ($timeline) {
+            $params = ['id' => $timeline->staff_student_id, 'exam_id' => $timeline->type];
+            $link = route('result.download', $params);
+            return ['label' => $timeline->title, 'url' => $link];
+        });
     }
 
     function getContacts($category)
