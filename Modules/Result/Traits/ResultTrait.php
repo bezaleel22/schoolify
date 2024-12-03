@@ -153,10 +153,10 @@ trait ResultTrait
             $sum = $marks_data->sum('total_marks');
             $marks = $marks_data->pluck('total_marks', 'exam_title')->toArray();
             $grade = $this->getGrade($sum, $student->type);
-            $obj = $objectives->firstWhere('subject_code', $marks_data[0]->subject_code);
+            // $obj = $objectives->firstWhere('subject_code', $marks_data[0]->subject_code);
             $rows[] = (object)[
                 'subject' => $subject_name,
-                'objectives' => array_map('trim', explode('|', $obj['text'] ?? '')),
+                'objectives' => [], //array_map('trim', explode('|', $obj['text'] ?? '')),
                 'marks' => $marks,
                 'total_score' => $sum,
                 'grade' => $grade->grade,

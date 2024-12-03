@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Cache;
 class SendResultEmail implements ShouldQueue
 {
     use Queueable, InteractsWithQueue, SerializesModels;
-
     public object $data;
 
     /**
@@ -49,7 +48,6 @@ class SendResultEmail implements ShouldQueue
      */
     public function handle()
     {
-
         Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
             $formattedFullName = preg_replace('/\s+/', '_', $this->data->full_name);
 

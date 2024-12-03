@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ImportController extends Controller
 {
@@ -34,6 +35,8 @@ class ImportController extends Controller
             if (!$this->isValidMimetype($filename)) {
                 return response()->json(['error' => 'The file must have a valid extension.'], 400);
             }
+
+
 
             // Define temporary and uploaded file directories
             $tempDir = $this->checkDirExists(storage_path('app/temp'));
@@ -68,19 +71,20 @@ class ImportController extends Controller
             // Save the uploaded chunk
             $file = $request->file('file');
             $file->move($tempDir, $chunkFileName);
-            // Cache the current chunk index
-            Cache::put(
-                "progress_$fileHash",
-                $chunkIndex,
-                now()->addMinutes(60)
-            );
+
 
             // If this is the last chunk, assemble, verify, and unzip the zip file
             if ($chunkIndex + 1 == $totalChunks) {
+       
                 $finalFilePath = $this->assembleChunks($filename, $totalChunks, $tempDir, $uploadedDir);
                 if (!$this->verifyHash($finalFilePath, $fileHash)) {
                     unlink($finalFilePath);
                     return $this->jsonResponse(false, 'File hash mismatch. The file may be corrupted.', [], 400);
+                }
+
+                if (pathinfo($filename, PATHINFO_EXTENSION) == 'json') {
+                    Storage::put();
+                    return $this->jsonResponse(true, 'File uploaded successfully.');
                 }
 
                 if (!$this->unzip($finalFilePath)) {
@@ -88,7 +92,8 @@ class ImportController extends Controller
                 }
                 return $this->jsonResponse(true, 'File uploaded successfully.');
             }
-
+            // Cache the current chunk index
+            Cache::put("progress_$fileHash", $chunkIndex, now()->addMinutes(60));
             return $this->jsonResponse(false, 'Chunk uploaded successfully.', ['nextIndex' => $chunkIndex + 1]);
         } catch (\Exception $e) {
             return $this->jsonResponse(false, $e->getMessage(), [], 400);
@@ -173,7 +178,7 @@ class ImportController extends Controller
         return true;
     }
 
-    protected function isValidMimetype($filename, $validExtensions = ['zip'])
+    protected function isValidMimetype($filename, $validExtensions = ['zip', 'json'])
     {
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         return in_array($extension, array_map('strtolower', $validExtensions));

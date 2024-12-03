@@ -39,8 +39,6 @@ Route::get('utility', 'UtilityController@index')->name('utility');
 Route::get('email-sms-log', 'ResultController@emailLogs')->name('email-sms-log')->middleware('userRolePermission:email-sms-log');
 
 Event::listen(JobFailed::class, function (JobFailed $event) {
-    $payload = json_decode($event->job->getRawBody(), true); // Decode job payload
-    $data = $payload['data'];
 
     $msg = $event->exception->getMessage(); // Use the exception message as the description
     Log::error('Job failed: ' . $msg);
