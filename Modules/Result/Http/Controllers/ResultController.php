@@ -262,7 +262,8 @@ class ResultController extends Controller
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
 
-            return generatePDF($result_data, $id, $exam_id);
+            $resp = generatePDF($result_data, $id, $exam_id);
+            dd($resp);
         } catch (\Exception $e) {
             // return response()->json(array_merge([
             //     'error' => 1,
