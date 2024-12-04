@@ -142,7 +142,7 @@
         @csrf
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">@lang('result::student.add_remark')</h4>
+                {{-- <h4 class="modal-title">@lang('result::student.add_remark')</h4> --}}
                 <div class="primary_input col-lg-6 col-md-8">
                     <label class="primary_input_label" for="parent_id">Parent</label>
                     <select class="primary_select form-control" name="parent_id" id="parent_id">
