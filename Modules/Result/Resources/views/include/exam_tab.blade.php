@@ -138,33 +138,47 @@
 </div>
 
 <div class="modal fade admin-query" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">>
-    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
+    <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" id=" publishForm" action="{{ route('result.publish', $student->id) }}" method="POST">
+        @csrf
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">@lang('result::student.add_remark')</h4>
+                <div class="primary_input col-lg-6 col-md-8">
+                    <label class="primary_input_label" for="parent_id">Parent</label>
+                    <select class="primary_select form-control" name="parent_id" id="parent_id">
+                        <option data-display="Select Parent" value="">@lang('student.select_parent')</option>
+                        @foreach ($parents as $parent)
+                        <option value="{{ $parent->id }}" {{ $student_detail->parent_id == $parent->id ? 'selected' : '' }}>
+                            {{ $parent->fathers_name ?? $parent->mothers_name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div id="modalBody" class="modal-body"></div>
             <div class="modal-footer w-100">
                 <div class="d-flex justify-content-between align-items-center mb-0">
                     <div class="pdf-navigation">
-                        <button onclick="prevPage(this)" type="button" id="prevPage" class="primary-btn fix-gr-bg">
+                        <button type="button" onclick="prevPage(this)" type="button" id="prevPage" class="primary-btn fix-gr-bg">
                             <i class="ti-arrow-left"></i>
                         </button>
-                        <button onclick="nextPage(this)" type="button" id="nextPage" class="primary-btn fix-gr-bg">
+
+                        <button type="button" onclick="nextPage(this)" type="button" id="nextPage" class="primary-btn fix-gr-bg">
                             <i class="ti-arrow-right"></i>
                         </button>
                         <span id="pageInfo"></span>
                     </div>
                     <div>
                         <button type="button" class="primary-btn tr-bg" data-dismiss="modal">@lang('common.cancel')</button>
-                        <button type="button" form="publishForm" class="primary-btn fix-gr-bg">@lang('result::student.publish')</button>
+                        <button type="submit" class="primary-btn fix-gr-bg">@lang('result::student.publish')</button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
+
 
 <script>
     function showModal(button) {
@@ -174,7 +188,8 @@
         var $modal = $("#resultModal"); // Reference the modal element
         var $title = $modal.find(".modal-title"); // Reference the modal title
         var $body = $modal.find(".modal-body"); // Reference the modal body
-        var $footer = $modal.find(".modal-footer"); // Reference the modal footer
+        var $footer = $("#resultModal");; // Reference the modal footer
+        var $publishForm = $("#publishForm");; // Reference the modal footer
 
         $.ajax({
             type: "POST"
@@ -186,10 +201,10 @@
                 console.log(result);
                 $title.text(result.title || "Modal Title");
                 if (result.preview) {
-                    $footer.prepend(result.content);
                     $footer.show()
                     $body.addClass('p-1');
                     $('#resultModal').on('shown.bs.modal', function() {
+                        $publishForm.prepend(result.content);
                         preview(result.pdfUrl)
                     });
                     $modal.modal("show");

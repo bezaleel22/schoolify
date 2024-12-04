@@ -12,6 +12,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use App\SmEmailSetting;
 use App\SmEmailSmsLog;
+use App\SmParent;
 use App\SmStudent;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Artisan;
@@ -252,7 +253,7 @@ class ResultController extends Controller
         try {
             if ($request->has('local_stu_id')) {
                 $result = Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($student_id, $exam_type) {
-                    return $this->getResultData($student_id, $exam_type, 'old');
+                    return SmOldResult::getResultData($student_id, $exam_type, 'old');
                 });
 
                 return generatePDF($result, $student_id, $exam_type);
@@ -275,53 +276,80 @@ class ResultController extends Controller
     public function publish(Request $request, $id)
     {
         $request->validate([
-            'filepath' => 'required|string',
             'exam_id' => 'required|integer',
+            'parent_id' => 'required|integer',
             'title' => 'required|string|max:255',
+            'category' => 'required|string|max:255',
         ]);
 
+        $fileName = 'illustration.svg';
+        $publicFilePath = public_path('images/' . $fileName);
+        $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
+        if (!file_exists($publicFilePath) && file_exists($storageFilePath)) {
+            File::copy($storageFilePath, $publicFilePath);
+        }
+
         try {
-            if ($request->filepath != "") {
+            $type = "exam-$request->exam_id";
+            $timeline = SmStudentTimeline::where('academic_id', getAcademicId())
+                ->where('type', $type)
+                ->where('staff_student_id', $id)
+                ->first();
+
+            if (!$timeline) {
+                $params = ['id' => $id, 'exam_id' => $request->exam_id];
                 $timeline = new SmStudentTimeline();
                 $timeline->staff_student_id = $id;
-                $timeline->type = "exam-$request->exam_id";
+                $timeline->type = $type;
                 $timeline->title = $request->title;
                 $timeline->date = Carbon::create(2024, 3, 22)->toDateString();
                 $timeline->description = 'TERMLY SUMMARY OF PROGRESS REPORT';
                 $timeline->visible_to_student = 1;
-                $timeline->file = $request->filepath;
+                $timeline->file = route('result.download', $params);
                 $timeline->school_id = Auth::user()->school_id;
                 $timeline->academic_id = getAcademicId();
                 $timeline->save();
-
-                $category = $request->category;
-                $contacts = Cache::remember("contacts-$category", now()->addDay(7), function () use ($category) {
-                    return $this->getContacts($category);
-                });
-
-                $data = (object) [
-                    'subject' => 'Result Notification',
-                    'reciver_email' => $request->parent_email,
-                    'receiver_name' => $request->parent_name,
-                    'student_id' => $id,
-                    'exam_id' => $timeline->type,
-                    'term' => $timeline->title,
-                    'title' => $timeline->description,
-                    'full_name' => $request->full_name,
-                    'parent_email' => $request->parent_email,
-                    'parent_name' => $request->parent_name,
-                    "gender" => $request->gender_id,
-                    'principal' => $contacts['principal'],
-                    'contact' => $contacts['contact'],
-                    'support' => $contacts['support'],
-                ];
-
-                @post_mail($data);
             }
+
+            $category = $request->category;
+            Cache::forget("contacts-$category");
+            $contacts = Cache::remember("contacts-$category", now()->addDay(7), function () use ($category) {
+                return $this->getContacts($category);
+            });
+
+            $parent = SmParent::findOrFail($request->parent_id);
+            $stu = SmStudent::select('id', 'parent_id', 'full_name as name')->findOrFail($id);
+            $stu->parent_id = $request->parent_id;
+            $stu->save();
+
+            $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
+            $data = (object) [
+                'subject' => 'Result Notification',
+                'student_id' => $id,
+                'exam_id' => $request->exam_id, //explode('-', $timeline->type)[1],
+                'term' => $timeline->title,
+                'title' => $timeline->description,
+                'full_name' => $stu->name,
+                'reciver_email' => $reciver_email,
+                'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
+                'school_name' => schoolConfig()->site_title,
+                'principal' => $contacts['principal'],
+                'contact' => $contacts['contact'],
+                'support' => $contacts['support'],
+            ];
+
+            $exam_type = $request->exam_id;
+            $cacheKey = "{$id}_{$exam_type}";
+            Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($id, $exam_type) {
+                return $this->getResultData($id, $exam_type, 'old');
+            });
+
+            @post_mail($data);
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
+            dd($e->getMessage());
             Log::error('Failed to publish timeline: ' . $e->getMessage());
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
@@ -334,7 +362,7 @@ class ResultController extends Controller
             $students = SmStudent::where('active_status', 1)
                 ->where('academic_id', getAcademicId())
                 ->with(['studentTimeline', 'parents', 'category'])
-                ->get(['id', 'full_name']);
+                ->get(['id', 'parent_id', 'student_category_id', 'full_name as name']);
 
             foreach ($students as $stu) {
                 $timelines = $stu->studentTimeline;
@@ -349,14 +377,13 @@ class ResultController extends Controller
                 });
 
                 $session = getSession();
+                $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
                 $data = (object) [
                     'subject' => 'Result Notification',
-                    'reciver_email' => $parent->parent_email,
-                    'receiver_name' => $parent->parent_name,
+                    'reciver_email' => $reciver_email,
+                    'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
                     'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
-                    'full_name' => $stu->full_name,
-                    'parent_email' => $parent->parent_email,
-                    'parent_name' => $parent->parent_name,
+                    'full_name' => $stu->name,
                     'principal' => $contacts['principal'],
                     'contact' => $contacts['contact'],
                     'support' => $contacts['support'],
@@ -381,14 +408,8 @@ class ResultController extends Controller
     public function resendEmails()
     {
         try {
-            $emailSmsLogs = SmEmailSmsLog::where('academic_id', getAcademicId())
-                ->where('title', 'failed')
-                ->where('school_id', Auth::user()->school_id)
-                ->get();
-
-            $queue = $emailSmsLogs[0]->send_through;
-            Queue::push(function () use ($queue) {
-                Artisan::call('queue:retry', ['queue' => $queue]);
+            Queue::push(function () {
+                Artisan::call('queue:retry', ['id' => 'all']);
             });
 
             Toastr::success('Operation Successful', 'Success');
@@ -416,81 +437,53 @@ class ResultController extends Controller
 
     public function testEmails()
     {
+
+        $fileName = 'illustration.svg';
+        $publicFilePath = public_path('images/' . $fileName);
+        $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
+        if (!file_exists($publicFilePath) && file_exists($storageFilePath)) {
+            File::copy($storageFilePath, $publicFilePath);
+        }
+
         try {
-            $uploadedDir = storage_path('app/uploaded_files');
-            $finalFilePath = "$uploadedDir/student.zip";
-            $this->unzip($finalFilePath);
-            return $finalFilePath;
-
-
-            $result = Cache::remember("65-4", now()->addSeconds(5), function () {
-                return SmOldResult::queryResultData(65, 4);
-            });
-
-            $result_data = (object) [
-                'student' => (object) [
-                    'full_name' => 'Godsgrace Brown',
-                    'parent_email' => 'onosbrown.saved@gmail.com',
-                    'parent_name' => 'Brown Bezaleel'
-                ]
-            ];
-
-            $category = 'EYFS';
-            Cache::forget("contacts-$category");
-            $contacts = Cache::remember("contacts-$category", now()->addSeconds(5), function () use ($category) {
-                return $this->getContacts($category);
-            });
-
-            // $student = (object) [
-            //     'student_id' => 1,
-            //     'exam_id' => 'exam',
-            //     'term' => 'FIRST TERM EXAMINATION 2024	',
-            //     'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
-            //     'full_name' => $result_data->student->full_name,
-            //     'parent_email' => $result_data->student->parent_email,
-            //     'parent_name' => $result_data->student->parent_name,
-            //     'principal' => $contacts['principal'],
-            //     'contact' => $contacts['contact'],
-            //     'support' => $contacts['support'],
-            //     'school_name' => generalSetting()->site_title,
-            //     'links' =>  [],
-            // ];
-            $setup = schoolConfig();
-            $session = getSession();
-            $student = (object) [
-                'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
-                'full_name' => $result_data->student->full_name,
-                'parent_email' => $result_data->student->parent_email,
-                'parent_name' => $result_data->student->parent_name,
-                'principal' => $contacts['principal'],
-                'contact' => $contacts['contact'],
-                'support' => $contacts['support'],
-                'school_name' => $setup->site_title,
-                'session' => "$session->year - [$session->title]",
-                'links' => $this->generateLinks(65)
-            ];
-
-            return view('result::mail', compact('student'));
-
-            $setting = SmEmailSetting::where('school_id', 1)
-                ->where('active_status', 1)->first();
-
-            if ($setting) {
-                $details = (object)[
-                    'id' => 1,
-                    'sender_email' => $setting->from_email,
-                    'sender_name' => $setting->from_name,
-                    'subject' => 'Result Notification'
-                ];
-
-                for ($i = 1; $i <= 1000; $i++) {
-                    dispatch(new SendResultEmail($student, $details));
+            $students = SmStudent::where('active_status', 1)
+                ->where('academic_id', getAcademicId())
+                ->with(['studentTimeline', 'parents', 'category'])
+                ->limit(2)
+                ->get(['id', 'parent_id', 'student_category_id', 'full_name as name']);
+            $data = [];
+            foreach ($students as $stu) {
+                $timelines = $stu->studentTimeline;
+                $parent = $stu->parents;
+                if (empty($timelines) || !$parent) {
+                    continue;
                 }
 
-                return response()->json(['message' => 'Email queued successfully']);
+                $category = $stu->category->category_name;
+                $contacts = Cache::remember("contacts-$category", now()->addMinutes(5), function () use ($category) {
+                    return $this->getContacts($category);
+                });
+
+                $session = getSession();
+                $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
+                $data = (object) [
+                    'subject' => 'Result Notification',
+                    'reciver_email' => $reciver_email,
+                    'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
+                    'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
+                    'full_name' => $stu->name,
+                    'principal' => $contacts['principal'],
+                    'contact' => $contacts['contact'],
+                    'support' => $contacts['support'],
+                    'school_name' => schoolConfig()->site_title,
+                    'session' => "$session->year - [$session->title]",
+                    'links' => $this->generateLinks($timelines)
+                ];
+
+                @post_mail($data);
             }
 
-            return view('result::mail', compact('student'));
+            return view('result::mail', ['student' => $data]);
         } catch (\Exception $e) {
             dd($e->getMessage());
         }

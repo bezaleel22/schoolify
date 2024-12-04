@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Cache;
+use Modules\Result\Traits\ResultTrait;
+use Throwable;
 
 class SendResultEmail implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use Queueable, InteractsWithQueue, SerializesModels, ResultTrait;
     public object $data;
 
     /**
@@ -48,24 +50,26 @@ class SendResultEmail implements ShouldQueue
      */
     public function handle()
     {
-        Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
-            $formattedFullName = preg_replace('/\s+/', '_', $this->data->full_name);
+        try {
+            Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
+                $formattedFullName = str_replace(' ', '_', $this->data->full_name);
 
-            $message->subject($this->data['subject'])
-                ->to($this->data['reciver_email'], $this->data->receiver_name)
-                ->from($this->data['sender_email'], $this->data->sender_name);
-            if (empty($this->data->links)) {
-                $fileContents = $this->generatePdfAttachment();
-                $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
-            }
-        });
+                $message->subject($this->data->subject)
+                    ->to($this->data->reciver_email, $this->data->receiver_name)
+                    ->from($this->data->sender_email, $this->data->sender_name);
+                if (empty($this->data->links)) {
+                    $fileContents = $this->generatePdfAttachment();
+                    $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
+                }
+            });
 
-        $msg = "Email sent to {$this->data['reciver_email']}";
-        $title = '<span class="text-success">Success</span> ';
-        logEmail($title, $msg, $this->data['reciver_email'], $this->data->exam_id);
-        Log::info($msg);
+            $msg = "Email sent to {$this->data->reciver_email}";
+            logEmail('Success', $msg, $this->data->reciver_email);
+            Log::info($msg);
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
-
 
     /**
      * Handle a job failure.
@@ -75,27 +79,27 @@ class SendResultEmail implements ShouldQueue
      */
     public function failed(\Throwable $e)
     {
-        // Log or notify about the failure
-        $msg = $e->exception->getMessage();
+        $msg = $e->getMessage();
         Log::error("Job failed with exception: " . $msg, [
             'data' => $this->data,
-            'trace' => $e->getTraceAsString(),
+            'trace' => $e->getMessage(),
         ]);
-        $title = '<span class="text-danger">Failed</span> ';
-        logEmail($title, $msg, $this->data['reciver_email'], $this->data->exam_id);
+        logEmail('Failed', $msg, $this->data->reciver_email);
     }
-
 
     private function generatePdfAttachment(): string
     {
         $cacheKey = "result_{$this->data->student_id}_{$this->data->exam_id}";
         $cachedResult = Cache::get($cacheKey);
+        $result_data =  $cachedResult
+            ?? $this->getResultData($this->data->student_id, $this->data->exam_id);
+
 
         if (!$cachedResult) {
-            throw new \Exception('No Result Data');
+            throw new \Exception('No cache available for Result Data');
         }
 
-        $resp = generatePDF($cachedResult, $this->data->student_id, $this->data->exam_id);
+        $resp = generatePDF($result_data, $this->data->student_id, $this->data->exam_id);
         return $resp->getBody()->getContents();
     }
 }

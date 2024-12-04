@@ -32,7 +32,7 @@
         <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; padding: 20px;">
             <tr>
                 <td style="font-size: 1em; line-height: 1.6;">
-                    <p>Dear <strong>{{ $student->parent_name }}</strong>,</p>
+                    <p>Dear <strong>{{ $student->receiver_name }}</strong>,</p>
                     @if(!empty($student->links))
                     <p>
                         We are pleased to share <strong>{{ $student->full_name }}</strong>'s results for 
@@ -65,7 +65,7 @@
                     <p>Best regards,</p>
                     <p>
                         <strong>{{ $student->principal }}</strong><br>
-                        Principal, <strong>{{ $student->school_name }}</strong><br>
+                        Head Teacher, <strong>{{ $student->school_name }}</strong><br>
                         <strong>Contact:</strong> <a href="tel:{{ $student->contact }}" style="color: #f7931e; text-decoration: none;">{{ $student->contact }}</a><br>
                     </p>
                 </td>

@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 use App\Scopes\StatusAcademicSchoolScope;
+use App\SmParent;
 use Illuminate\Support\Facades\Cache;
 use Modules\BehaviourRecords\Entities\AssignIncident;
 use Modules\BehaviourRecords\Entities\BehaviourRecordSetting;
@@ -110,7 +111,7 @@ class StudentController extends Controller
 
             $studentBehaviourRecords = (moduleStatusCheck('BehaviourRecords')) ? AssignIncident::where('student_id', $id)->with('incident', 'user', 'academicYear')->get() : null;
             $behaviourRecordSetting = BehaviourRecordSetting::where('id', 1)->first();
-
+            $parents = SmParent::all();
             $results = [];
             foreach ($exam_terms as $term) {
                 $cacheKey = "result_{$id}_{$term->id}";
@@ -121,7 +122,7 @@ class StudentController extends Controller
             }
 
             $student_info = $results[0]->student ?? null;
-            return view('result::student_view', compact('results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
+            return view('result::student_view', compact('parents', 'results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
         } catch (\Exception $e) {
             Toastr::error($e->getMessage(), 'Failed');
             return redirect()->back();

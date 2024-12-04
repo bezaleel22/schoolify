@@ -88,16 +88,18 @@ trait ResultTrait
     function getContacts($category)
     {
         $principal_desig = SmDesignation::where('title', 'principal')->first();
-        $principal = SmStaff::where('designation_id', $principal_desig->id)->first();
         $supports_desig = SmDesignation::where('title', 'LIKE', "$category%")->first();
-        $support = SmStaff::where('designation_id', $supports_desig->id)->first();
-
+        $staffMembers = SmStaff::whereIn('designation_id', [$principal_desig->id, $supports_desig->id])
+            ->get()->keyBy('designation_id');
+        $principal = $staffMembers->get($principal_desig->id);
+        $support = $staffMembers->get($supports_desig->id);
         return [
             'principal' => $principal->full_name,
             'contact' => $principal->mobile,
             'support' => $support->mobile,
         ];
     }
+
     public function getResultData($id, $exam_id, $db = null)
     {
 
@@ -386,5 +388,22 @@ trait ResultTrait
         }
 
         return $comment;
+    }
+
+    function isParent($childName, $parentName)
+    {
+        $childParts = explode(' ', strtoupper($childName));
+        $parentParts = explode(' ', strtoupper($parentName));
+
+        if (count($childParts) < 1 || count($parentParts) < 1) {
+            return false;
+        }
+
+        foreach ($parentParts as $parentPart) {
+            if (in_array($parentPart, $childParts)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

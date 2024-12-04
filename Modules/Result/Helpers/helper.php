@@ -30,15 +30,15 @@ if (!function_exists('showDocumentName')) {
 }
 
 if (!function_exists('logEmail')) {
-    function logEmail($title, $dsc, $send_to, $exam_id)
+    function logEmail($title, $dsc, $send_to)
     {
         $emailSmsData = new SmEmailSmsLog();
         $emailSmsData->title = $title;
         $emailSmsData->description = $dsc;
-        $emailSmsData->send_through = "exam-$exam_id";
+        $emailSmsData->send_through = 'result-notice';
         $emailSmsData->send_date = date('Y-m-d');
         $emailSmsData->send_to = $send_to;
-        $emailSmsData->school_id = auth()->school_id;
+        $emailSmsData->school_id = 1;
         $emailSmsData->academic_id = getAcademicId();
         $success = $emailSmsData->save();
 
@@ -124,9 +124,9 @@ if (!function_exists('post_mail')) {
         Config::set('mail.mailers.smtp.password', $setting->mail_password);
         Config::set('mail.mailers.smtp.encryption', $setting->mail_encryption);
 
-        $data->sender_name = $setting->from_email;
-        $data->sender_email = $setting->from_name;
+        $data->sender_name = $setting->from_name;
+        $data->sender_email = $setting->from_email;
 
-        dispatch(new SendResultEmail($data))->onQueue("exam-$data->exam_id");
+        dispatch(new SendResultEmail($data))->onQueue('result-notice');
     }
 }

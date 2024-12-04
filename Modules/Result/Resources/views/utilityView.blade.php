@@ -310,7 +310,7 @@
             }
             , error: function(error) {
                console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
-                toastr.error('An error occurred while uploading the file.', 'Success')
+                toastr.error('An error occurred while uploading the file.', 'Failed')
             }
         });
     };

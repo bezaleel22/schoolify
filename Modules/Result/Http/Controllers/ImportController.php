@@ -36,8 +36,6 @@ class ImportController extends Controller
                 return response()->json(['error' => 'The file must have a valid extension.'], 400);
             }
 
-
-
             // Define temporary and uploaded file directories
             $tempDir = $this->checkDirExists(storage_path('app/temp'));
             $uploadedDir = $this->checkDirExists(storage_path('app/uploaded_files'));
@@ -82,13 +80,10 @@ class ImportController extends Controller
                     return $this->jsonResponse(false, 'File hash mismatch. The file may be corrupted.', [], 400);
                 }
 
-                if (pathinfo($filename, PATHINFO_EXTENSION) == 'json') {
-                    return $this->jsonResponse(true, 'File uploaded successfully.');
-                }
-
                 if (!$this->unzip($finalFilePath)) {
                     return $this->jsonResponse(false, 'Failed to unzip the file. Please ensure it is a valid archive.', [], 400);
                 }
+
                 return $this->jsonResponse(true, 'File uploaded successfully.');
             }
             // Cache the current chunk index
@@ -148,6 +143,9 @@ class ImportController extends Controller
     // Unzip the file to the specified directory
     protected function unzip($zipfile)
     {
+        if (pathinfo($zipfile, PATHINFO_EXTENSION) != 'zip') {
+            return true;
+        }
         dispatch(function () use ($zipfile) {
             $extractDir = public_path('uploads/' . pathinfo($zipfile, PATHINFO_FILENAME));
             try {
@@ -178,7 +176,7 @@ class ImportController extends Controller
         return true;
     }
 
-    protected function isValidMimetype($filename, $validExtensions = ['zip', 'json'])
+    protected function isValidMimetype($filename, $validExtensions = ['zip', 'json', 'svg'])
     {
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         return in_array($extension, array_map('strtolower', $validExtensions));
