@@ -80,7 +80,6 @@ class SmOldResult extends Model
                     ->where('sm_mark_stores.section_id', $student->section_id)
                     ->where('sm_mark_stores.exam_term_id', $exam_id)
                     ->where('sm_mark_stores.is_absent', 0)
-                    ->where('sm_mark_stores.total_marks', '!=', 0)
                     ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_subjects.subject_code', 'sm_exam_setups.exam_title')
                     ->get()
                     ->groupBy('subject_name');
@@ -116,7 +115,7 @@ class SmOldResult extends Model
                         $attd[$new_key] = $value;
                         continue;
                     }
-                    $map = mapRating($value);
+                    $map = @mapRating($value);
                     $ratings[] = (object)[
                         'rate' => floor(((int)$value / 5) * 100),
                         'attribute' => $key,

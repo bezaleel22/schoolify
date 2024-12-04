@@ -261,11 +261,12 @@ class ResultController extends Controller
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
 
-            return $this->generatePDF($result_data, $id, $exam_id);
+            return generatePDF($result_data, $id, $exam_id);
         } catch (\Exception $e) {
-            dd($e->getMessage());
-            Toastr::error($e->getMessage(), 'Failed');
-            return redirect()->back();
+            return response()->json(array_merge([
+                'error' => 1,
+                'message' => $e->getMessage(),
+            ]), 400);
         }
     }
 

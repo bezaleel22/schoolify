@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Gotenberg\Stream;
 use Gotenberg\Gotenberg;
+use Illuminate\Support\Facades\Storage;
 use Modules\Result\Jobs\SendResultEmail;
 
 if (!function_exists('showTimelineDocName')) {

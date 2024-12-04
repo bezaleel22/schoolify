@@ -230,7 +230,6 @@ trait ResultTrait
             ->where('sm_mark_stores.section_id', $student->section_id)
             ->where('sm_mark_stores.exam_term_id', $exam_type_id)
             ->where('sm_mark_stores.is_absent', 0)
-            ->where('sm_mark_stores.total_marks', '!=', 0)
             ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_subjects.subject_code', 'sm_exam_setups.exam_title')
             ->get()
             ->groupBy('subject_name');
@@ -254,7 +253,7 @@ trait ResultTrait
 
         $ratings = StudentRating::where('student_id', $id)
             ->where('exam_type_id', $type->id)
-            ->first();
+            ->get();
 
         $remark = TeacherRemark::where('student_id', $student->id)
             ->where('exam_type_id', $type->id)

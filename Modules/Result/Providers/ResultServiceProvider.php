@@ -121,8 +121,8 @@ class ResultServiceProvider extends ServiceProvider
 
     public function registerHelpers()
     {
-        if (File::exists(module_path($this->moduleName, 'Helpers/Functions.php'))) {
-            require_once module_path($this->moduleName, 'Helpers/Functions.php');
+        if (File::exists(module_path($this->moduleName, 'Helpers/helper.php'))) {
+            require_once module_path($this->moduleName, 'Helpers/helper.php');
         }
     }
 
