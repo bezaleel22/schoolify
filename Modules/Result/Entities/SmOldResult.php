@@ -45,6 +45,8 @@ class SmOldResult extends Model
     {
         return DB::connection('mysql_edusms')->transaction(
             function ($db) use ($id, $exam_id) {
+                dd($id, $exam_id);
+
                 $student = SmOldResult::where('sm_students.active_status', 1)
                     ->where('sm_students.id', $id)
                     ->where('student_records.academic_id', 4)
@@ -67,7 +69,6 @@ class SmOldResult extends Model
                         'student_records.section_id',
                     )
                     ->first();
-                dd($student);
 
                 $student->parents = $student->parents($db);
                 $student->category = $student->category($db);
