@@ -256,7 +256,8 @@ class ResultController extends Controller
                     return SmOldResult::getResultData($student_id, $exam_type, 'old');
                 });
 
-                return generatePDF($result, $student_id, $exam_type);
+                $resp= generatePDF($result, $student_id, $exam_type);
+                dd($resp, $request->toArray());
             }
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
