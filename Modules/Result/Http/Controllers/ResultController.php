@@ -264,10 +264,10 @@ class ResultController extends Controller
 
             return generatePDF($result_data, $id, $exam_id);
         } catch (\Exception $e) {
-            return response()->json(array_merge([
-                'error' => 1,
-                'message' => $e->getMessage(),
-            ]), 400);
+            // return response()->json(array_merge([
+            //     'error' => 1,
+            //     'message' => $e->getMessage(),
+            // ]), 400);
         }
     }
 
