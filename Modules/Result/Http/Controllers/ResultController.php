@@ -255,9 +255,9 @@ class ResultController extends Controller
                 $result = Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($student_id, $exam_type) {
                     return SmOldResult::getResultData($student_id, $exam_type, 'old');
                 });
-
+                dd($request->toArray());
                 $resp= generatePDF($result, $student_id, $exam_type);
-                dd($resp, $request->toArray());
+                
             }
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
