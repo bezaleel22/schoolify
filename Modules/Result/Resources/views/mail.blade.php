@@ -7,20 +7,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin: 0; padding: 0; width: 100%; background-color: #f9f9f9; font-family: 'Poppins', sans-serif; -webkit-text-size-adjust: 100%;">
-
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; color: #333;">
-
         <!-- Hero Section -->
         <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; background-color: #f7931e; text-align: center; color: white; padding: 20px 0; border-radius: 8px;">
             <tr>
                 <td align="center">
                     <img src="{{ asset(generalSetting()->logo) }}" alt="{{ $student->school_name }}" style="max-width: 250px; height: auto;">
-
                 </td>
             </tr>
             <tr>
                 <td align="center">
-                    <img src="{{ asset('public/images/illustration.svg') }}" alt="Academic Illustration" style="max-width: 50%; height: auto;">
+                    <img src="{{ asset('public/uploads/settings/illustration.svg') }}" alt="Academic Illustration" style="max-width: 50%; height: auto;">
                     <div style="font-size: 1.2em; font-weight: 700; color: white; text-align: center;">
                         <p>{{ $student->title }}</p>
                     </div>

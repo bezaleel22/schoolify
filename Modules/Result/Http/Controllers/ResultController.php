@@ -283,7 +283,7 @@ class ResultController extends Controller
         ]);
 
         $fileName = 'illustration.svg';
-        $publicFilePath = public_path('images/' . $fileName);
+        $publicFilePath = public_path('uploads/settings' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
         if (!file_exists($publicFilePath) && file_exists($storageFilePath)) {
             File::copy($storageFilePath, $publicFilePath);
@@ -439,7 +439,7 @@ class ResultController extends Controller
     {
 
         $fileName = 'illustration.svg';
-        $publicFilePath = public_path('images/' . $fileName);
+        $publicFilePath = public_path('uploads/settings' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
         if (!file_exists($publicFilePath) && file_exists($storageFilePath)) {
             File::copy($storageFilePath, $publicFilePath);
