@@ -67,6 +67,7 @@ class SmOldResult extends Model
                         'student_records.section_id',
                     )
                     ->first();
+                dd($student);
 
                 $student->parents = $student->parents($db);
                 $student->category = $student->category($db);
