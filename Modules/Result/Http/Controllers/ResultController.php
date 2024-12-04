@@ -247,6 +247,8 @@ class ResultController extends Controller
 
     public function download(Request $request, $id, $exam_id = null)
     {
+        dd($request->toArray());
+
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
         $cacheKey = "{$student_id}_{$exam_type}";
@@ -255,7 +257,6 @@ class ResultController extends Controller
                 $result = Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($student_id, $exam_type) {
                     return SmOldResult::getResultData($student_id, $exam_type, 'old');
                 });
-                dd($request->toArray());
                 $resp= generatePDF($result, $student_id, $exam_type);
                 
             }
