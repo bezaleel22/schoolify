@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Gotenberg\Stream;
 use Gotenberg\Gotenberg;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Modules\Result\Jobs\SendResultEmail;
 
@@ -76,7 +77,7 @@ if (!function_exists('contactsForMail')) {
 }
 
 if (!function_exists('generatePDF')) {
-    function generatePDF($result_data, $id, $exam_id)
+    function generatePDF($result_data, $id, $exam_id, $debug)
     {
         $school = $result_data->school;
         $student = $result_data->student;
@@ -90,7 +91,16 @@ if (!function_exists('generatePDF')) {
 
         $fileName = md5($id . $exam_id);
         $url = env('GOTENBERG_URL');
-        dd($url, $result);
+        if ($debug) {
+            $response = Http::get(url('/health')); // Replace `url('/health')` with the exact endpoint if needed
+            if ($response->successful()) {
+                dd('Health endpoint response:', $response->json());
+            } else {
+                dd('Health endpoint error:', $response->status(), $response->body());
+            }
+            dd($url, $result);
+        }
+
         $req = Gotenberg::chromium($url)
             ->pdf()
             ->skipNetworkIdleEvent()

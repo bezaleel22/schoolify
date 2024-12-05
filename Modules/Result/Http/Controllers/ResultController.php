@@ -255,15 +255,15 @@ class ResultController extends Controller
         try {
             if ($request->has('local_stu_id')) {
                 $result = $this->getResultData($student_id, $exam_type, 'old');
-                $resp = generatePDF($result, $student_id, $exam_type);
+                $resp = generatePDF($result, $student_id, $exam_type, true);
                 dd($resp);
             }
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
+
+            $resp = generatePDF($result_data, $id, $exam_id, false);
             dd($result_data);
-            $resp = generatePDF($result_data, $id, $exam_id);
-  
         } catch (\Exception $e) {
             // return response()->json(array_merge([
             //     'error' => 1,
