@@ -91,15 +91,6 @@ if (!function_exists('generatePDF')) {
 
         $fileName = md5($id . $exam_id);
         $url = env('GOTENBERG_URL');
-        if ($debug) {
-            $response = Http::get("$url/health"); // Replace `url('/health')` with the exact endpoint if needed
-            if ($response->successful()) {
-                dd('Health endpoint response:', $response->json());
-            } else {
-                dd('Health endpoint error:', $response->status(), $response->body());
-            }
-        }
-
         $req = Gotenberg::chromium($url)
             ->pdf()
             ->skipNetworkIdleEvent()
@@ -108,8 +99,10 @@ if (!function_exists('generatePDF')) {
             ->margins('2mm', '2mm', '2mm', '2mm')
             ->html(Stream::string('index.html', $result));
 
-        $response = Gotenberg::send($req);
-        return $response->withHeader('Content-Disposition', "inline; filename='$fileName.pdf'");
+        $storageDir = storage_path('app/pdf');
+        $response = Gotenberg::save($req, $storageDir);
+        // return $response->withHeader('Content-Disposition', "inline; filename='$fileName.pdf'");
+        return $response;
     }
 }
 
