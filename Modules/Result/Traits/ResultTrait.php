@@ -17,6 +17,8 @@ use Gotenberg\Gotenberg;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Result\Entities\ClassAttendance;
 use Modules\Result\Entities\SmOldResult;
@@ -138,7 +140,7 @@ trait ResultTrait
         ];
 
         $objectives = $this->getObjectives($student->class_name);
-        $school_data = schoolConfig();
+        $school_data = generalSetting();
         $address = $this->parseAddress($school_data->address);
         $school = (object) [
             'name' => $school_data->site_title,
@@ -414,5 +416,36 @@ trait ResultTrait
             }
         }
         return false;
+    }
+
+    private function optimizeImage(string $student_photo)
+    {
+        try {
+            // Ensure absolute path
+            $filePath = str_starts_with($student_photo, 'public/')
+                ? base_path($student_photo)
+                : public_path($student_photo);
+
+            if (!file_exists($filePath)) {
+                return;
+            }
+
+            // Get file size in KB
+            $fileSizeBytes = filesize($filePath);
+            $fileSizeKb = $fileSizeBytes / 1024;
+
+            // Skip optimization for files <= 100KB
+            if ($fileSizeKb <= 70) {
+                return;
+            }
+
+            // Optimize image
+            $image = Image::make($filePath);
+            $image->save($filePath, 15);
+
+        } catch (\Exception $e) {
+            Log::error("Failed to optimize $student_photo: " . $e->getMessage());
+            return null;
+        }
     }
 }

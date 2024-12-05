@@ -68,7 +68,8 @@
 
     <div class="avatar flex flex-col justify-center items-center ml-3">
         <div class="w-24 rounded-full ring ring-neutral print:ring-violet-900 ring-offset-2 mb-4">
-            <img src="{{ asset($student->student_photo) }}" alt="Student Photo" />
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents($student->student_photo)) }}" alt="Student Photo" />
         </div>
     </div>
+
 </div>

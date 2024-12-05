@@ -225,8 +225,7 @@ class ResultController extends Controller
         }
     }
 
-
-    public function preview(Request $request, $id, $exam_id)
+    public function preview($id, $exam_id)
     {
         try {
             $cacheKey = "result_{$id}_{$exam_id}";
@@ -236,6 +235,7 @@ class ResultController extends Controller
             $exam_type = SmExamType::findOrFail($exam_id);
             $params = ['id' => $id, 'exam_id' => $exam_type->id];
             $student = $result_data->student;
+            $this->optimizeImage($student->student_photo);
 
             return response()->json([
                 'preview' => true,
@@ -260,6 +260,7 @@ class ResultController extends Controller
         $cacheKey = "{$student_id}_{$exam_type}";
         try {
             if ($request->has('local_stu_id')) {
+                Cache::forget("result_$cacheKey");
                 $result = Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($student_id, $exam_type) {
                     return $this->getResultData($student_id, $exam_type, 'old');
                 });
