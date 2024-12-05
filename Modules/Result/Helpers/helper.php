@@ -77,7 +77,7 @@ if (!function_exists('contactsForMail')) {
 }
 
 if (!function_exists('generatePDF')) {
-    function generatePDF($result_data, $id, $exam_id, $debug)
+    function generatePDF($result_data, $id, $exam_id, $debug = false)
     {
         $school = $result_data->school;
         $student = $result_data->student;
@@ -98,7 +98,6 @@ if (!function_exists('generatePDF')) {
             } else {
                 dd('Health endpoint error:', $response->status(), $response->body());
             }
-            dd($url, $result);
         }
 
         $req = Gotenberg::chromium($url)

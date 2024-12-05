@@ -263,12 +263,9 @@ class ResultController extends Controller
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
 
             $resp = generatePDF($result_data, $id, $exam_id, false);
-            dd($result_data);
+            dd($resp);
         } catch (\Exception $e) {
-            // return response()->json(array_merge([
-            //     'error' => 1,
-            //     'message' => $e->getMessage(),
-            // ]), 400);
+            dd($e->getMessage(), $e->getTraceAsString());
         }
     }
 
