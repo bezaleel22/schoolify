@@ -55,9 +55,9 @@
                     <div class="main-title">
                         <h3 class="mb-0">{{ @$exam->title }}</h3>
                     </div>
-                    {{-- <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
+                    <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
                     @lang('result::student.preview')
-                    </button> --}}
+                    </button>
                 </div>
             </div>
 

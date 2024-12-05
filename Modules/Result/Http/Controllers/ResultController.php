@@ -225,7 +225,7 @@ class ResultController extends Controller
         }
     }
 
-    public function preview($id, $exam_id)
+    public function preview(Request $request, $id, $exam_id)
     {
         try {
             $cacheKey = "result_{$id}_{$exam_id}";
@@ -236,7 +236,7 @@ class ResultController extends Controller
             $params = ['id' => $id, 'exam_id' => $exam_type->id];
             $student = $result_data->student;
             $this->optimizeImage($student->student_photo);
-
+            
             return response()->json([
                 'preview' => true,
                 'title' => "Result Preview",

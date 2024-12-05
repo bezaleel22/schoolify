@@ -2,13 +2,13 @@
 <header class="flex items-center justify-between lg:mb-0 mb-3 w-full px-4">
     <div class="flex items-center">
         <div class="avatar">
-            <div class="mask mask-squircle w-12 h-12">
-                <img src="{{ asset($school->logo) }}" alt="School Logo" />
-            </div>
-
             {{-- <div class="mask mask-squircle w-12 h-12">
-                <img src="data:image/png;base64,{{ base64_encode(file_get_contents($school->logo)) }}" alt="School Logo" />
+                <img src="{{ asset($school->logo) }}" alt="School Logo" />
             </div> --}}
+
+            <div class="mask mask-squircle w-12 h-12">
+                <img src="data:image/png;base64,{{ base64_encode(file_get_contents($school->logo)) }}" alt="School Logo" />
+            </div>
         </div>
 
         <div class="leading-7">
