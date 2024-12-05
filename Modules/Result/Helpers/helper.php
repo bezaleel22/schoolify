@@ -92,7 +92,7 @@ if (!function_exists('generatePDF')) {
         $fileName = md5($id . $exam_id);
         $url = env('GOTENBERG_URL');
         if ($debug) {
-            $response = Http::get(url('/health')); // Replace `url('/health')` with the exact endpoint if needed
+            $response = Http::get("$url/health"); // Replace `url('/health')` with the exact endpoint if needed
             if ($response->successful()) {
                 dd('Health endpoint response:', $response->json());
             } else {
