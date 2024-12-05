@@ -7,9 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ $student->full_name }} - Results</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         .bg-custom {
             background-color: #ffffff;
@@ -17,9 +14,11 @@
         }
 
     </style>
+
+    @include('result::template.css')
 </head>
 
-  <body class="w-full h-full bg-custom">
+<body class="w-full h-full bg-custom">
     <header class="lg:flex lg:justify-between mb-8 w-full font-normal print:flex print:justify-between print:space-x-3">
         @include('result::template.header', ['school' => $school])
     </header>
@@ -37,4 +36,3 @@
 </body>
 
 </html>
-
