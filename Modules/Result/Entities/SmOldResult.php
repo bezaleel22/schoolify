@@ -43,8 +43,6 @@ class SmOldResult extends Model
      */
     public static function queryResultData($id, $exam_id)
     {
-        $connection = new SmOldResult();
-        dd($connection->getConnection());
         return DB::connection('mysql_edusms')->transaction(
             function ($db) use ($id, $exam_id) {
                 $student = SmOldResult::where('sm_students.active_status', 1)
