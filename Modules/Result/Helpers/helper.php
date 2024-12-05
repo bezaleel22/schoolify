@@ -90,6 +90,7 @@ if (!function_exists('generatePDF')) {
 
         $fileName = md5($id . $exam_id);
         $url = env('GOTENBERG_URL');
+        dd($url, $result);
         $req = Gotenberg::chromium($url)
             ->pdf()
             ->skipNetworkIdleEvent()
