@@ -240,7 +240,7 @@ class ResultController extends Controller
             return response()->json([
                 'preview' => true,
                 'title' => "Result Preview",
-                'url' => route('result.publish', $id),
+                'url' => route('result.publish', $params),
                 'pdfUrl' => route('result.download', $params),
                 'content' => view('result::partials.preview', compact('student'))->render(),
             ]);

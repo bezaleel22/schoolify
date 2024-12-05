@@ -55,9 +55,9 @@
                     <div class="main-title">
                         <h3 class="mb-0">{{ @$exam->title }}</h3>
                     </div>
-                    {{-- <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
-                    @lang('result::student.preview')
-                    </button> --}}
+                    <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
+                        @lang('result::student.preview')
+                    </button>
                 </div>
             </div>
 
@@ -136,7 +136,7 @@
     </div>
 
     <div class="modal fade admin-query" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">>
-        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action=" {{ route('result.publish', $student->id) }}" method="POST">
+        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action="" method=" POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -154,7 +154,11 @@
                     </div>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <div id="modalBody" class="modal-body"></div>
+                <div id="modalBody" class="modal-body">
+                    <div id="pdfContainer" class="d-flex justify-content-center align-items-center w-100" style="min-height: 200px;">
+                        <img class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
+                    </div>
+                </div>
                 <div class="modal-footer w-100">
                     <div class="d-flex justify-content-between align-items-center mb-0">
                         <div class="pdf-navigation">
@@ -239,11 +243,12 @@
     let pdfDocument = null;
     let currentPage = 1; // Start at the first page
     let totalPages = 0;
+    let loader = '';
+    const modalBody = document.getElementById('pdfContainer');
 
     // Load PDF.js and render the PDF when the modal is shown
     function preview(url) {
-        const modalBody = document.getElementById('modalBody');
-        modalBody.innerHTML = 'Loading PDF...';
+        loader = modalBody.innerHTML
         // Load PDF.js document
         const loadingTask = pdfjsLib.getDocument(url);
         loadingTask.promise.then(function(pdf) {
@@ -252,7 +257,7 @@
             renderPage(currentPage); // Render the first page
         }).catch(function(error) {
             console.error('Error loading PDF:', error);
-            modalBody.innerHTML = 'Error loading PDF';
+            modalBody.innerHTML = '<strong>Error loading PDF</strong>';
 
         });
     }
@@ -281,8 +286,8 @@
             };
 
             page.render(renderContext).promise.then(function() {
-                document.getElementById('modalBody').innerHTML = '';
-                document.getElementById('modalBody').appendChild(canvas);
+                document.getElementById('pdfContainer').innerHTML = '';
+                document.getElementById('pdfContainer').appendChild(canvas);
                 document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
             });
         });
@@ -305,7 +310,7 @@
     $('#resultModal').on('hidden.bs.modal', function() {
         pdfDocument = null;
         currentPage = 1;
-        document.getElementById('modalBody').innerHTML = '';
+        document.getElementById('pdfContainer').innerHTML = loader;
         document.getElementById('pageInfo').textContent = '';
     });
 
