@@ -333,6 +333,15 @@ trait ResultTrait
         return (object) $addressComponents;
     }
 
+    public function updateRelation($student_id, $parent_id)
+    {
+        $stu = SmStudent::select('parent_id')->findOrFail($student_id);
+        if ($stu->parent_id !== $parent_id) {
+            $stu->parent_id = $parent_id;
+            $stu->save();
+        }
+    }
+
     public function transformComment($comment, $student)
     {
         $first_name = explode(' ', $student->full_name)[0];

@@ -71,6 +71,7 @@ class ResultController extends Controller
 
     public function remark(Request $request, $id, $exam_id)
     {
+
         try {
             if ($request->ajax()) {
                 $student = (object)$request->student;
@@ -91,11 +92,12 @@ class ResultController extends Controller
                     ->where('exam_type_id', $request->type_id)
                     ->first();
 
-
+                $params = ['id' => $id, 'exam_id' => $exam_id];
                 return response()->json([
                     'student' => $student,
                     'preview' => false,
                     'title' => "Add Remark",
+                    'url' => route('result.remark', $params),
                     'content' => view('result::partials.remark', compact('remark', 'tags', 'comments', 'id', 'exam_id', 'student'))->render(),
                 ]);
             }
@@ -119,6 +121,8 @@ class ResultController extends Controller
                 ['remark', 'teacher_id']
             );
 
+            $this->updateRelation($id, $request->parent_id);
+
             Toastr::success('Remark added successfully', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
@@ -128,7 +132,6 @@ class ResultController extends Controller
                     'message' => $e->getMessage(),
                 ]);
             }
-            dd($e->getMessage());
             Toastr::error('Operation failed', 'Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         }
@@ -156,9 +159,12 @@ class ResultController extends Controller
                 ];
 
                 $student = (object)$request->student;
+
+                $params = ['id' => $id, 'exam_id' => $exam_id];
                 return response()->json([
                     'preview' => false,
                     'title' => "Add Performance Rating",
+                    'url' => route('result.rating', $params),
                     'student' => $student,
                     'content' => view('result::partials.ratings', compact('student', 'ratings', 'attendance', 'attributes', 'exam_id'))->render(),
                 ]);
@@ -203,6 +209,7 @@ class ResultController extends Controller
                 ['days_opened', 'days_present', 'days_absent']
             );
 
+            $this->updateRelation($id, $request->parent_id);
             Toastr::success('Rating added successfully', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
@@ -233,6 +240,7 @@ class ResultController extends Controller
             return response()->json([
                 'preview' => true,
                 'title' => "Result Preview",
+                'url' => route('result.publish', $id),
                 'pdfUrl' => route('result.download', $params),
                 'content' => view('result::partials.preview', compact('student'))->render(),
             ]);
@@ -273,7 +281,7 @@ class ResultController extends Controller
 
 
 
-    public function publish(Request $request, $id)
+    public function publish(Request $request, $id, $exam_id)
     {
         $request->validate([
             'exam_id' => 'required|integer',
@@ -290,14 +298,14 @@ class ResultController extends Controller
         }
 
         try {
-            $type = "exam-$request->exam_id";
+            $type = "exam-$exam_id";
             $timeline = SmStudentTimeline::where('academic_id', getAcademicId())
                 ->where('type', $type)
                 ->where('staff_student_id', $id)
                 ->first();
 
             if (!$timeline) {
-                $params = ['id' => $id, 'exam_id' => $request->exam_id];
+                $params = ['id' => $id, 'exam_id' => $exam_id];
                 $timeline = new SmStudentTimeline();
                 $timeline->staff_student_id = $id;
                 $timeline->type = $type;
@@ -318,7 +326,7 @@ class ResultController extends Controller
             });
 
             $parent = SmParent::findOrFail($request->parent_id);
-            $stu = SmStudent::select('id', 'parent_id', 'full_name as name')->findOrFail($id);
+            $stu = SmStudent::select('id', 'parent_id', 'full_name As name')->findOrFail($id);
             $stu->parent_id = $request->parent_id;
             $stu->save();
 
@@ -326,7 +334,7 @@ class ResultController extends Controller
             $data = (object) [
                 'subject' => 'Result Notification',
                 'student_id' => $id,
-                'exam_id' => $request->exam_id, //explode('-', $timeline->type)[1],
+                'exam_id' => $exam_id, //explode('-', $timeline->type)[1],
                 'term' => $timeline->title,
                 'title' => $timeline->description,
                 'full_name' => $stu->name,
@@ -337,12 +345,6 @@ class ResultController extends Controller
                 'contact' => $contacts['contact'],
                 'support' => $contacts['support'],
             ];
-
-            $exam_type = $request->exam_id;
-            $cacheKey = "{$id}_{$exam_type}";
-            Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($id, $exam_type) {
-                return $this->getResultData($id, $exam_type, 'old');
-            });
 
             @post_mail($data);
 

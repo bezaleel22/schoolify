@@ -39,46 +39,43 @@
          </div>
 
          <div class="col-lg-9 col-md-8">
-             <form action="{{ route('result.remark', $params) }}" method="POST">
-                 @csrf
-                 <input type="hidden" name="student_id" value="{{ $id }}">
-                 <input type="hidden" id="remarkExamTypeId" name="exam_type_id" value="{{ $exam_id }}">
+             <input type="hidden" name="student_id" value="{{ $id }}">
+             <input type="hidden" id="remarkExamTypeId" name="exam_type_id" value="{{ $exam_id }}">
 
-                 <div class="row">
-                     <div class="col-lg-12 d-flex justify-content-between align-items-center mb-3">
-                         <h5 class="mb-0">@lang('result::student.filtered_remarks')</h5>
-                     </div>
+             <div class="row">
+                 <div class="col-lg-12 d-flex justify-content-between align-items-center mb-3">
+                     <h5 class="mb-0">@lang('result::student.filtered_remarks')</h5>
                  </div>
+             </div>
 
-                 <div class="row">
-                     <div id="filteredComments" class="col-lg-12">
-                         <ul class="list-unstyled">
-                             @foreach($comments as $comment)
-                             <li class="remark-item">
-                                 <button onclick="setComment(`{{ $comment->text }}`)" type="button" class="btn btn-link btn-sm">
-                                     {{ $comment->text }}
-                                 </button>
-                             </li>
-                             @endforeach
-                         </ul>
-                     </div>
+             <div class="row">
+                 <div id="filteredComments" class="col-lg-12">
+                     <ul class="list-unstyled">
+                         @foreach($comments as $comment)
+                         <li class="remark-item">
+                             <button onclick="setComment(`{{ $comment->text }}`)" type="button" class="btn btn-link btn-sm">
+                                 {{ $comment->text }}
+                             </button>
+                         </li>
+                         @endforeach
+                     </ul>
                  </div>
+             </div>
 
-                 <div class="row mt-3">
-                     <div class="col-lg-12">
-                         <label class="mb-0">@lang('result::student.remark')<span></span></label>
-                         <textarea id="selectedRemark" name="teacher_remark" class="form-control" rows="4"></textarea>
-                         <span class="text-danger" role="alert" id="remark_error"></span>
-                     </div>
+             <div class="row mt-3">
+                 <div class="col-lg-12">
+                     <label class="mb-0">@lang('result::student.remark')<span></span></label>
+                     <textarea id="selectedRemark" name="teacher_remark" class="form-control" rows="4"></textarea>
+                     <span class="text-danger" role="alert" id="remark_error"></span>
                  </div>
+             </div>
 
-                 <div class="col-lg-12 text-center mt-40">
-                     <div class="mt-40 d-flex justify-content-between">
-                         <button type="button" class="primary-btn tr-bg" data-dismiss="modal">@lang('common.cancel')</button>
-                         <button class="primary-btn fix-gr-bg submit" type="submit">@lang('common.submit')</button>
-                     </div>
+             <div class="col-lg-12 text-center mt-40">
+                 <div class="mt-40 d-flex justify-content-between">
+                     <button type="button" class="primary-btn tr-bg" data-dismiss="modal">@lang('common.cancel')</button>
+                     <button class="primary-btn fix-gr-bg submit" type="submit">@lang('common.submit')</button>
                  </div>
-             </form>
+             </div>
          </div>
      </div>
  </div>

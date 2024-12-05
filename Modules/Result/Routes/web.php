@@ -25,7 +25,7 @@ Route::get('test-mail', 'ResultController@testEmails')->name('result.test_emails
 Route::get('resend-emails', 'ResultController@resendEmails')->name('result.resend_emails');
 Route::get('send-emails', 'ResultController@sendEmails')->name('result.send_emails');
 Route::get('download-result/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
-Route::post('publish/{id}', 'ResultController@publish')->name('result.publish');
+Route::post('publish/{id}/{exam_id}', 'ResultController@publish')->name('result.publish');
 Route::post('preview/{id}/{exam_id}', 'ResultController@preview')->name('result.preview');
 Route::post('remark/{id}/{exam_id?}', 'ResultController@remark')->name('result.remark');
 Route::post('comments/{id}', 'ResultController@comments')->name('result.comment');
