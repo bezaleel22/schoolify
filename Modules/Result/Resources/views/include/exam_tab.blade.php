@@ -55,9 +55,9 @@
                     <div class="main-title">
                         <h3 class="mb-0">{{ @$exam->title }}</h3>
                     </div>
-                    <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
+                    {{-- <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
                         @lang('result::student.preview')
-                    </button>
+                    </button> --}}
 
                 </div>
             </div>
@@ -188,8 +188,9 @@
         var $modal = $("#resultModal"); // Reference the modal element
         var $title = $modal.find(".modal-title"); // Reference the modal title
         var $body = $modal.find(".modal-body"); // Reference the modal body
-        var $footer = $("#resultModal");; // Reference the modal footer
+        var $footer = $modal.find(".modal-footer");; // Reference the modal footer
         var $publishForm = $("#publishForm");; // Reference the modal footer
+        $footer.hide()
 
         $.ajax({
             type: "POST"
@@ -201,10 +202,10 @@
                 console.log(result);
                 $title.text(result.title || "Modal Title");
                 if (result.preview) {
-                    $footer.show()
                     $body.addClass('p-1');
                     $('#resultModal').on('shown.bs.modal', function() {
                         $publishForm.prepend(result.content);
+                        $footer.show()
                         preview(result.pdfUrl)
                     });
                     $modal.modal("show");

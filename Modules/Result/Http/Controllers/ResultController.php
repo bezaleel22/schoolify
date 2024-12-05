@@ -247,25 +247,27 @@ class ResultController extends Controller
 
     public function download(Request $request, $id, $exam_id = null)
     {
-
-
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
         $cacheKey = "{$student_id}_{$exam_type}";
         try {
             if ($request->has('local_stu_id')) {
-                $result = $this->getResultData($student_id, $exam_type, 'old');
-                $resp = generatePDF($result, $student_id, $exam_type, true);
-                dd($resp);
+                $result = Cache::remember("result_$cacheKey", now()->addDays(7), function () use ($student_id, $exam_type) {
+                    return $this->getResultData($student_id, $exam_type, 'old');
+                });
+
+                return generatePDF($result, $student_id, $exam_type);
             }
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
 
-            $resp = generatePDF($result_data, $id, $exam_id, false);
-            dd($resp);
+            return generatePDF($result_data, $id, $exam_id);
         } catch (\Exception $e) {
-            dd($e->getMessage(), $e->getTraceAsString());
+            return response()->json(array_merge([
+                'error' => 1,
+                'message' => $e->getMessage(),
+            ]), 400);
         }
     }
 

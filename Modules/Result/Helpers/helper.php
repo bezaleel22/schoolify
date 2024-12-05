@@ -77,7 +77,7 @@ if (!function_exists('contactsForMail')) {
 }
 
 if (!function_exists('generatePDF')) {
-    function generatePDF($result_data, $id, $exam_id, $debug = false)
+    function generatePDF($result_data, $id, $exam_id)
     {
         $school = $result_data->school;
         $student = $result_data->student;
@@ -91,6 +91,7 @@ if (!function_exists('generatePDF')) {
 
         $fileName = md5($id . $exam_id);
         $url = env('GOTENBERG_URL');
+        dd($url);
         $req = Gotenberg::chromium($url)
             ->pdf()
             ->skipNetworkIdleEvent()
@@ -99,10 +100,8 @@ if (!function_exists('generatePDF')) {
             ->margins('2mm', '2mm', '2mm', '2mm')
             ->html(Stream::string('index.html', $result));
 
-        $storageDir = storage_path('app/pdf');
-        $response = Gotenberg::save($req, $storageDir);
-        // return $response->withHeader('Content-Disposition', "inline; filename='$fileName.pdf'");
-        return $response;
+        $response = Gotenberg::send($req);
+        return $response->withHeader('Content-Disposition', "inline; filename='$fileName.pdf'");
     }
 }
 
