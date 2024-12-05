@@ -254,7 +254,7 @@ class ResultController extends Controller
         $cacheKey = "{$student_id}_{$exam_type}";
         try {
             if ($request->has('local_stu_id')) {
-                $result = SmOldResult::getResultData($student_id, $exam_type, 'old');
+                $result = $this->getResultData($student_id, $exam_type, 'old');
                 $resp= generatePDF($result, $student_id, $exam_type);
                 
             }
