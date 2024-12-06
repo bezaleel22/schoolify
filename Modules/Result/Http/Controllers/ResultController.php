@@ -285,8 +285,6 @@ class ResultController extends Controller
         }
     }
 
-
-
     public function publish(Request $request, $id, $exam_id)
     {
         $request->validate([
