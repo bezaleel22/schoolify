@@ -96,7 +96,7 @@ if (!function_exists('generatePDF')) {
             ->skipNetworkIdleEvent()
             ->preferCssPageSize()
             ->outputFilename($fileName)
-            ->margins('2mm', '2mm', '2mm', '2mm')
+            ->margins('4mm', '2mm', '2mm', '2mm')
             ->html(Stream::string('index.html', $result));
 
         $response = Gotenberg::send($req);

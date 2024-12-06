@@ -121,7 +121,7 @@ class ResultController extends Controller
                 ['remark', 'teacher_id']
             );
 
-            $this->updateRelation($id, $request->parent_id);
+            $this->updateRelation($id, $request->parent_id, $request->parent_email);
 
             Toastr::success('Remark added successfully', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
@@ -209,7 +209,7 @@ class ResultController extends Controller
                 ['days_opened', 'days_present', 'days_absent']
             );
 
-            $this->updateRelation($id, $request->parent_id);
+            $this->updateRelation($id, $request->parent_id, $request->parent_email);
             Toastr::success('Rating added successfully', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
@@ -297,7 +297,7 @@ class ResultController extends Controller
         $fileName = 'illustration.svg';
         $publicFilePath = public_path('uploads/settings/' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
-        if (!file_exists($publicFilePath) && file_exists($storageFilePath)) {
+        if (!File::exists($publicFilePath) && File::exists($storageFilePath)) {
             File::copy($storageFilePath, $publicFilePath);
         }
 
@@ -355,7 +355,6 @@ class ResultController extends Controller
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
-            dd($e->getMessage());
             Log::error('Failed to publish timeline: ' . $e->getMessage());
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentExam' => 'active']);

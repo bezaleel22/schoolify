@@ -6,9 +6,12 @@ use App\SmAcademicYear;
 use App\SmDesignation;
 use App\SmExamType;
 use App\SmMarkStore;
+use App\SmParent;
 use App\SmResultStore;
 use App\SmStaff;
 use App\SmStudent;
+use App\User;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -96,7 +99,6 @@ trait ResultTrait
 
     public function getResultData($id, $exam_id, $db = null)
     {
-
         $result_data = !$db ? $this->queryResultData($id, $exam_id)
             : SmOldResult::queryResultData($id, $exam_id);
 
@@ -253,7 +255,7 @@ trait ResultTrait
 
         $remark = TeacherRemark::where('student_id', $student->id)
             ->where('exam_type_id', $type->id)
-            ->first();;
+            ->first();
 
         return (object) [
             'student' => $student,
@@ -332,12 +334,33 @@ trait ResultTrait
         $stu = SmStudent::findOrFail($student_id);
         if ($stu->getOriginal('parent_id') !== (int)$parent_id) {
             $stu->parent_id = (int)$parent_id;
+            $stu->save();
         }
-        
-        $guardians_email = $stu->guardians_email;
-        $stu->guardians_email = $email ?? $guardians_email;
-        $stu->save();
+
+        if (!$email) return;
+
+        $parent = SmParent::findOrFail($parent_id);
+        if ($parent->getOriginal('guardians_email') !== $email) {
+            $parent->guardians_email = $email;
+            $parent->save();
+
+            $user = User::find($parent_id);
+            if ($user) {
+                $user->email = $email;
+                $user->save();
+            } else {
+                $user = new User();
+                $user->role_id = 3;
+                $user->full_name = $parent->full_name;
+                $user->username = $parent->username;
+                $user->phone_number = $parent->phone_number;
+                $user->email = $parent->guardians_email;
+                $user->password = Hash::make(config('app.default_password', '123456'));
+                $user->save();
+            }
+        }
     }
+
 
     public function transformComment($comment, $student)
     {
@@ -416,7 +439,6 @@ trait ResultTrait
     private function optimizeImage(string $student_photo)
     {
         try {
-            // Ensure absolute path
             $filePath = str_starts_with($student_photo, 'public/')
                 ? base_path($student_photo)
                 : public_path($student_photo);
@@ -425,16 +447,13 @@ trait ResultTrait
                 return;
             }
 
-            // Get file size in KB
             $fileSizeBytes = filesize($filePath);
             $fileSizeKb = $fileSizeBytes / 1024;
 
-            // Skip optimization for files <= 100KB
             if ($fileSizeKb <= 70) {
                 return;
             }
 
-            // Optimize image
             $image = Image::make($filePath);
             $image->save($filePath, 15);
         } catch (\Exception $e) {
