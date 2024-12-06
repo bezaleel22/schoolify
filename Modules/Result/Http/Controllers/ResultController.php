@@ -302,25 +302,26 @@ class ResultController extends Controller
 
         try {
             $type = "exam-$exam_id";
+            $params = ['id' => $id, 'exam_id' => $exam_id];
             $timeline = SmStudentTimeline::where('academic_id', getAcademicId())
                 ->where('type', $type)
                 ->where('staff_student_id', $id)
                 ->first();
 
             if (!$timeline) {
-                $params = ['id' => $id, 'exam_id' => $exam_id];
                 $timeline = new SmStudentTimeline();
-                $timeline->staff_student_id = $id;
-                $timeline->type = $type;
-                $timeline->title = $request->title;
-                $timeline->date = Carbon::create(2024, 6, 12)->toDateString();
-                $timeline->description = 'TERMLY SUMMARY OF PROGRESS REPORT';
-                $timeline->visible_to_student = 1;
-                $timeline->file = route('result.download', $params);
-                $timeline->school_id = Auth::user()->school_id;
-                $timeline->academic_id = getAcademicId();
-                $timeline->save();
             }
+
+            $timeline->staff_student_id = $id;
+            $timeline->type = $type;
+            $timeline->title = $request->title;
+            $timeline->date = Carbon::create(2024, 6, 12)->toDateString();
+            $timeline->description = 'TERMLY SUMMARY OF PROGRESS REPORT';
+            $timeline->visible_to_student = 1;
+            $timeline->file = route('result.download', $params);
+            $timeline->school_id = Auth::user()->school_id;
+            $timeline->academic_id = getAcademicId();
+            $timeline->save();
 
             $category = $request->category;
             $contacts = Cache::remember("contacts-$category", now()->addDay(7), function () use ($category) {
