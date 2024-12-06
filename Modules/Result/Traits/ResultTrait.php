@@ -2,22 +2,13 @@
 
 namespace Modules\Result\Traits;
 
-use App\Models\StudentRecord;
 use App\SmAcademicYear;
 use App\SmDesignation;
 use App\SmExamType;
 use App\SmMarkStore;
 use App\SmResultStore;
 use App\SmStaff;
-use Gotenberg\Stream;
 use App\SmStudent;
-use App\SmStudentTimeline;
-use Brian2694\Toastr\Facades\Toastr;
-use Gotenberg\Gotenberg;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
