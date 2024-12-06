@@ -109,7 +109,7 @@ if (!function_exists('emailConfig')) {
     function emailConfig(object $data)
     {
         $setting = SmEmailSetting::where('active_status', 1)
-            ->where('school_id', Auth::user()->school_id)
+            ->where('school_id', 1)
             ->first();
 
         if (!$setting) {
