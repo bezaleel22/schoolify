@@ -154,7 +154,7 @@
                     </div>
                     <div class="primary_input col-lg-6 col-md-8">
                         <label class="primary_input_label" for="parent_email">Parent Emails</label>
-                        <select class="primary_select form-control" name="parent_id" id="parent_id">
+                        <select class="primary_select form-control" name="parent_email" id="parent_email">
                             <option data-display="Select Parent" value="">Select parent email</option>
                             @foreach ($emails as $email)
                             <option value="{{ $email }}">

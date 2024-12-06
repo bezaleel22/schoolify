@@ -42,7 +42,7 @@ class ImportController extends Controller
             $finalFilePath = "$uploadedDir/$filename";
 
             // Check if the assembled zip file exists
-            if (File::exists($finalFilePath)) {
+            if (File::exists($finalFilePath) && $this->isValidMimetype($filename, ['zip'])) {
                 if ($this->verifyHash($finalFilePath, $fileHash)) {
                     if ($this->unzip($finalFilePath)) {
                         return $this->jsonResponse(true, 'File already uploaded, verified, and unzipped successfully.', [

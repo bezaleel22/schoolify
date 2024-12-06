@@ -287,6 +287,7 @@ class ResultController extends Controller
 
     public function publish(Request $request, $id, $exam_id)
     {
+
         $request->validate([
             'parent_id' => 'required|integer',
             'title' => 'required|string|max:255',
@@ -294,7 +295,7 @@ class ResultController extends Controller
         ]);
 
         $fileName = 'illustration.svg';
-        $publicFilePath = public_path('uploads/settings' . $fileName);
+        $publicFilePath = public_path('uploads/settings/' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
         if (!file_exists($publicFilePath) && file_exists($storageFilePath)) {
             File::copy($storageFilePath, $publicFilePath);
@@ -315,7 +316,7 @@ class ResultController extends Controller
             $timeline->staff_student_id = $id;
             $timeline->type = $type;
             $timeline->title = $request->title;
-            $timeline->date = Carbon::create(2024, 6, 12)->toDateString();
+            $timeline->date = Carbon::create(2024, 8, 12)->toDateString();
             $timeline->description = 'TERMLY SUMMARY OF PROGRESS REPORT';
             $timeline->visible_to_student = 1;
             $timeline->file = route('result.download', $params);
