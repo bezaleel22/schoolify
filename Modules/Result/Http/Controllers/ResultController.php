@@ -256,7 +256,7 @@ class ResultController extends Controller
     public function download(Request $request, $id, $exam_id = null)
     {
         $fileName = md5("$id-$exam_id");
-        $filePath = "result/$fileName.pdf";
+        // $filePath = "result/$fileName.pdf";
 
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
@@ -273,10 +273,10 @@ class ResultController extends Controller
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
-            $body = generatePDF($result_data, $id, $exam_id)->getBody();
+            return  generatePDF($result_data, $id, $exam_id);
 
-            Storage::put($filePath, $body->getContents());
-            return Storage::response($filePath);
+            // Storage::put($filePath, $body->getContents());
+            // return Storage::response($filePath);
         } catch (\Exception $e) {
             return response()->json(array_merge([
                 'error' => 1,

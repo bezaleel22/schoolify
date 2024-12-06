@@ -90,6 +90,22 @@ class SendResultEmail implements ShouldQueue
 
     private function generatePdfAttachment(): string
     {
+        $cacheKey = "result_{$this->data->student_id}_{$this->data->exam_id}";
+        $cachedResult = Cache::get($cacheKey);
+        $result_data =  $cachedResult
+            ?? $this->getResultData($this->data->student_id, $this->data->exam_id);
+
+
+        if (!$cachedResult) {
+            throw new \Exception('No cache available for Result Data');
+        }
+
+        $resp = generatePDF($result_data, $this->data->student_id, $this->data->exam_id);
+        return $resp->getBody()->getContents();
+    }
+
+    private function getPdfAttachment(): string
+    {
         $fileName = md5("{$this->data->student_id}-{$this->data->exam_id}");
         $filePath = "result/$fileName.pdf";
 
