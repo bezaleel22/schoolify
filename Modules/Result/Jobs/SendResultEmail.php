@@ -99,7 +99,7 @@ class SendResultEmail implements ShouldQueue
 
         $fileContents = Storage::get($filePath);
         Storage::delete($filePath);
-        
+
         return $fileContents;
     }
 }

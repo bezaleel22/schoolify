@@ -257,7 +257,7 @@ class ResultController extends Controller
     {
         $fileName = md5("$id-$exam_id");
         $filePath = "result/$fileName.pdf";
-        
+
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
         $cacheKey = "{$student_id}_{$exam_type}";
@@ -315,7 +315,7 @@ class ResultController extends Controller
                 $timeline->staff_student_id = $id;
                 $timeline->type = $type;
                 $timeline->title = $request->title;
-                $timeline->date = Carbon::create(2024, 3, 22)->toDateString();
+                $timeline->date = Carbon::create(2024, 6, 12)->toDateString();
                 $timeline->description = 'TERMLY SUMMARY OF PROGRESS REPORT';
                 $timeline->visible_to_student = 1;
                 $timeline->file = route('result.download', $params);
