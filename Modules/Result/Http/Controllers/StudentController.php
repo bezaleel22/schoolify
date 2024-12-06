@@ -127,7 +127,7 @@ class StudentController extends Controller
             $emails = [];
             if (Storage::exists('uploaded_files/emails.json')) {
                 $jsonContent = Storage::get('uploaded_files/emails.json');
-                $emails = json_decode($jsonContent, true);
+                $emails = array_unique(json_decode($jsonContent, true));
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     throw  new \Exception('Failed to decode JSON.');
                 }
