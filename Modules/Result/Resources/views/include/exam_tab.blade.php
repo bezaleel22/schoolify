@@ -56,7 +56,7 @@
                         <h3 class="mb-0">{{ @$exam->title }}</h3>
                     </div>
                     <button onclick="showModal(this)" data-path="{{ route('result.preview', $params) }}" class="btn btn-link btn-sm open-result-modal">
-                    @lang('result::student.preview')
+                        @lang('result::student.preview')
                     </button>
                 </div>
             </div>
@@ -136,7 +136,7 @@
     </div>
 
     <div class="modal fade admin-query" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">>
-        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action="" method=" POST">
+        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action="" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -154,19 +154,21 @@
                     </div>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
-                <div id="modalBody" class="modal-body">
-                    <div id="pdfContainer" class="d-flex justify-content-center align-items-center w-100" style="min-height: 200px;">
+                <div id="modalBody" class="modal-body"></div>
+                <template id="pdfLoader">
+                    <div id="pdfContainer" class="d-flex flex-column justify-content-center align-items-center w-100" style="min-height: 200px;">
                         <img class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
+                        <p>Generating result, please wait...</p>
                     </div>
-                </div>
+                </template>
                 <div class="modal-footer w-100">
-                    <div class="d-flex justify-content-between align-items-center mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-0 w-100">
                         <div class="pdf-navigation">
-                            <button type="button" onclick="prevPage(this)" type="button" id="prevPage" class="primary-btn fix-gr-bg">
+                            <button type="button" type="button" id="prevPage" class="primary-btn fix-gr-bg">
                                 <i class="ti-arrow-left"></i>
                             </button>
 
-                            <button type="button" onclick="nextPage(this)" type="button" id="nextPage" class="primary-btn fix-gr-bg">
+                            <button type="button" type="button" id="nextPage" class="primary-btn fix-gr-bg">
                                 <i class="ti-arrow-right"></i>
                             </button>
                             <span id="pageInfo"></span>
@@ -195,6 +197,7 @@
         var $body = $modal.find(".modal-body"); // Reference the modal body
         var $footer = $modal.find(".modal-footer");; // Reference the modal footer
         var $input = $modal.find('.primary_input')
+        var pdfLoder = document.getElementById('pdfLoader')
         var $publishForm = $("#publishForm");; // Reference the modal footer
 
         $.ajax({
@@ -205,12 +208,13 @@
             }
             , success: function(result) {
                 console.log(result);
+                $publishForm.attr("action", result.url);
                 $title.text(result.title || "Modal Title");
                 if (result.preview) {
+                    $body.html(pdfLoder.innerHTML);
                     $body.addClass('p-1');
                     $('#resultModal').on('shown.bs.modal', function() {
                         $footer.show()
-                        $publishForm.attr("action", result.url);
                         $publishForm.prepend(result.content);
                         preview(result.pdfUrl)
                     });
@@ -218,15 +222,12 @@
                     button.disabled = false;
                     return
                 }
-                $publishForm.attr("action", result.url);
-                $body.html(result.content);
                 $footer.hide()
+                $body.html(result.content);
                 $body.removeClass('p-1');
                 $modal.modal("show");
                 button.disabled = false;
                 $('#resultModal').off('shown.bs.modal');
-
-
             }
             , error: function(xhr, status, error) {
                 console.error("Error:", error);
@@ -243,13 +244,10 @@
     let pdfDocument = null;
     let currentPage = 1; // Start at the first page
     let totalPages = 0;
-    let loader = '';
     const modalBody = document.getElementById('pdfContainer');
 
     // Load PDF.js and render the PDF when the modal is shown
     function preview(url) {
-        loader = modalBody.innerHTML
-        // Load PDF.js document
         const loadingTask = pdfjsLib.getDocument(url);
         loadingTask.promise.then(function(pdf) {
             pdfDocument = pdf; // Save the PDF document
@@ -258,7 +256,6 @@
         }).catch(function(error) {
             console.error('Error loading PDF:', error);
             modalBody.innerHTML = '<strong>Error loading PDF</strong>';
-
         });
     }
 
@@ -266,6 +263,7 @@
         if (!pdfDocument) return;
 
         pdfDocument.getPage(pageNum).then(function(page) {
+            // Get viewport dimensions
             const viewport = page.getViewport({
                 scale: 1
             });
@@ -275,23 +273,38 @@
                 scale
             });
 
+            // Higher resolution settings (2x for better clarity)
+            const scaleFactor = 4;
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            canvas.height = scaledViewport.height;
-            canvas.width = scaledViewport.width;
+            canvas.width = scaledViewport.width * scaleFactor;
+            canvas.height = scaledViewport.height * scaleFactor;
 
+            // Adjust the rendering context for higher resolution
             const renderContext = {
                 canvasContext: context
-                , viewport: scaledViewport
-            };
+                , viewport: page.getViewport({
+                    scale: scale * scaleFactor
+                })
+            , };
 
+            // Set canvas style to match the scaled viewport
+            canvas.style.width = `${scaledViewport.width}px`;
+            canvas.style.height = `${scaledViewport.height}px`;
+
+            // Render the page
             page.render(renderContext).promise.then(function() {
-                document.getElementById('pdfContainer').innerHTML = '';
-                document.getElementById('pdfContainer').appendChild(canvas);
+                // Clear previous content and append the new canvas
+                const container = document.getElementById('pdfContainer');
+                container.innerHTML = '';
+                container.appendChild(canvas);
+
+                // Update the page info
                 document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
             });
         });
     }
+
 
     function prevPage() {
         if (currentPage > 1) {
@@ -307,10 +320,13 @@
         }
     }
 
+    document.getElementById('prevPage').addEventListener('click', prevPage);
+    document.getElementById('nextPage').addEventListener('click', nextPage);
+
     $('#resultModal').on('hidden.bs.modal', function() {
         pdfDocument = null;
         currentPage = 1;
-        document.getElementById('pdfContainer').innerHTML = loader;
+        document.getElementById('modalBody').innerHTML = '';
         document.getElementById('pageInfo').textContent = '';
     });
 

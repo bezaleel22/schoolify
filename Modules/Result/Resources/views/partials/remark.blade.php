@@ -35,7 +35,7 @@
                  <span class="focus-border"></span>
              </div>
 
-             <button onclick="getComments(this)" data-path="{{ route('result.comment', $id) }}" type="button" class="primary-btn small fix-gr-bg" id="filterRemarks">Search</button>
+             <button onclick="getComments(this)" data-path="{{ route('result.comment', $params) }}" type="button" class="primary-btn small fix-gr-bg" id="filterRemarks">Search</button>
          </div>
 
          <div class="col-lg-9 col-md-8">
@@ -73,7 +73,7 @@
              <div class="col-lg-12 text-center mt-40">
                  <div class="mt-40 d-flex justify-content-between">
                      <button type="button" class="primary-btn tr-bg" data-dismiss="modal">@lang('common.cancel')</button>
-                     <button class="primary-btn fix-gr-bg submit" type="submit">@lang('common.submit')</button>
+                     <button class="primary-btn fix-gr-bg" type="submit">@lang('common.submit')</button>
                  </div>
              </div>
          </div>

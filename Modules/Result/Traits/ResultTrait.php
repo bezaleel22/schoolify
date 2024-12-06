@@ -16,6 +16,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Gotenberg\Gotenberg;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Log;
@@ -337,9 +338,9 @@ trait ResultTrait
 
     public function updateRelation($student_id, $parent_id)
     {
-        $stu = SmStudent::select('parent_id')->findOrFail($student_id);
-        if ($stu->parent_id !== $parent_id) {
-            $stu->parent_id = $parent_id;
+        $stu = SmStudent::findOrFail($student_id);
+        if ($stu->getOriginal('parent_id') !== (int)$parent_id) {
+            $stu->parent_id = (int)$parent_id;
             $stu->save();
         }
     }
@@ -442,7 +443,6 @@ trait ResultTrait
             // Optimize image
             $image = Image::make($filePath);
             $image->save($filePath, 15);
-
         } catch (\Exception $e) {
             Log::error("Failed to optimize $student_photo: " . $e->getMessage());
             return null;

@@ -40,7 +40,7 @@ class ResultController extends Controller
 
     use ResultTrait;
 
-    public function comments(Request $request, $id)
+    public function comments(Request $request, $id, $exam_id)
     {
         try {
             $student = (object)$request->student;
@@ -71,7 +71,6 @@ class ResultController extends Controller
 
     public function remark(Request $request, $id, $exam_id)
     {
-
         try {
             if ($request->ajax()) {
                 $student = (object)$request->student;
@@ -102,6 +101,7 @@ class ResultController extends Controller
                 ]);
             }
 
+        
             $user_id = Auth::user()->id;
             $teacher = SmStaff::where('user_id', $user_id)->whereIn('role_id', [1, 4, 5])->first();
             if (!$teacher) {
@@ -236,7 +236,7 @@ class ResultController extends Controller
             $params = ['id' => $id, 'exam_id' => $exam_type->id];
             $student = $result_data->student;
             $this->optimizeImage($student->student_photo);
-            
+
             return response()->json([
                 'preview' => true,
                 'title' => "Result Preview",
@@ -255,6 +255,9 @@ class ResultController extends Controller
 
     public function download(Request $request, $id, $exam_id = null)
     {
+        $fileName = md5("$id-$exam_id");
+        $filePath = "result/$fileName.pdf";
+        
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
         $cacheKey = "{$student_id}_{$exam_type}";
@@ -270,8 +273,10 @@ class ResultController extends Controller
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
+            $body = generatePDF($result_data, $id, $exam_id)->getBody();
 
-            return generatePDF($result_data, $id, $exam_id);
+            Storage::put($filePath, $body->getContents());
+            return Storage::response($filePath);
         } catch (\Exception $e) {
             return response()->json(array_merge([
                 'error' => 1,
@@ -285,12 +290,11 @@ class ResultController extends Controller
     public function publish(Request $request, $id, $exam_id)
     {
         $request->validate([
-            'exam_id' => 'required|integer',
             'parent_id' => 'required|integer',
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:255',
         ]);
-
+    
         $fileName = 'illustration.svg';
         $publicFilePath = public_path('uploads/settings' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
@@ -321,13 +325,12 @@ class ResultController extends Controller
             }
 
             $category = $request->category;
-            Cache::forget("contacts-$category");
             $contacts = Cache::remember("contacts-$category", now()->addDay(7), function () use ($category) {
                 return $this->getContacts($category);
             });
 
             $parent = SmParent::findOrFail($request->parent_id);
-            $stu = SmStudent::select('id', 'parent_id', 'full_name As name')->findOrFail($id);
+            $stu = SmStudent::findOrFail($id);
             $stu->parent_id = $request->parent_id;
             $stu->save();
 
@@ -338,7 +341,7 @@ class ResultController extends Controller
                 'exam_id' => $exam_id, //explode('-', $timeline->type)[1],
                 'term' => $timeline->title,
                 'title' => $timeline->description,
-                'full_name' => $stu->name,
+                'full_name' => $stu->getOriginal('full_name'),
                 'reciver_email' => $reciver_email,
                 'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
                 'school_name' => schoolConfig()->site_title,
@@ -346,7 +349,7 @@ class ResultController extends Controller
                 'contact' => $contacts['contact'],
                 'support' => $contacts['support'],
             ];
-
+     
             @post_mail($data);
 
             Toastr::success('Operation successful', 'Success');

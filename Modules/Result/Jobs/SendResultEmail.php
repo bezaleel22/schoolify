@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Modules\Result\Traits\ResultTrait;
 use Throwable;
 
@@ -89,17 +90,16 @@ class SendResultEmail implements ShouldQueue
 
     private function generatePdfAttachment(): string
     {
-        $cacheKey = "result_{$this->data->student_id}_{$this->data->exam_id}";
-        $cachedResult = Cache::get($cacheKey);
-        $result_data =  $cachedResult
-            ?? $this->getResultData($this->data->student_id, $this->data->exam_id);
+        $fileName = md5("{$this->data->student_id}-{$this->data->exam_id}");
+        $filePath = "result/$fileName.pdf";
 
-
-        if (!$cachedResult) {
-            throw new \Exception('No cache available for Result Data');
+        if (!Storage::exists($filePath)) {
+            throw new \Exception("No cached Result PDF found for: result/$fileName.pdf");
         }
 
-        $resp = generatePDF($result_data, $this->data->student_id, $this->data->exam_id);
-        return $resp->getBody()->getContents();
+        $fileContents = Storage::get($filePath);
+        Storage::delete($filePath);
+        
+        return $fileContents;
     }
 }

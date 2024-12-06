@@ -24,13 +24,15 @@ use Modules\Result\Jobs\SendResultEmail;
 Route::get('test-mail', 'ResultController@testEmails')->name('result.test_emails');
 Route::get('resend-emails', 'ResultController@resendEmails')->name('result.resend_emails');
 Route::get('send-emails', 'ResultController@sendEmails')->name('result.send_emails');
-Route::get('download-result/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
-Route::post('publish/{id}/{exam_id}', 'ResultController@publish')->name('result.publish');
-Route::post('preview/{id}/{exam_id}', 'ResultController@preview')->name('result.preview');
-Route::post('remark/{id}/{exam_id?}', 'ResultController@remark')->name('result.remark');
-Route::post('comments/{id}', 'ResultController@comments')->name('result.comment');
-Route::post('rating/{id}/{exam_id?}', 'ResultController@rating')->name('result.rating');
-Route::post('upload-data', 'ImportController@upload')->name('result.upload');
+Route::get('download/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
+
+Route::any('publish/{id}/{exam_id}', 'ResultController@publish')->name('result.publish');
+Route::any('preview/{id}/{exam_id}', 'ResultController@preview')->name('result.preview');
+Route::any('remark/{id}/{exam_id}', 'ResultController@remark')->name('result.remark');
+Route::any('comments/{id}{exam_id}', 'ResultController@comments')->name('result.comment');
+Route::any('rating/{id}/{exam_id}', 'ResultController@rating')->name('result.rating');
+
+Route::post('upload', 'ImportController@upload')->name('result.upload');
 
 // Overrides
 Route::get('student-view/{id}/{type?}', 'StudentController@show')->name('student_view');
