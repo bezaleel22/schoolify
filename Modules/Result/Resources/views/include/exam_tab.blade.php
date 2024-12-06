@@ -157,8 +157,8 @@
                 <div id="modalBody" class="modal-body"></div>
                 <template id="pdfLoader">
                     <div id="pdfContainer" class="d-flex flex-column justify-content-center align-items-center w-100" style="min-height: 200px;">
-                        <img class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
-                        <p>Generating result, please wait...</p>
+                        <img id="loader-img" class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
+                        <p id="loader-text">Loading please wait...</p>
                     </div>
                 </template>
                 <div class="modal-footer w-100">
@@ -189,7 +189,9 @@
 
 <script>
     function showModal(button) {
-        button.disabled = true;
+        $('#resultModal').on('hidden.bs.modal', function() {
+            button.disabled = false;
+        });
 
         // Reference the modal elements
         var $modal = $("#resultModal"); // Reference the modal element
@@ -197,7 +199,7 @@
         var $body = $modal.find(".modal-body"); // Reference the modal body
         var $footer = $modal.find(".modal-footer");; // Reference the modal footer
         var $input = $modal.find('.primary_input')
-        var pdfLoder = document.getElementById('pdfLoader')
+        var $loader = $('#pdfLoader')
         var $publishForm = $("#publishForm");; // Reference the modal footer
 
         $.ajax({
@@ -206,33 +208,33 @@
             , data: {
                 student: @json($student_info)
             }
+            , beforeSend: function() {
+                $footer.hide()
+                $body.html($loader.html());
+                $body.removeClass('p-1');
+                $modal.modal("show");
+                button.disabled = true;
+            }
             , success: function(result) {
                 console.log(result);
                 $publishForm.attr("action", result.url);
                 $title.text(result.title || "Modal Title");
                 if (result.preview) {
-                    $body.html(pdfLoder.innerHTML);
+                    $body.find('#loader-text').text('Generating Result PDF please wait...')
                     $body.addClass('p-1');
-                    $('#resultModal').on('shown.bs.modal', function() {
-                        $footer.show()
-                        $publishForm.prepend(result.content);
-                        preview(result.pdfUrl)
-                    });
-                    $modal.modal("show");
-                    button.disabled = false;
+                    $footer.show()
+                    $publishForm.prepend(result.content);
+                    preview(result.pdfUrl)
                     return
                 }
-                $footer.hide()
                 $body.html(result.content);
-                $body.removeClass('p-1');
-                $modal.modal("show");
-                button.disabled = false;
                 $('#resultModal').off('shown.bs.modal');
             }
             , error: function(xhr, status, error) {
                 console.error("Error:", error);
                 button.disabled = false;
-                alert("An error occurred. Please try again.");
+                $modal.modal("hide");
+                toastr.error('An error occurred. Please try again.', 'Failed')
             }
         , });
     }
@@ -320,9 +322,6 @@
         }
     }
 
-    document.getElementById('prevPage').addEventListener('click', prevPage);
-    document.getElementById('nextPage').addEventListener('click', nextPage);
-
     $('#resultModal').on('hidden.bs.modal', function() {
         pdfDocument = null;
         currentPage = 1;
@@ -330,4 +329,7 @@
         document.getElementById('pageInfo').textContent = '';
     });
 
+
+    document.getElementById('prevPage').addEventListener('click', prevPage);
+    document.getElementById('nextPage').addEventListener('click', nextPage);
 </script>
