@@ -101,7 +101,7 @@ class ResultController extends Controller
                 ]);
             }
 
-        
+
             $user_id = Auth::user()->id;
             $teacher = SmStaff::where('user_id', $user_id)->whereIn('role_id', [1, 4, 5])->first();
             if (!$teacher) {
@@ -292,7 +292,7 @@ class ResultController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:255',
         ]);
-    
+
         $fileName = 'illustration.svg';
         $publicFilePath = public_path('uploads/settings' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
@@ -348,8 +348,8 @@ class ResultController extends Controller
                 'contact' => $contacts['contact'],
                 'support' => $contacts['support'],
             ];
-     
-            @post_mail($data);
+
+            dispatch(new SendResultEmail($data))->onQueue('result-notice');
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
@@ -397,7 +397,7 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                @post_mail($data);
+                dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
             // Success response
@@ -485,7 +485,7 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                @post_mail($data);
+                dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
             return view('result::mail', ['student' => $data]);

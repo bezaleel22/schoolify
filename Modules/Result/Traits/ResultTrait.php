@@ -336,13 +336,16 @@ trait ResultTrait
         return (object) $addressComponents;
     }
 
-    public function updateRelation($student_id, $parent_id)
+    public function updateRelation($student_id, $parent_id, $email = null)
     {
         $stu = SmStudent::findOrFail($student_id);
         if ($stu->getOriginal('parent_id') !== (int)$parent_id) {
             $stu->parent_id = (int)$parent_id;
-            $stu->save();
         }
+        
+        $guardians_email = $stu->guardians_email;
+        $stu->guardians_email = $email ?? $guardians_email;
+        $stu->save();
     }
 
     public function transformComment($comment, $student)

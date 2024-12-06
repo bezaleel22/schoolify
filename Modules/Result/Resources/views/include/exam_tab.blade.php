@@ -136,7 +136,7 @@
     </div>
 
     <div class="modal fade admin-query" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">>
-        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action="" method="POST">
+        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action="" method=" POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -148,6 +148,17 @@
                             @foreach ($parents as $parent)
                             <option value="{{ $parent->id }}" {{ $student_detail->parent_id == $parent->id ? 'selected' : '' }}>
                                 {{ $parent->fathers_name ?? $parent->mothers_name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="primary_input col-lg-6 col-md-8">
+                        <label class="primary_input_label" for="parent_email">Parent Emails</label>
+                        <select class="primary_select form-control" name="parent_id" id="parent_id">
+                            <option data-display="Select Parent" value="">Select parent email</option>
+                            @foreach ($emails as $email)
+                            <option value="{{ $email }}">
+                                {{ $email }}
                             </option>
                             @endforeach
                         </select>
@@ -332,4 +343,5 @@
 
     document.getElementById('prevPage').addEventListener('click', prevPage);
     document.getElementById('nextPage').addEventListener('click', nextPage);
+
 </script>

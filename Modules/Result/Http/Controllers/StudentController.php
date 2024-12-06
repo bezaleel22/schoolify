@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Scopes\StatusAcademicSchoolScope;
 use App\SmParent;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Modules\BehaviourRecords\Entities\AssignIncident;
 use Modules\BehaviourRecords\Entities\BehaviourRecordSetting;
 use Modules\Result\Traits\ResultTrait;
@@ -122,7 +123,17 @@ class StudentController extends Controller
             }
 
             $student_info = $results[0]->student ?? null;
-            return view('result::student_view', compact('parents', 'results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
+
+            $emails = [];
+            if (Storage::exists('uploaded_files/emails.json')) {
+                $jsonContent = Storage::get('uploaded_files/emails.json');
+                $emails = json_decode($jsonContent, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw  new \Exception('Failed to decode JSON.');
+                }
+            }
+
+            return view('result::student_view', compact('emails', 'parents', 'results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
         } catch (\Exception $e) {
             Toastr::error($e->getMessage(), 'Failed');
             return redirect()->back();

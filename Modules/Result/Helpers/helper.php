@@ -105,8 +105,8 @@ if (!function_exists('generatePDF')) {
 }
 
 
-if (!function_exists('post_mail')) {
-    function post_mail(object $data)
+if (!function_exists('emailConfig')) {
+    function emailConfig(object $data)
     {
         $setting = SmEmailSetting::where('active_status', 1)
             ->where('school_id', Auth::user()->school_id)
@@ -127,7 +127,6 @@ if (!function_exists('post_mail')) {
 
         $data->sender_name = $setting->from_name;
         $data->sender_email = $setting->from_email;
-
-        dispatch(new SendResultEmail($data))->onQueue('result-notice');
+        return $data;
     }
 }
