@@ -331,23 +331,40 @@ trait ResultTrait
 
     private function createOrUpdateUser($parent)
     {
-        $user = User::find($parent->user_id);
-        if ($user) {
-            // Update existing user
-            $user->email = $parent->guardians_email;
-            $user->save();
+        $phone_number = $parent->guardians_mobile ?? $parent->fathers_mobile ?? $parent->mothers_mobile;
+        $full_name = $parent->guardians_name ?? $parent->fathers_name ?? $parent->mothers_name;
+
+        // Check for existing users with the same email
+        $existingUsers = User::where('email', $parent->guardians_email)->get();
+
+        if ($existingUsers->count() > 1) {
+            // Resolve duplicates by keeping the most recent and removing others
+            $primaryUser = $existingUsers->sortByDesc('id')->first();
+            User::where('email', $parent->guardians_email)
+                ->where('id', '!=', $primaryUser->id)
+                ->delete();
+            $user = $primaryUser;
         } else {
-            // Create a new user
+            // Use the existing user if available
+            $user = $existingUsers->first();
+        }
+
+        // Create a new user if none exists
+        if (!$user) {
             $user = new User();
             $user->role_id = 3;
-            $user->full_name = $parent->full_name;
-            $user->username = $parent->username;
-            $user->phone_number = $parent->phone_number;
-            $user->email = $parent->guardians_email;
             $user->password = Hash::make(config('app.default_password', '123456'));
-            $user->save();
+        }
 
-            // Link user to parent
+        // Update or assign user details
+        $user->full_name = $full_name;
+        $user->username = $phone_number ?? $parent->guardians_email;
+        $user->phone_number = $phone_number;
+        $user->email = $parent->guardians_email;
+        $user->save();
+
+        // Link the user to the parent if not already linked
+        if (!$parent->user_id || $parent->user_id !== $user->id) {
             $parent->user_id = $user->id;
             $parent->save();
         }
@@ -361,15 +378,14 @@ trait ResultTrait
             $stu->save();
         }
 
-        if (!$email) return;
-
         $parent = SmParent::findOrFail($parent_id);
-        if ($parent->getOriginal('guardians_email') !== $email) {
+        if ($email && $parent->getOriginal('guardians_email') !== $email) {
+            dd($email, $parent->guardians_email);
             $parent->guardians_email = $email;
             $parent->save();
-
-            $this->createOrUpdateUser($parent);
         }
+
+        $this->createOrUpdateUser($parent);
     }
 
 
