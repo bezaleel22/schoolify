@@ -351,6 +351,8 @@ class ResultController extends Controller
             ];
 
             dispatch(new SendResultEmail($data))->onQueue('result-notice');
+            $msg = "The result for {$stu->name} has been successfully published and is awaiting email delivery.";
+            @logEmail('Published', $msg, $data->reciver_email);
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
@@ -398,6 +400,8 @@ class ResultController extends Controller
                 ];
 
                 dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                $msg = "The result for {$stu->name} has been successfully published and is awaiting email delivery.";
+                @logEmail('Published', $msg, $data->reciver_email);
             }
 
             // Success response
@@ -413,14 +417,22 @@ class ResultController extends Controller
     public function resendEmails()
     {
         try {
+            SmEmailSmsLog::truncate();
             Queue::push(function () {
                 Artisan::call('queue:retry', ['id' => 'all']);
             });
 
-            Toastr::success('Operation Successful', 'Success');
+            Queue::push(function () {
+                Artisan::call('queue:work', [
+                    '--queue' => 'result-notice',
+                    '--stop-when-empty' => true,
+                ]);
+            });
+
+            Toastr::success('Operation successful. Emails are being resent.', 'Success');
             return redirect()->back();
         } catch (\Exception $e) {
-            Toastr::error('Operation Failed', 'Failed');
+            Toastr::error('Operation failed. Please try again.', 'Failed');
             return redirect()->back();
         }
     }
@@ -485,7 +497,7 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                dispatch(new SendResultEmail($data))->onQueue('result-publish');
             }
 
             return view('result::mail', ['student' => $data]);

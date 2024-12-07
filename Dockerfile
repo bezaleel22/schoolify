@@ -8,7 +8,7 @@ WORKDIR ${DOCUMENT_ROOT}
 RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
 
 COPY --chown=application:application . .
-COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.conf
+# COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.conf
 # COPY docker/default.conf /opt/docker/etc/nginx/vhost.conf
 
 USER application
