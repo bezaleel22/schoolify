@@ -166,12 +166,6 @@
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div id="modalBody" class="modal-body"></div>
-                <template id="pdfLoader">
-                    <div id="pdfContainer" class="d-flex flex-column justify-content-center align-items-center w-100" style="min-height: 200px;">
-                        <img id="loader-img" class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
-                        <p id="loader-text">Loading please wait...</p>
-                    </div>
-                </template>
                 <div class="modal-footer w-100">
                     <div class="d-flex justify-content-between align-items-center mb-0 w-100">
                         <div class="pdf-navigation">
@@ -195,8 +189,12 @@
     </div>
 </div>
 
-
-
+<template id="pdfLoader">
+    <div id="pdfContainer" class="d-flex flex-column justify-content-center align-items-center w-100" style="min-height: 200px;">
+        <img id="loader-img" class="loader_img_style" src="{{ asset('public/backEnd/img/demo_wait.gif') }}" alt="loader">
+        <p id="loader-text">Loading please wait...</p>
+    </div>
+</template>
 
 <script>
     function showModal(button) {
@@ -257,7 +255,7 @@
     let pdfDocument = null;
     let currentPage = 1; // Start at the first page
     let totalPages = 0;
-    const modalBody = document.getElementById('pdfContainer');
+    const container = document.getElementById('pdfContainer');
 
     // Load PDF.js and render the PDF when the modal is shown
     function preview(url) {
@@ -268,13 +266,12 @@
             renderPage(currentPage); // Render the first page
         }).catch(function(error) {
             console.error('Error loading PDF:', error);
-            modalBody.innerHTML = '<strong>Error loading PDF</strong>';
+            container.innerHTML = '<strong>Error loading PDF</strong>';
         });
     }
 
     function renderPage(pageNum) {
         if (!pdfDocument) return;
-
         pdfDocument.getPage(pageNum).then(function(page) {
             // Get viewport dimensions
             const viewport = page.getViewport({
@@ -309,6 +306,7 @@
             page.render(renderContext).promise.then(function() {
                 // Clear previous content and append the new canvas
                 const container = document.getElementById('pdfContainer');
+                document.getElementById('modalBody').scrollTop = 0;
                 container.innerHTML = '';
                 container.appendChild(canvas);
 
