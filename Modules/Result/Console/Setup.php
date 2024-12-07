@@ -27,37 +27,8 @@ class Setup extends Command
 
         $this->info('Setup completed');
 
-        $sourceDirectory = public_path('uploads/student');
-        $destinationDirectory = public_path('uploads/optimized');
-
-        if (!File::isDirectory($sourceDirectory)) {
-            $this->error("Source directory $sourceDirectory does not exist.");
-            return;
-        }
-
-        // Create destination directory if it doesn't exist
-        if (!File::exists($destinationDirectory)) {
-            File::makeDirectory($destinationDirectory, 0755, true);
-            $this->info("Created destination directory: $destinationDirectory");
-        }
-
-        $files = File::allFiles($sourceDirectory);
-        foreach ($files as $file) {
-            $extension = strtolower($file->getExtension());
-
-            // Skip unsupported file types
-            if (!in_array($extension, ['jpg', 'jpeg'])) {
-                continue;
-            }
-
-            $fileSizeBytes = filesize($file->getPathname());
-            $fileSizeKb = $fileSizeBytes / 1024;
-            if ($fileSizeKb > 50) {
-                $this->optimizeImage($file->getPathname(), $destinationDirectory, $fileSizeKb);
-            }
-        }
-
-        $this->info('Image optimization completed.');
+        return;
+ 
     }
 
     /**
