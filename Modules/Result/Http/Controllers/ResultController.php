@@ -351,7 +351,7 @@ class ResultController extends Controller
             ];
 
             dispatch(new SendResultEmail($data))->onQueue('result-notice');
-            $msg = "The result for {$stu->name} has been successfully published and is awaiting email delivery.";
+            $msg = "The result for {$stu->name} has been successfully published and is queued to be sent via email.";
             @logEmail('Published', $msg, $data->reciver_email);
 
             Toastr::success('Operation successful', 'Success');
@@ -400,7 +400,7 @@ class ResultController extends Controller
                 ];
 
                 dispatch(new SendResultEmail($data))->onQueue('result-notice');
-                $msg = "The result for {$stu->name} has been successfully published and is awaiting email delivery.";
+                $msg = "The result for {$stu->name} has been successfully published and is queued to be sent via email.";
                 @logEmail('Published', $msg, $data->reciver_email);
             }
 
