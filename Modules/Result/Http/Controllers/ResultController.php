@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Modules\Result\Entities\ClassAttendance;
 use Modules\Result\Entities\Comment;
 use Modules\Result\Entities\CommentTag;
@@ -101,6 +102,9 @@ class ResultController extends Controller
                 ]);
             }
 
+            $request->validate([
+                'email' => 'required|email',
+            ]);
 
             $user_id = Auth::user()->id;
             $teacher = SmStaff::where('user_id', $user_id)->whereIn('role_id', [1, 4, 5])->first();
@@ -124,6 +128,9 @@ class ResultController extends Controller
             $this->updateRelation($id, $request->parent_id, $request->parent_email);
 
             Toastr::success('Remark added successfully', 'Success');
+            return redirect()->back()->with(['studentExam' => 'active']);
+        } catch (ValidationException $e) {
+            Toastr::error($e->validator->errors()->first(), 'Validation Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
             if ($request->ajax()) {
@@ -170,6 +177,10 @@ class ResultController extends Controller
                 ]);
             }
 
+            $request->validate([
+                'email' => 'required|email',
+            ]);
+
             if (!isset($request->ratings) || !is_array($request->ratings)) {
                 Toastr::error('No ratings provided', 'Error');
                 return redirect()->back();
@@ -211,6 +222,9 @@ class ResultController extends Controller
 
             $this->updateRelation($id, $request->parent_id, $request->parent_email);
             Toastr::success('Rating added successfully', 'Success');
+            return redirect()->back()->with(['studentExam' => 'active']);
+        } catch (ValidationException $e) {
+            Toastr::error($e->validator->errors()->first(), 'Validation Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
             Log::error('Error in rating method: ' . $e->getMessage());
@@ -287,8 +301,8 @@ class ResultController extends Controller
 
     public function publish(Request $request, $id, $exam_id)
     {
-
         $request->validate([
+            'email' => 'required|email',
             'parent_id' => 'required|integer',
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:255',
@@ -355,6 +369,9 @@ class ResultController extends Controller
             @logEmail('Published', $msg, $data->reciver_email);
 
             Toastr::success('Operation successful', 'Success');
+            return redirect()->back()->with(['studentExam' => 'active']);
+        } catch (ValidationException $e) {
+            Toastr::error($e->validator->errors()->first(), 'Validation Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
             Log::error('Failed to publish timeline: ' . $e->getMessage());

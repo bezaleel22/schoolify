@@ -370,7 +370,7 @@ trait ResultTrait
         }
     }
 
-    public function updateRelation($student_id, $parent_id, $email = null)
+    public function updateRelation($student_id, $parent_id, $email)
     {
         $stu = SmStudent::findOrFail($student_id);
         if ($stu->getOriginal('parent_id') !== (int)$parent_id) {
