@@ -329,6 +329,30 @@ trait ResultTrait
         return (object) $addressComponents;
     }
 
+    private function createOrUpdateUser($parent)
+    {
+        $user = User::find($parent->user_id);
+        if ($user) {
+            // Update existing user
+            $user->email = $parent->guardians_email;
+            $user->save();
+        } else {
+            // Create a new user
+            $user = new User();
+            $user->role_id = 3;
+            $user->full_name = $parent->full_name;
+            $user->username = $parent->username;
+            $user->phone_number = $parent->phone_number;
+            $user->email = $parent->guardians_email;
+            $user->password = Hash::make(config('app.default_password', '123456'));
+            $user->save();
+
+            // Link user to parent
+            $parent->user_id = $user->id;
+            $parent->save();
+        }
+    }
+
     public function updateRelation($student_id, $parent_id, $email = null)
     {
         $stu = SmStudent::findOrFail($student_id);
@@ -344,20 +368,7 @@ trait ResultTrait
             $parent->guardians_email = $email;
             $parent->save();
 
-            $user = User::find($parent_id);
-            if ($user) {
-                $user->email = $email;
-                $user->save();
-            } else {
-                $user = new User();
-                $user->role_id = 3;
-                $user->full_name = $parent->full_name;
-                $user->username = $parent->username;
-                $user->phone_number = $parent->phone_number;
-                $user->email = $parent->guardians_email;
-                $user->password = Hash::make(config('app.default_password', '123456'));
-                $user->save();
-            }
+            $this->createOrUpdateUser($parent);
         }
     }
 
