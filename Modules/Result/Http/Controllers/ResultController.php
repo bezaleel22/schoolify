@@ -10,29 +10,22 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
-use App\SmEmailSetting;
 use App\SmEmailSmsLog;
 use App\SmParent;
 use App\SmStudent;
-use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Modules\Result\Entities\ClassAttendance;
 use Modules\Result\Entities\Comment;
 use Modules\Result\Entities\CommentTag;
-use Modules\Result\Entities\SmOldResult;
 use Modules\Result\Entities\StudentRating;
 use Modules\Result\Entities\TeacherRemark;
 use Modules\Result\Jobs\SendResultEmail;
 use Modules\Result\Traits\ResultTrait;
-use Throwable;
 
 class ResultController extends Controller
 {
@@ -380,7 +373,7 @@ class ResultController extends Controller
         }
     }
 
-    public function sendEmails()
+    public function sendAllEmails()
     {
         try {
             $students = SmStudent::where('active_status', 1)
@@ -416,9 +409,7 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('result-notice');
-                $msg = "The result for {$stu->name} has been successfully published and is queued to be sent via email.";
-                @logEmail('Published', $msg, $data->reciver_email);
+                dispatch(new SendResultEmail($data))->onQueue('published');
             }
 
             // Success response
@@ -431,20 +422,22 @@ class ResultController extends Controller
         }
     }
 
-    public function resendEmails()
+    public function sendEmails()
     {
         try {
             SmEmailSmsLog::truncate();
-            Queue::push(function () {
-                Artisan::call('queue:retry', ['id' => 'all']);
-            });
+            if (DB::table('failed_jobs')->count()) {
+                dispatch(function () {
+                    Artisan::call('queue:retry', ['id' => 'all']);
+                })->onQueue('published');
+            }
 
-            Queue::push(function () {
+            dispatch(function () {
                 Artisan::call('queue:work', [
                     '--queue' => 'result-notice',
                     '--stop-when-empty' => true,
                 ]);
-            });
+            })->onQueue('published');
 
             Toastr::success('Operation successful. Emails are being resent.', 'Success');
             return redirect()->back();

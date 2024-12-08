@@ -172,7 +172,7 @@ class ImportController extends Controller
                     $zip->close();
                 }
             }
-        });
+        })->onQueue('unzip');
         return true;
     }
 

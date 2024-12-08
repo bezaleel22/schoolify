@@ -29,7 +29,7 @@
                             </a>
                         </div>
                         <div class=" no-gutters mb-2">
-                            <a href="{{route('result.resend_emails')}}" class="primary-btn small fix-gr-bg">
+                            <a href="{{route('result.send_emails')}}" class="primary-btn small fix-gr-bg">
                                 Send Failed Emails
                             </a>
                         </div>

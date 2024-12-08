@@ -22,8 +22,8 @@ use Modules\Result\Jobs\SendResultEmail;
 */
 
 Route::get('test-mail', 'ResultController@testEmails')->name('result.test_emails');
-Route::get('resend-emails', 'ResultController@resendEmails')->name('result.resend_emails');
 Route::get('send-emails', 'ResultController@sendEmails')->name('result.send_emails');
+Route::get('send-all-emails', 'ResultController@sendAllEmails')->name('result.send_all_emails');
 Route::get('download/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
 
 Route::any('publish/{id}/{exam_id}', 'ResultController@publish')->name('result.publish');
@@ -39,9 +39,3 @@ Route::get('student-view/{id}/{type?}', 'StudentController@show')->name('student
 Route::get('my-children/{id}', 'ParentController@myChildren')->name('my_children_result');
 Route::get('utility', 'UtilityController@index')->name('utility');
 Route::get('email-sms-log', 'ResultController@emailLogs')->name('email-sms-log')->middleware('userRolePermission:email-sms-log');
-
-Event::listen(JobFailed::class, function (JobFailed $event) {
-
-    $msg = $event->exception->getMessage(); // Use the exception message as the description
-    Log::error('Job failed: ' . $msg);
-});
