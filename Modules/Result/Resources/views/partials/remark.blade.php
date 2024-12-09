@@ -66,7 +66,7 @@
                  <div class="col-lg-12">
                      <label class="mb-0">@lang('result::student.remark')<span></span></label>
                      <textarea id="selectedRemark" name="teacher_remark" class="form-control" rows="4">
-                     {{ trim($remark->remark) }}
+                     {{ trim($remark->remark ?? '') }}
                      </textarea>
                      <span class="text-danger" role="alert" id="remark_error"></span>
                  
