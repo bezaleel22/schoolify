@@ -95,9 +95,9 @@ class ResultController extends Controller
                 ]);
             }
 
-            $request->validate([
-                'email' => 'required|email',
-            ]);
+            // $request->validate([
+            //     'email' => 'required|email',
+            // ]);
 
             $user_id = Auth::user()->id;
             $teacher = SmStaff::where('user_id', $user_id)->whereIn('role_id', [1, 4, 5])->first();
@@ -170,9 +170,9 @@ class ResultController extends Controller
                 ]);
             }
 
-            $request->validate([
-                'email' => 'required|email',
-            ]);
+            // $request->validate([
+            //     'email' => 'required|email',
+            // ]);
 
             if (!isset($request->ratings) || !is_array($request->ratings)) {
                 Toastr::error('No ratings provided', 'Error');
