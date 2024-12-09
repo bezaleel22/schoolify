@@ -79,6 +79,7 @@ class SmOldResult extends Model
                     ->where('sm_mark_stores.class_id', $student->class_id)
                     ->where('sm_mark_stores.section_id', $student->section_id)
                     ->where('sm_mark_stores.exam_term_id', $exam_id)
+                    ->where('sm_mark_stores.total_marks', '!=', 0)
                     ->where('sm_mark_stores.is_absent', 0)
                     ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_subjects.subject_code', 'sm_exam_setups.exam_title')
                     ->get()
