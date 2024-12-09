@@ -82,7 +82,7 @@ class ResultController extends Controller
 
                 $tags = CommentTag::all();
                 $remark = TeacherRemark::where('student_id', $id)
-                    ->where('exam_type_id', $request->type_id)
+                    ->where('exam_type_id', $exam_id)
                     ->first();
 
                 $params = ['id' => $id, 'exam_id' => $exam_id];
