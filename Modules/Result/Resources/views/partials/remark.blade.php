@@ -69,6 +69,7 @@
                      {{ trim($remark->remark) }}
                      </textarea>
                      <span class="text-danger" role="alert" id="remark_error"></span>
+                 
                  </div>
              </div>
 
