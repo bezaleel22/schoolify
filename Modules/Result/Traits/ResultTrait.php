@@ -380,7 +380,6 @@ trait ResultTrait
 
         $parent = SmParent::findOrFail($parent_id);
         if ($email && $parent->getOriginal('guardians_email') !== $email) {
-            dd($email, $parent->guardians_email);
             $parent->guardians_email = $email;
             $parent->save();
         }
