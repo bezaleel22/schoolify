@@ -135,7 +135,7 @@ class StudentController extends Controller
 
             return view('result::student_view', compact('emails', 'parents', 'results', 'student_info', 'timelines', 'student_detail', 'driver_info', 'exams', 'siblings', 'grades', 'academic_year', 'exam_terms', 'max_gpa', 'fail_gpa_name', 'custom_field_values', 'sessions', 'records', 'next_labels', 'type', 'result_setting', 'attendance', 'subjectAttendance', 'days', 'year', 'month', 'studentBehaviourRecords', 'behaviourRecordSetting'));
         } catch (\Exception $e) {
-            dd($e->getMessage(), $e->getTraceAsString());
+            // dd($e->getMessage(), $e->getTraceAsString());
             Toastr::error($e->getMessage(), 'Failed');
             return redirect()->back();
         }
