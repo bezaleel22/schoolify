@@ -173,32 +173,29 @@ class ResultController extends Controller
             // $request->validate([
             //     'email' => 'required|email',
             // ]);
-
-            // if (!isset($request->ratings) || !is_array($request->ratings)) {
-            //     Toastr::error('No ratings provided', 'Error');
-            //     return redirect()->back();
-            // }
-
+            
             $academic_id = getAcademicId();
-            $studentRatings = [];
-            foreach ($request->ratings as $rating) {
-                $map = mapRating((int)$rating['rate']);
-                $studentRatings[] = [
-                    'rate' => $rating['rate'],
-                    'attribute' => $rating['attribute'],
-                    'color' => $map['color'],
-                    'remark' => $map['remark'],
-                    'exam_type_id' => $request->exam_type_id,
-                    'student_id' => $id,
-                    'academic_id' => $academic_id,
-                ];
-            }
+            if (isset($request->ratings) || is_array($request->ratings)) {
+                $studentRatings = [];
+                foreach ($request->ratings as $rating) {
+                    $map = mapRating((int)$rating['rate']);
+                    $studentRatings[] = [
+                        'rate' => $rating['rate'],
+                        'attribute' => $rating['attribute'],
+                        'color' => $map['color'],
+                        'remark' => $map['remark'],
+                        'exam_type_id' => $request->exam_type_id,
+                        'student_id' => $id,
+                        'academic_id' => $academic_id,
+                    ];
+                }
 
-            StudentRating::upsert(
-                $studentRatings,
-                ['student_id', 'exam_type_id', 'attribute'],
-                ['rate', 'color', 'remark', 'attribute', 'updated_at']
-            );
+                StudentRating::upsert(
+                    $studentRatings,
+                    ['student_id', 'exam_type_id', 'attribute'],
+                    ['rate', 'color', 'remark', 'attribute', 'updated_at']
+                );
+            }
 
             ClassAttendance::upsert(
                 [
