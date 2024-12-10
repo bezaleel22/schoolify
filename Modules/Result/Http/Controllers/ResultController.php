@@ -196,7 +196,7 @@ class ResultController extends Controller
 
             StudentRating::upsert(
                 $studentRatings,
-                ['student_id', 'exam_type_id'],
+                ['student_id', 'exam_type_id', 'attribute'],
                 ['rate', 'color', 'remark', 'attribute', 'updated_at']
             );
 

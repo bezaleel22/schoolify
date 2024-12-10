@@ -33,9 +33,12 @@
                          <select class="primary_input_field form-control" id="attributeSelect">
                              <option value="">Select Attribute</option>
                              @foreach($attributes as $attribute)
-                             <option value="{{ $attribute }}">{{ $attribute }}</option>
+                             <option value="{{ $attribute }}" @if(collect($ratings)->pluck('attribute')->contains($attribute)) disabled @endif>
+                                 {{ $attribute }}
+                             </option>
                              @endforeach
                          </select>
+
                          <span class="focus-border"></span>
                          <span class="text-danger" role="alert" id="attribute_error"></span>
                      </div>
