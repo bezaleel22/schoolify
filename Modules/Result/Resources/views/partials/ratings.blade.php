@@ -13,15 +13,15 @@
              <div class="row mt-10">
                  <div class="col-lg-4">
                      <label>@lang('result::student.opened') <span>*</span></label>
-                     <input id="opened" class="primary_input_field form-control" type="number" name="opened">
+                     <input id="opened" value="{{ $student->opened }}" class="primary_input_field form-control" type="number" name="opened">
                  </div>
                  <div class="col-lg-4">
                      <label>@lang('result::student.present') <span>*</span></label>
-                     <input id="present" class="primary_input_field form-control" type="number" name="present">
+                     <input id="present" value="{{ $student->present }}" class="primary_input_field form-control" type="number" name="present">
                  </div>
                  <div class="col-lg-4">
                      <label>@lang('result::student.absent') <span>*</span></label>
-                     <input id="absent" class="primary_input_field form-control" type="number" name="absent">
+                     <input id="absent" value="{{ $student->absent }}" class="primary_input_field form-control" type="number" name="absent">
                  </div>
              </div>
 

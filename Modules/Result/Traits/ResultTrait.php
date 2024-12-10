@@ -127,8 +127,8 @@ trait ResultTrait
             'admin_no' => $student_data->admission_no,
             'session_year' => "$academic->year-[$academic->title]",
             'opened' => $attendance->days_opened ?? 0,
-            'absent' => $attendance->days_opened ?? 0,
-            'present' => $attendance->days_opened ?? 0,
+            'absent' => $attendance->days_absent ?? 0,
+            'present' => $attendance->days_present ?? 0,
             'student_photo' => $student_data->student_photo,
             'filepath' => ''
         ];

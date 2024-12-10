@@ -146,7 +146,7 @@ class ResultController extends Controller
                     ->first();
 
                 $ratings = StudentRating::where('student_id', $id)
-                    ->where('exam_type_id', $request->exam_type_id)
+                    ->where('exam_type_id', $exam_id)
                     ->get();
 
                 $attributes = [
