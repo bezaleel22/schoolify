@@ -38,7 +38,6 @@
                              </option>
                              @endforeach
                          </select>
-
                          <span class="focus-border"></span>
                          <span class="text-danger" role="alert" id="attribute_error"></span>
                      </div>

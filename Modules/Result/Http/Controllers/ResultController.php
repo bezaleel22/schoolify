@@ -174,10 +174,10 @@ class ResultController extends Controller
             //     'email' => 'required|email',
             // ]);
 
-            if (!isset($request->ratings) || !is_array($request->ratings)) {
-                Toastr::error('No ratings provided', 'Error');
-                return redirect()->back();
-            }
+            // if (!isset($request->ratings) || !is_array($request->ratings)) {
+            //     Toastr::error('No ratings provided', 'Error');
+            //     return redirect()->back();
+            // }
 
             $academic_id = getAcademicId();
             $studentRatings = [];
