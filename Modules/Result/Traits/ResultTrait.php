@@ -161,11 +161,12 @@ trait ResultTrait
                 'color' => $grade->color,
             ];
             $over_all += $sum;
-            if ($subject_name == "BIBLE" && $db)
+
+            if ($subject_name == "BIBLE" && $db) {
                 $result_data->remark = (object)[
-                    'name' => "Teacher's Remarks",
                     'remark' => $marks_data[0]->teacher_remarks
                 ];
+            }
         }
 
         $class_average = $this->getClassAverages($result_data->results);
@@ -227,9 +228,9 @@ trait ResultTrait
             ->where('sm_mark_stores.class_id', $student->class_id)
             ->where('sm_mark_stores.section_id', $student->section_id)
             ->where('sm_mark_stores.exam_term_id', $exam_type_id)
-            ->where('sm_mark_stores.total_marks', '!=', 0)
             ->where('sm_mark_stores.is_absent', 0)
             ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_subjects.subject_code', 'sm_exam_setups.exam_title')
+            ->orderBy('total_marks', 'ASC')
             ->get()
             ->groupBy('subject_name');
 
