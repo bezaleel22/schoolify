@@ -148,7 +148,7 @@ trait ResultTrait
         $rows = [];
         $over_all = 0;
         foreach ($result as $subject_name => $marks_data) {
-            $sum = $marks_data->sum('total_marks');
+            $sum = ceil($marks_data->sum('total_marks'));
             $marks = $marks_data->pluck('total_marks', 'exam_title')->toArray();
             $grade = $this->getGrade($sum, $student->type);
             $obj = $objectives->firstWhere('subject_code', $marks_data[0]->subject_code);
@@ -279,7 +279,6 @@ trait ResultTrait
 
     public function getGrade($score, $arm)
     {
-        $score= ceil($score);
         $eyfs = [
             ['min' => 0, 'max' => 80, 'grade' => 'EMERGING', 'color' => 'bg-purple-200'],
             ['min' => 81, 'max' => 90, 'grade' => 'EXPECTED', 'color' => 'bg-blue-200'],
