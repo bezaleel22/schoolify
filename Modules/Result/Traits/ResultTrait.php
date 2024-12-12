@@ -279,6 +279,7 @@ trait ResultTrait
 
     public function getGrade($score, $arm)
     {
+        $score= ceil($score);
         $eyfs = [
             ['min' => 0, 'max' => 80, 'grade' => 'EMERGING', 'color' => 'bg-purple-200'],
             ['min' => 81, 'max' => 90, 'grade' => 'EXPECTED', 'color' => 'bg-blue-200'],
