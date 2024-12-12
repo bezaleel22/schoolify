@@ -297,6 +297,7 @@ class ResultController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:255',
         ]);
+        $this->updateRelation($id, $request->parent_id, $request->parent_email);
 
         $fileName = 'illustration.svg';
         $publicFilePath = public_path('uploads/settings/' . $fileName);
@@ -335,9 +336,7 @@ class ResultController extends Controller
 
             $parent = SmParent::findOrFail($request->parent_id);
             $stu = SmStudent::findOrFail($id);
-            $stu->parent_id = $request->parent_id;
-            $stu->save();
-
+            
             $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
             $data = (object) [
                 'subject' => 'Result Notification',
