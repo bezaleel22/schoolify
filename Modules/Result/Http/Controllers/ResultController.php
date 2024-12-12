@@ -336,7 +336,7 @@ class ResultController extends Controller
 
             $parent = SmParent::findOrFail($request->parent_id);
             $stu = SmStudent::findOrFail($id);
-            
+
             $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
             $data = (object) [
                 'subject' => 'Result Notification',
@@ -352,10 +352,11 @@ class ResultController extends Controller
                 'contact' => $contacts['contact'],
                 'support' => $contacts['support'],
             ];
-        
+
             dispatch(new SendResultEmail($data))->onQueue('result-notice');
             $msg = "The result for {$data->full_name} has been successfully published and is queued to be sent via email.";
-            @logEmail('Published', $msg, $data->reciver_email);
+            $stu_exam = "{$data->student_id}-{$data->exam_id}";
+            @logEmail('Published', $msg, $data->reciver_email, $stu_exam);
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);

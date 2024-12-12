@@ -31,12 +31,20 @@ if (!function_exists('showDocumentName')) {
 }
 
 if (!function_exists('logEmail')) {
-    function logEmail($title, $dsc, $send_to)
+    function logEmail($title, $dsc, $send_to, $stu_exam)
     {
-        $emailSmsData = new SmEmailSmsLog();
+
+        $emailSmsData = SmEmailSmsLog::where('academic_id', getAcademicId())
+            ->where('send_through', $stu_exam)
+            ->first();
+
+        if (!$emailSmsData) {
+            $emailSmsData = new SmEmailSmsLog();
+        }
+
         $emailSmsData->title = $title;
         $emailSmsData->description = $dsc;
-        $emailSmsData->send_through = 'result-notice';
+        $emailSmsData->send_through = $stu_exam;
         $emailSmsData->send_date = date('Y-m-d');
         $emailSmsData->send_to = $send_to;
         $emailSmsData->school_id = 1;

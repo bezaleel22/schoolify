@@ -64,9 +64,9 @@ class SendResultEmail implements ShouldQueue
                     $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
                 }
             });
-
+            $stu_exam = "{$this->data->student_id}-{$this->data->exam_id}";
             $msg = "Email sent to {$this->data->reciver_email} successfully";
-            logEmail('Success', $msg, $this->data->reciver_email);
+            logEmail('Success', $msg, $this->data->reciver_email, $stu_exam);
             Log::info($msg);
         } catch (\Exception $e) {
             throw $e;
@@ -82,11 +82,12 @@ class SendResultEmail implements ShouldQueue
     public function failed(\Throwable $e)
     {
         $msg = $e->getMessage();
+        $stu_exam = "{$this->data->student_id}-{$this->data->exam_id}";
         Log::error("Job failed with exception: " . $msg, [
             'data' => $this->data,
             'trace' => $e->getMessage(),
         ]);
-        logEmail('Failed', $msg, $this->data->reciver_email);
+        logEmail('Failed', $msg, $this->data->reciver_email, $stu_exam);
     }
 
     private function generatePdfAttachment(): string
