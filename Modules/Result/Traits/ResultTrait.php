@@ -300,7 +300,7 @@ trait ResultTrait
             }
         }
 
-        return ["Outstanding", "bg-red-200"];
+        return (object)['grade' => "Outstanding", 'color' => "bg-red-200"];
     }
 
     private function parseAddress($address)
