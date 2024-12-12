@@ -173,7 +173,7 @@ class ResultController extends Controller
             // $request->validate([
             //     'email' => 'required|email',
             // ]);
-            
+
             $academic_id = getAcademicId();
             if (isset($request->ratings) || is_array($request->ratings)) {
                 $studentRatings = [];
@@ -261,7 +261,7 @@ class ResultController extends Controller
     {
         $fileName = md5("$id-$exam_id");
         // $filePath = "result/$fileName.pdf";
-
+        // dd($request->toArray());
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
         $cacheKey = "{$student_id}_{$exam_type}";
@@ -292,7 +292,7 @@ class ResultController extends Controller
     public function publish(Request $request, $id, $exam_id)
     {
         $request->validate([
-            'email' => 'required|email',
+            'parent_email' => 'required|email',
             'parent_id' => 'required|integer',
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:255',
@@ -353,9 +353,9 @@ class ResultController extends Controller
                 'contact' => $contacts['contact'],
                 'support' => $contacts['support'],
             ];
-
+        
             dispatch(new SendResultEmail($data))->onQueue('result-notice');
-            $msg = "The result for {$stu->name} has been successfully published and is queued to be sent via email.";
+            $msg = "The result for {$data->full_name} has been successfully published and is queued to be sent via email.";
             @logEmail('Published', $msg, $data->reciver_email);
 
             Toastr::success('Operation successful', 'Success');
