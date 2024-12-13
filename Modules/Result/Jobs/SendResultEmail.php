@@ -55,7 +55,7 @@ class SendResultEmail implements ShouldQueue
             $this->data = emailConfig($this->data);
             Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
                 $formattedFullName = str_replace(' ', '_', $this->data->full_name);
-
+                
                 $message->subject($this->data->subject)
                     ->to($this->data->reciver_email, $this->data->receiver_name)
                     ->from($this->data->sender_email, $this->data->sender_name);

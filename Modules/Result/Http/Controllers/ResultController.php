@@ -348,6 +348,7 @@ class ResultController extends Controller
                 'reciver_email' => $reciver_email,
                 'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
                 'school_name' => schoolConfig()->site_title,
+                'logo' => schoolConfig()->logo,
                 'principal' => $contacts['principal'],
                 'contact' => $contacts['contact'],
                 'support' => $contacts['support'],
@@ -402,6 +403,7 @@ class ResultController extends Controller
                     'contact' => $contacts['contact'],
                     'support' => $contacts['support'],
                     'school_name' => schoolConfig()->site_title,
+                    'logo' => schoolConfig()->logo,
                     'session' => "$session->year - [$session->title]",
                     'links' => $this->generateLinks($timelines)
                 ];
@@ -473,7 +475,7 @@ class ResultController extends Controller
             $students = SmStudent::where('active_status', 1)
                 ->where('academic_id', getAcademicId())
                 ->with(['studentTimeline', 'parents', 'category'])
-                ->limit(2)
+                ->limit(1)
                 ->get(['id', 'parent_id', 'student_category_id', 'full_name as name']);
             $data = [];
             foreach ($students as $stu) {
@@ -488,10 +490,13 @@ class ResultController extends Controller
                     return $this->getContacts($category);
                 });
 
+                $exam_ids = array_map(fn($timeline) => (int)explode('-', $timeline['type'])[1], $timelines->toArray());
                 $session = getSession();
                 $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
                 $data = (object) [
                     'subject' => 'Result Notification',
+                    'student_id' => $stu->id,
+                    'exam_id' => json_encode($exam_ids),
                     'reciver_email' => $reciver_email,
                     'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
                     'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
@@ -500,11 +505,12 @@ class ResultController extends Controller
                     'contact' => $contacts['contact'],
                     'support' => $contacts['support'],
                     'school_name' => schoolConfig()->site_title,
+                    'logo' => schoolConfig()->logo,
                     'session' => "$session->year - [$session->title]",
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('result-publish');
+                dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
             return view('result::mail', ['student' => $data]);

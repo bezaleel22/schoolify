@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Result Notification</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+    <style type="text/css">
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+        p,
+        h1,
+        h2,
+        h3 {
+            font-family: 'Poppins';
+        }
+
+    </style>
 </head>
 <body style="margin: 0; padding: 0; width: 100%; background-color: #f9f9f9; font-family: 'Poppins', sans-serif; -webkit-text-size-adjust: 100%;">
     <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 8px; color: #333;">
@@ -12,12 +23,13 @@
         <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; background-color: #f7931e; text-align: center; color: white; padding: 20px 0; border-radius: 8px;">
             <tr>
                 <td align="center">
-                    <img src="{{ asset(generalSetting()->logo) }}" alt="{{ $student->school_name }}" style="max-width: 250px; height: auto;">
+                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents($student->logo)) }}" alt="{{ $student->school_name }}" style="max-width: 250px; height: auto;">
                 </td>
             </tr>
             <tr>
+
                 <td align="center">
-                    <img src="{{ asset('public/uploads/settings/illustration.svg') }}" alt="Academic Illustration" style="max-width: 50%; height: auto;">
+                    {{-- <img src="{{ base64_encode(file_get_contents(public_path('uploads/settings/illustration.svg'))) }}" alt="Hero" style="max-width: 50%; height: auto;"> --}}
                     <div style="font-size: 1.2em; font-weight: 700; color: white; text-align: center;">
                         <p>{{ $student->title }}</p>
                     </div>
@@ -32,7 +44,7 @@
                     <p>Dear <strong>{{ $student->receiver_name }}</strong>,</p>
                     @if(!empty($student->links))
                     <p>
-                        We are pleased to share <strong>{{ $student->full_name }}</strong>'s results for 
+                        We are pleased to share <strong>{{ $student->full_name }}</strong>'s results for
                         <strong>{{ $student->session }} Academic Session</strong>.
                         You can access the results at the following links:
                     </p>

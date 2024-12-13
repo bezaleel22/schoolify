@@ -11,7 +11,6 @@
     textarea {
         overflow-x: hidden;
     }
-
 </style>
 @endpush
 
