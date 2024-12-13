@@ -23,7 +23,7 @@
         <table role="presentation" cellspacing="0" cellpadding="0" style="width: 100%; background-color: #f7931e; text-align: center; color: white; padding: 20px 0; border-radius: 8px;">
             <tr>
                 <td align="center">
-                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents($student->logo)) }}" alt="{{ $student->school_name }}" style="max-width: 250px; height: auto;">
+                    <img src="{{ $student->logo }}" alt="{{ $student->school_name }}" style="max-width: 250px; height: auto;">
                 </td>
             </tr>
             <tr>
