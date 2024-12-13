@@ -11,8 +11,7 @@ services:
     #   - XDEBUG_REMOTE_PORT=9001
     #   - PHP_DEBUGGER=xdebug
     ports:
-      - "80:80"
-      - "443:443"
+      - "5555:80"
     volumes:
       - ./:/var/www
       - ./docker/default.conf:/opt/docker/etc/nginx/vhost.conf
@@ -31,11 +30,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
-  adminer:
+  dbdash:
     depends_on:
       - mariadb
     image: adminer
-    container_name: adminer
+    container_name: dbdash
     restart: always
     environment:
       ADMINER_DEFAULT_SERVER: mariadb
