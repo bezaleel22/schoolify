@@ -16,7 +16,7 @@
         </div>
 
         <div class="col-span-3">
-            <input type="range" min="0" max="100" value="{{ $rating->rate }}" class="range range-xs {{ $rating->color }}" />
+            <input type="range" min="0" max="100" value="{{ ($rating->rate/5)*100 }}" class="range range-xs {{ $rating->color }}" />
             {{-- <div class="bg-slate-200 relative h-[16px] w-full max-w-[384px] rounded-2xl">
                 <div class="bg-primary absolute top-0 left-0 flex h-full items-center justify-center rounded-2xl text-xs font-semibold text-white {{ $rating->color }}">
             {{ $rating->rate }}

@@ -509,7 +509,7 @@ class ResultController extends Controller
                     'session' => "$session->year - [$session->title]",
                     'links' => $this->generateLinks($timelines)
                 ];
-                // https://pdf.llacademy.ng
+    
                 dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
