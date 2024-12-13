@@ -510,7 +510,7 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                // dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
             return view('result::mail', ['student' => $data]);
