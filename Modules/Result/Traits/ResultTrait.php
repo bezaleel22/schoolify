@@ -76,8 +76,7 @@ trait ResultTrait
     private function generateLinks($timelines)
     {
         return $timelines->map(function ($timeline) {
-            $params = ['id' => $timeline->staff_student_id, 'exam_id' => $timeline->type];
-            $link = route('result.download', $params);
+            $link = "https://school.llacademy.ng/{$timeline->file}";
             return ['label' => $timeline->title, 'url' => $link];
         });
     }
