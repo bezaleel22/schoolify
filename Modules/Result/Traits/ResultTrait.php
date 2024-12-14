@@ -147,6 +147,7 @@ trait ResultTrait
         $rows = [];
         $over_all = 0;
         foreach ($result as $subject_name => $marks_data) {
+            dd($marks_data->toArray());
             $sum = ceil($marks_data->sum('total_marks'));
             $marks = $marks_data->pluck('total_marks', 'exam_title')->toArray();
             $grade = $this->getGrade($sum, $student->type);
@@ -228,6 +229,7 @@ trait ResultTrait
             ->where('sm_mark_stores.section_id', $student->section_id)
             ->where('sm_mark_stores.exam_term_id', $exam_type_id)
             ->where('sm_mark_stores.is_absent', 0)
+            // ->where('sm_mark_stores.total_marks', '!=', 0)
             ->select('sm_mark_stores.*', 'sm_subjects.subject_name', 'sm_subjects.subject_code', 'sm_exam_setups.exam_title')
             ->orderBy('total_marks', 'ASC')
             ->get()

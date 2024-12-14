@@ -91,14 +91,14 @@
                         <tr>
                             <td>{{ @$record->subject }}</td>
                             @if($student->type == 'GRADERS')
-                            <td>{{ $record->marks["MTA"] }}</td>
-                            <td>{{ $record->marks["CA"] }}</td>
-                            <td>{{ $record->marks["REPORT"] }}</td>
-                            <td>{{ $record->marks["EXAM"] }}</td>
+                            <td>{{ $record->marks["MTA"] ?? 0 }}</td>
+                            <td>{{ $record->marks["CA"] ?? 0 }}</td>
+                            <td>{{ $record->marks["REPORT"]?? 0 }}</td>
+                            <td>{{ $record->marks["EXAM"]?? 0 }}</td>
                             @else
-                            @foreach ($record->marks as $mark)
-                            <td>{{ $mark }}</td>
-                            @endforeach
+                                @foreach ($record->marks as $mark)
+                                <td>{{ $mark }}</td>
+                                @endforeach
                             @endif
                             <td>{{ @$record->total_score }}</td>
                             <td>{{ @$record->grade }}</td>
