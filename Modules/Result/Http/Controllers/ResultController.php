@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Modules\Result\Entities\ClassAttendance;
 use Modules\Result\Entities\Comment;
@@ -260,8 +261,8 @@ class ResultController extends Controller
     public function download(Request $request, $id, $exam_id = null)
     {
         $fileName = md5("$id-$exam_id");
-        // $filePath = "result/$fileName.pdf";
-        // dd($request->toArray());
+        $filePath = "result/$fileName.pdf";
+
         $student_id = $request->local_stu_id;
         $exam_type = $request->exam_id;
         $cacheKey = "{$student_id}_{$exam_type}";
@@ -277,10 +278,10 @@ class ResultController extends Controller
 
             $cachedResult = Cache::get("result_{$id}_{$exam_id}");
             $result_data =  $cachedResult ?? $this->getResultData($id, $exam_id);
-            return  generatePDF($result_data, $id, $exam_id);
+            $body = generatePDF($result_data, $id, $exam_id)->getBody();
 
-            // Storage::put($filePath, $body->getContents());
-            // return Storage::response($filePath);
+            Storage::put($filePath, $body->getContents());
+            return Storage::response($filePath);
         } catch (\Exception $e) {
             return response()->json(array_merge([
                 'error' => 1,
@@ -290,7 +291,7 @@ class ResultController extends Controller
     }
 
     public function publish(Request $request, $id, $exam_id)
-    {    
+    {
         $request->validate([
             'parent_email' => 'required|email',
             'parent_id' => 'required|integer',

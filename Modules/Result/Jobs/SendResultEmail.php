@@ -66,8 +66,8 @@ class SendResultEmail implements ShouldQueue
                 $this->data->logo = $message->embed(base_path($this->data->logo));
             });
             $stu_exam = "{$this->data->student_id}-{$this->data->exam_id}";
-            
-            $msg ="Email for {$this->data->full_name} has been sent to {$this->data->reciver_email} successfully.";
+
+            $msg = "Email for {$this->data->full_name} has been sent to {$this->data->reciver_email} successfully.";
             logEmail('Success', $msg, $this->data->reciver_email, $stu_exam);
             Log::info($msg);
         } catch (\Exception $e) {
@@ -94,15 +94,18 @@ class SendResultEmail implements ShouldQueue
 
     private function generatePdfAttachment(): string
     {
+
+        $fileName = md5("{$this->data->student_id}_{$this->data->exam_id}");
+        $filePath = "result/$fileName.pdf";
+
+        if (file_exists(storage_path("app/$filePath"))) {
+            return file_get_contents(storage_path("app/$filePath"));
+        }
+
         $cacheKey = "result_{$this->data->student_id}_{$this->data->exam_id}";
         $cachedResult = Cache::get($cacheKey);
         $result_data =  $cachedResult
             ?? $this->getResultData($this->data->student_id, $this->data->exam_id);
-
-
-        if (!$cachedResult) {
-            throw new \Exception('No cache available for Result Data');
-        }
 
         $resp = generatePDF($result_data, $this->data->student_id, $this->data->exam_id);
         return $resp->getBody()->getContents();
