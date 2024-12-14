@@ -11,6 +11,7 @@
     textarea {
         overflow-x: hidden;
     }
+
 </style>
 @endpush
 
@@ -71,9 +72,16 @@
                     <thead>
                         <tr>
                             <th>@lang('result::student.subject')</th>
+                            @if($student->type == 'GRADERS')
+                            <th>MTA</th>
+                            <th>CA</th>
+                            <th>REPORT</th>
+                            <th>EXAM</th>
+                            @else
                             @foreach ($records[0]->marks as $exam_title => $record)
                             <th>{{ $exam_title }}</th>
                             @endforeach
+                            @endif
                             <th>@lang('result::student.score')</th>
                             <th>@lang('result::student.grade')</th>
                         </tr>
@@ -82,9 +90,16 @@
                         @foreach ($records as $record)
                         <tr>
                             <td>{{ @$record->subject }}</td>
+                            @if($student->type == 'GRADERS')
+                            <td>{{ $record->marks["MTA"] }}</td>
+                            <td>{{ $record->marks["CA"] }}</td>
+                            <td>{{ $record->marks["REPORT"] }}</td>
+                            <td>{{ $record->marks["EXAM"] }}</td>
+                            @else
                             @foreach ($record->marks as $mark)
                             <td>{{ $mark }}</td>
                             @endforeach
+                            @endif
                             <td>{{ @$record->total_score }}</td>
                             <td>{{ @$record->grade }}</td>
                         </tr>

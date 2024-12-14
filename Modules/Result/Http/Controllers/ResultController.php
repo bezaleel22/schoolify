@@ -463,7 +463,6 @@ class ResultController extends Controller
 
     public function testEmails()
     {
-
         $fileName = 'illustration.svg';
         $publicFilePath = public_path('uploads/settings' . $fileName);
         $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
@@ -509,7 +508,7 @@ class ResultController extends Controller
                     'session' => "$session->year - [$session->title]",
                     'links' => $this->generateLinks($timelines)
                 ];
-    
+
                 dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
