@@ -7,9 +7,10 @@
         <tr class="print:bg-violet-900 bg-neutral text-neutral-content tezprimary-content uppercase print:text-slate-300 text-xs leading-normal">
             @if ($student->type == 'GRADERS')
             <th class="py-1 px-6 text-left">@lang('result::student.subject')</th>
-            @foreach ($records[0]->marks as $exam_title => $record)
-            <th class="py-1 px-6 text-left">{{ $exam_title }}</th>
-            @endforeach
+            <th class="py-1 px-6 text-left">MTA</th>
+            <th class="py-1 px-6 text-left">CA</th>
+            <th class="py-1 px-6 text-left">REPORT</th>
+            <th class="py-1 px-6 text-left">EXAM</th>
             @else
             <th class="py-1 px-6 text-left">Learning Areas</th>
             <th class="py-1 px-6 text-left">@lang('result::student.objectives')</th>
@@ -23,12 +24,11 @@
         @foreach ($records as $record)
         <tr class="border-b border-gray-200 hover:bg-base-300">
             <td class="py-3 px-6 text-left max-w-xs whitespace-normal print:w-24">{{ $record->subject }}</td>
-
             @if ($student->type == 'GRADERS')
-            @foreach ($record->marks as $mark)
-            <td class="py-3 px-6 text-center whitespace-nowrap">{{ $mark }}</td>
-            @endforeach
-
+            <td class="py-3 px-6 text-center whitespace-nowrap">{{ $record->marks["MTA"] }}</td>
+            <td class="py-3 px-6 text-center whitespace-nowrap">{{ $record->marks["CA"] }}</td>
+            <td class="py-3 px-6 text-center whitespace-nowrap">{{ $record->marks["REPORT"] }}</td>
+            <td class="py-3 px-6 text-center whitespace-nowrap">{{ $record->marks["EXAM"] }}</td>
             <td class="py-3 px-6 text-center whitespace-nowrap">{{ $record->total_score }}</td>
             <td class="py-3 px-6 text-center">
                 <span class="{{ $record->color }} text-violet-600 py-1 px-3 rounded-full text-xs">
