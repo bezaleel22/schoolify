@@ -55,7 +55,6 @@ class SendResultEmail implements ShouldQueue
             $this->data = emailConfig($this->data);
             Mail::send('result::mail', ['student' => $this->data], function (Message $message) {
                 $formattedFullName = str_replace(' ', '_', $this->data->full_name);
-                $this->data->logo = $message->embed(base_path($this->data->logo));
 
                 $message->subject($this->data->subject)
                     ->to($this->data->reciver_email, $this->data->receiver_name)
@@ -64,6 +63,7 @@ class SendResultEmail implements ShouldQueue
                     $fileContents = $this->generatePdfAttachment();
                     $message->attachData($fileContents, "$formattedFullName.pdf", ['mime' => 'application/pdf']);
                 }
+                $this->data->logo = $message->embed(base_path($this->data->logo));
             });
             $stu_exam = "{$this->data->student_id}-{$this->data->exam_id}";
             $msg = "Email sent to {$this->data->reciver_email} successfully";
