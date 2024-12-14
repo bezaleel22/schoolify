@@ -147,7 +147,6 @@ trait ResultTrait
         $rows = [];
         $over_all = 0;
         foreach ($result as $subject_name => $marks_data) {
-            dd($marks_data->toArray());
             $sum = ceil($marks_data->sum('total_marks'));
             $marks = $marks_data->pluck('total_marks', 'exam_title')->toArray();
             $grade = $this->getGrade($sum, $student->type);
