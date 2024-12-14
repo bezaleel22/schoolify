@@ -31,7 +31,7 @@
                 <span class="print:bg-violet-900 uppercase btn btn-xs border print:text-slate-300 rounded-full">
                     Admission No
                 </span>
-                <span class="py-2 pl-2 text-xs print:text-slate-500 uppercase">{{ $student->admin_no }}</span>
+                <span class="py-2 pl-2 text-xs print:text-slate-500 uppercase">{{ str_pad($student->admin_no, 4, '0', STR_PAD_LEFT) }}</span>
             </div>
 
             <div>

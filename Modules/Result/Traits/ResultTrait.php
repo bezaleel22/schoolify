@@ -350,7 +350,7 @@ trait ResultTrait
             // Use the existing user if available
             $user = $existingUsers->first();
         }
-
+  
         // Create a new user if none exists
         if (!$user) {
             $user = new User();
@@ -364,7 +364,7 @@ trait ResultTrait
         $user->phone_number = $phone_number;
         $user->email = $parent->guardians_email;
         $user->save();
-
+ 
         // Link the user to the parent if not already linked
         if (!$parent->user_id || $parent->user_id !== $user->id) {
             $parent->user_id = $user->id;

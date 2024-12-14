@@ -66,7 +66,8 @@ class SendResultEmail implements ShouldQueue
                 $this->data->logo = $message->embed(base_path($this->data->logo));
             });
             $stu_exam = "{$this->data->student_id}-{$this->data->exam_id}";
-            $msg = "Email sent to {$this->data->reciver_email} successfully";
+            
+            $msg ="Email for {$this->data->full_name} has been sent to {$this->data->reciver_email} successfully.";
             logEmail('Success', $msg, $this->data->reciver_email, $stu_exam);
             Log::info($msg);
         } catch (\Exception $e) {
