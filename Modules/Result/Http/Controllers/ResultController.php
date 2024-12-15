@@ -260,7 +260,6 @@ class ResultController extends Controller
 
     public function download(Request $request, $id, $exam_id = null)
     {
-        
         $fileName = md5("$id-$exam_id");
         $filePath = "result/$fileName.pdf";
 
