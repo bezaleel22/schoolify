@@ -292,22 +292,22 @@ class ResultController extends Controller
 
     public function publish(Request $request, $id, $exam_id)
     {
-        $request->validate([
-            'parent_email' => 'required|email',
-            'parent_id' => 'required|integer',
-            'title' => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-        ]);
-        $this->updateRelation($id, $request->parent_id, $request->parent_email);
-
-        $fileName = 'illustration.svg';
-        $publicFilePath = public_path('uploads/settings/' . $fileName);
-        $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
-        if (!File::exists($publicFilePath) && File::exists($storageFilePath)) {
-            File::copy($storageFilePath, $publicFilePath);
-        }
-
         try {
+            $request->validate([
+                'parent_email' => 'required|email',
+                'parent_id' => 'required|integer',
+                'title' => 'required|string|max:255',
+                'category' => 'required|string|max:255',
+            ]);
+            $this->updateRelation($id, $request->parent_id, $request->parent_email);
+
+            $fileName = 'illustration.svg';
+            $publicFilePath = public_path('uploads/settings/' . $fileName);
+            $storageFilePath = storage_path('app/uploaded_files/' . $fileName);
+            if (!File::exists($publicFilePath) && File::exists($storageFilePath)) {
+                File::copy($storageFilePath, $publicFilePath);
+            }
+
             $type = "exam-$exam_id";
             $params = ['id' => $id, 'exam_id' => $exam_id];
             $timeline = SmStudentTimeline::where('academic_id', getAcademicId())
