@@ -11,6 +11,7 @@ use App\SmResultStore;
 use App\SmStaff;
 use App\SmStudent;
 use App\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Log;
@@ -141,7 +142,7 @@ trait ResultTrait
             'city' => $address->city,
             'state' => $address->state,
             'title' => $type->title,
-            'vacation_date' => 'December 25, 2024',
+            'vacation_date' => Carbon::now()->format('F j, Y'),
         ];
 
         $rows = [];
