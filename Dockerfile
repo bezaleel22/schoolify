@@ -7,7 +7,7 @@ ENV PHP_DISMOD=bz2,exif,ffi,gettext,ldap,imap,pdo_pgsql,pgsql,soap,sockets,sysvm
 WORKDIR ${DOCUMENT_ROOT}
 RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
 
-COPY --chown=application:application . .
+COPY --chown=application:www-data . .
 COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.conf
 # COPY docker/default.conf /opt/docker/etc/nginx/vhost.conf
 
