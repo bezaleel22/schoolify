@@ -44,8 +44,8 @@
                     <p>Dear <strong>{{ $student->receiver_name }}</strong>,</p>
                     @if(!empty($student->links))
                     <p>
-                        We are pleased to share <strong>{{ $student->full_name }}</strong>'s results for
-                        <strong>{{ $student->session }} Academic Session</strong>.
+                        We are pleased to share <strong>{{ $student->full_name }}</strong>'s results for the
+                        <strong>Academic Sessions Bellow</strong>.
                         You can access the results at the following links:
                     </p>
                     <ul>
