@@ -1,11 +1,17 @@
       <div role="tabpanel" class="tab-pane fade" id="studentTimeline">
           <div>
-              <div class="text-right mb-20">
-                  <button type="button" data-toggle="modal" data-target="#add_timeline_madal" class="primary-btn tr-bg text-uppercase bord-rad">
+              <div class="d-flex justify-content-end mb-20 text-right">
+                  <button type="button" data-toggle="modal" data-target="#add_timeline_madal" class="primary-btn tr-bg text-uppercase bord-rad mr-2">
                       @lang('common.add')
                       <span class="pl ti-plus"></span>
                   </button>
+
+                  <a href="{{ route('result.send_email', $student_detail->id) }}" class="primary-btn btn-sm tr-bg text-uppercase bord-rad">
+                      Send to Parent
+                  </a>
+
               </div>
+
               @php
               // dd($timelines);
               @endphp

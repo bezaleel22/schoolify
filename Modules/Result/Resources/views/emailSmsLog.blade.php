@@ -28,9 +28,14 @@
                                 @lang('communicate.send_email_sms')
                             </a>
                         </div>
-                        <div class=" no-gutters mb-2">
+                        <div class=" no-gutters mb-2 mr-2">
                             <a href="{{route('result.send_emails')}}" class="primary-btn small fix-gr-bg">
-                                Send Failed Emails
+                                Send Emails
+                            </a>
+                        </div>
+                        <div class=" no-gutters mb-2">
+                            <a href="{{route('result.resend_emails')}}" class="primary-btn small fix-gr-bg">
+                                Resend Emails
                             </a>
                         </div>
                     </div>

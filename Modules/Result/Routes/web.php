@@ -22,8 +22,9 @@ use Modules\Result\Jobs\SendResultEmail;
 */
 
 Route::get('test-mail', 'ResultController@testEmails')->name('result.test_emails');
-Route::get('send-emails', 'ResultController@sendEmails')->name('result.send_emails');
-Route::get('send-all-emails', 'ResultController@sendAllEmails')->name('result.send_all_emails');
+Route::get('send-email/{id}', 'ResultController@sendResultEmail')->name('result.send_email');
+Route::get('resend-emails', 'ResultController@resendEmails')->name('result.resend_emails');
+Route::get('send-emails', 'ResultController@sendAllEmails')->name('result.send_emails');
 Route::get('download-result/{id}/{exam_id?}', 'ResultController@download')->name('result.download');
 
 Route::any('publish/{id}/{exam_id}', 'ResultController@publish')->name('result.publish');

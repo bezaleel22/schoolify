@@ -375,10 +375,22 @@ class ResultController extends Controller
     public function sendAllEmails()
     {
         try {
+            // Get the current offset from a persistent store (e.g., cache or database)
+            $offset = Cache::get('email_processing_offset', 0);
+
             $students = SmStudent::where('active_status', 1)
                 ->where('academic_id', getAcademicId())
                 ->with(['studentTimeline', 'parents', 'category'])
+                ->offset($offset) // Start from the current offset
+                ->limit(100) // Process the next 100 rows
                 ->get(['id', 'parent_id', 'student_category_id', 'full_name as name']);
+
+            // If no more students, reset the offset and return
+            if ($students->isEmpty()) {
+                Cache::forget('email_processing_offset');
+                Toastr::success('All emails have been sent.', 'Success');
+                return redirect()->back()->with(['studentTimeline' => 'active']);
+            }
 
             foreach ($students as $stu) {
                 $timelines = $stu->studentTimeline;
@@ -388,6 +400,7 @@ class ResultController extends Controller
                 }
 
                 $category = $stu->category->category_name;
+                if ($category == 'NONE') continue;
                 $contacts = Cache::remember("contacts-$category", now()->addMinutes(5), function () use ($category) {
                     return $this->getContacts($category);
                 });
@@ -409,37 +422,81 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('published');
+                dispatch(new SendResultEmail($data))->onQueue('result-notice');
             }
 
-            // Success response
-            Toastr::success('Emails Queued successfully', 'Success');
+            // Update the offset for the next request
+            Cache::put('email_processing_offset', $offset + 1);
+
+            Toastr::warning('Click to add more emails to the queue', 'Queued Successfully');
             return redirect()->back()->with(['studentTimeline' => 'active']);
         } catch (\Exception $e) {
+            dd($e->getTraceAsString());
             Log::error('Failed to send result emails: ' . $e->getMessage());
             Toastr::error('Operation Failed: ' . $e->getMessage(), 'Failed');
             return redirect()->back()->with(['studentTimeline' => 'active']);
         }
     }
 
-    public function sendEmails()
+    public function resendEmails()
     {
         try {
+
             SmEmailSmsLog::truncate();
             if (DB::table('failed_jobs')->count()) {
-                dispatch(function () {
-                    Artisan::call('queue:retry', ['id' => 'all']);
-                })->onQueue('published');
+                Artisan::call('queue:retry', ['id' => 'all']);
             }
 
-            dispatch(function () {
-                Artisan::call('queue:work', [
-                    '--queue' => 'result-notice',
-                    '--stop-when-empty' => true,
-                ]);
-            })->onQueue('published');
+            Toastr::success('Emails are being resent.', 'Success');
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Toastr::error('Operation failed. Please try again.', 'Failed');
+            return redirect()->back();
+        }
+    }
 
-            Toastr::success('Operation successful. Emails are being resent.', 'Success');
+    public function sendResultEmail($id)
+    {
+        try {
+            $stu = SmStudent::where('id', $id)
+                ->with(['studentTimeline', 'parents', 'category'])
+                ->first(['id', 'parent_id', 'student_category_id', 'full_name as name']);
+
+            $timelines = $stu->studentTimeline;
+            $parent = $stu->parents;
+            if (empty($timelines) || !$parent) {
+                Toastr::error('Missing student data or parent information.', 'Failed');
+                return redirect()->back();
+            }
+
+            $category = $stu->category->category_name;
+            $contacts = Cache::remember("contacts-$category", now()->addMinutes(5), function () use ($category) {
+                return $this->getContacts($category);
+            });
+
+            $exam_ids = array_map(fn($timeline) => (int)explode('-', $timeline['type'])[1], $timelines->toArray());
+            $session = getSession();
+            $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
+            $data = (object) [
+                'subject' => 'Result Notification',
+                'student_id' => $stu->id,
+                'exam_id' => json_encode($exam_ids),
+                'reciver_email' => $reciver_email,
+                'receiver_name' => $parent->fathers_name ?? $parent->mothers_name,
+                'title' => 'TERMLY SUMMARY OF PROGRESS REPORT',
+                'full_name' => $stu->name,
+                'principal' => $contacts['principal'],
+                'contact' => $contacts['contact'],
+                'support' => $contacts['support'],
+                'school_name' => schoolConfig()->site_title,
+                'logo' => schoolConfig()->logo,
+                'session' => "$session->year - [$session->title]",
+                'links' => $this->generateLinks($timelines)
+            ];
+
+            dispatch(new SendResultEmail($data))->onQueue('result-notice');
+
+            Toastr::success('Emails sent successfully.', 'Success');
             return redirect()->back();
         } catch (\Exception $e) {
             Toastr::error('Operation failed. Please try again.', 'Failed');
