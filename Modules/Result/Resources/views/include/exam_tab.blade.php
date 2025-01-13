@@ -27,12 +27,12 @@
             <table class="table school-table-style shadow-none pb-0" cellspacing="0" width="100%">
                 <thead>
                     <tr>
-                        <th>@lang('result::student.subject')</th>
+                        {{-- <th>@lang('result::student.subject')</th>
                         @foreach ($records[0]->marks as $exam_title => $record)
                         <th>{{ $exam_title }}</th>
                         @endforeach
                         <th>@lang('result::student.score')</th>
-                        <th>@lang('result::student.grade')</th>
+                        <th>@lang('result::student.grade')</th> --}}
                     </tr>
                 </thead>
             </table>
