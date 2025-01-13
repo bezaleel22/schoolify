@@ -27,12 +27,12 @@
             <table class="table school-table-style shadow-none pb-0" cellspacing="0" width="100%">
                 <thead>
                     <tr>
-                        {{-- <th>@lang('result::student.subject')</th>
+                        <th>@lang('result::student.subject')</th>
                         @foreach ($records[0]->marks as $exam_title => $record)
                         <th>{{ $exam_title }}</th>
                         @endforeach
                         <th>@lang('result::student.score')</th>
-                        <th>@lang('result::student.grade')</th> --}}
+                        <th>@lang('result::student.grade')</th>
                     </tr>
                 </thead>
             </table>
@@ -96,9 +96,9 @@
                             <td>{{ $record->marks["REPORT"]?? 0 }}</td>
                             <td>{{ $record->marks["EXAM"]?? 0 }}</td>
                             @else
-                                @foreach ($record->marks as $mark)
-                                <td>{{ $mark }}</td>
-                                @endforeach
+                            @foreach ($record->marks as $mark)
+                            <td>{{ $mark }}</td>
+                            @endforeach
                             @endif
                             <td>{{ @$record->total_score }}</td>
                             <td>{{ @$record->grade }}</td>
@@ -170,7 +170,9 @@
                         <label class="primary_input_label" for="parent_email">Parent Emails</label>
                         <select class="primary_select form-control" name="parent_email" id="parent_email">
                             <option data-display="Select Parent" value="">Select parent email</option>
+                            @if($student_info)
                             <option value="{{ $student_info->parent_email }}" selected>{{ $student_info->parent_email }}</option>
+                            @endif
                             @foreach ($emails as $email)
                             <option value="{{ $email }}">
                                 {{ $email }}
