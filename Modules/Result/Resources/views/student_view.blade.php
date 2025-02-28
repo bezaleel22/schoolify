@@ -469,7 +469,6 @@ $currency = '$';
                         <div class="col-lg-12">
                             <label for="is_default">@lang('student.is_default')</label>
                             <div class="d-flex radio-btn-flex mt-10">
-
                                 <div class="mr-30">
                                     <input type="radio" name="is_default" id="isDefaultYes" value="1" class="common-radio relationButton">
                                     <label for="isDefaultYes">@lang('common.yes')</label>

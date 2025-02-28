@@ -49,5 +49,6 @@
     "Forum": false,
     "CustomMenu": false,
     "Result": true,
-    "Website": true
+    "Website": true,
+    "PaymentGateways": true
 }

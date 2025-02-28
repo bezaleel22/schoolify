@@ -68,7 +68,11 @@
 
     <div class="avatar flex flex-col justify-center items-center ml-3">
         <div class="w-24 rounded-full ring ring-neutral print:ring-violet-900 ring-offset-2 mb-4">
+            @if (!empty($student->student_photo))
             <img src="data:image/png;base64,{{ base64_encode(file_get_contents("https://school.llacademy.ng/$student->student_photo")) }}" alt="Student Photo" />
+            @else
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(asset("public/uploads/staff/staff.jpg"))) }}" alt="Student Photo" />
+            @endif
         </div>
     </div>
 
