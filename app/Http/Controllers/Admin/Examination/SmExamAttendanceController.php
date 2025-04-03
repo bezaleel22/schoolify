@@ -184,6 +184,7 @@ class SmExamAttendanceController extends Controller
                     ->where('subject_id', $request->subject)
                     ->first();
 
+                    dd($request->toArray());
                 $exam_attendance = SmExamAttendance::where('exam_id', $exam->id)
                     ->when($request->class, function ($q) use ($request) {
                         $q->where('class_id', $request->class);
@@ -196,50 +197,9 @@ class SmExamAttendanceController extends Controller
                     })
                     ->first();
 
+                    
+
                 $exam_attendance_childs = $exam_attendance != "" ? $exam_attendance->examAttendanceChild : [];
-                $new_students = null;
-
-                if ($exam_attendance_childs) {
-                    $already_submitted = collect($exam_attendance_childs)->pluck('student_record_id')->toArray();
-                    $new_students = $students->whereNotIn('id', $already_submitted);
-                }
-
-                if ($new_students && $exam_attendance != "") {
-                    foreach ($new_students as $new_student) {
-                        $exam_attendance_child = new SmExamAttendanceChild();
-                        $exam_attendance_child->exam_attendance_id = $exam_attendance->id;
-                        $exam_attendance_child->student_id = $new_student->student_id;
-                        $exam_attendance_child->student_record_id = $new_student->id;
-                        $exam_attendance_child->class_id = $new_student->class_id;
-                        $exam_attendance_child->section_id = $new_student->section_id;
-                        $exam_attendance_child->attendance_type = 'P';
-                        $exam_attendance_child->created_at = YearCheck::getYear() . '-' . date('m-d h:i:s');
-                        $exam_attendance_child->school_id = Auth::user()->school_id;
-                        $exam_attendance_child->academic_id = getAcademicId();
-                        $exam_attendance_child->save();
-                    }
-
-                    $exam_attendance_childs = SmExamAttendanceChild::where('exam_attendance_id', $exam_attendance->id)
-                        ->where('class_id', $request->class)
-                        ->where('section_id', $request->section)
-                        ->get();
-                }
-
-                // Debug new students detection
-                // dd($request->toArray(), $exam_attendance_childs->toArray(), [
-                //     'total_students' => $students->count(),
-                //     'attendance_records' => count($exam_attendance_childs),
-                //     'already_submitted_ids' => $already_submitted ?? [],
-                //     'new_students_count' => $new_students ? $new_students->count() : 0,
-                //     'new_student_details' => $new_students ? $new_students->map(function ($s) {
-                //         return [
-                //             'id' => $s->id,
-                //             'admission_no' => @$s->studentDetail->admission_no,
-                //             'name' => @$s->studentDetail->full_name
-                //         ];
-                //     })->toArray() : []
-                // ]);
-
                 if (teacherAccess()) {
                     $teacher_info = SmStaff::where('user_id', Auth::user()->id)->first();
                     $classes = $teacher_info->classes;
@@ -258,6 +218,7 @@ class SmExamAttendanceController extends Controller
                 $search_info['class_name'] = SmClass::find($request->class)->class_name;
                 $search_info['section_name'] =  $section_id == null ? 'All Sections' : SmSection::find($request->section)->section_name;
                 $search_info['subject_name'] =  SmSubject::find($request->subject)->subject_name;
+                // dd($exam_attendance,$exam_attendance_childs);
 
                 return view('backEnd.examination.exam_attendance_create', compact('exams', 'classes', 'subjects', 'students', 'exam_id', 'subject_id', 'class_id', 'section_id', 'exam_attendance_childs', 'search_info'));
             }

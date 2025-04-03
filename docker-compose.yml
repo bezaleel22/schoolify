@@ -4,6 +4,8 @@ services:
     container_name: php-dev
     working_dir: /var/www
     user: "application"
+    env_file:
+      - .env
     # environment:
     #   - XDEBUG_REMOTE_AUTOSTART=On
     #   - XDEBUG_PROFILER_ENABLE=On

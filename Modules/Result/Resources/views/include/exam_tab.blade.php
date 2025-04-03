@@ -173,13 +173,7 @@
                         <label class="primary_input_label" for="parent_email">Parent Emails</label>
                         <select class="primary_select form-control" name="parent_email" id="parent_email">
                             <option data-display="Select Parent" value="">Select parent email</option>
-<<<<<<< HEAD
-                            @if($student_info)
-                            <option value="{{ $student_info->parent_email }}" selected>{{ $student_info->parent_email }}</option>
-                            @endif
-=======
                             <option value="{{ $student_info->parent_email ?? ""}}" selected>{{ $student_info->parent_email ?? ""}}</option>
->>>>>>> e6bbd45 (update)
                             @foreach ($emails as $email)
                             <option value="{{ $email }}">
                                 {{ $email }}

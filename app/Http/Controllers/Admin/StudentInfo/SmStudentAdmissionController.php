@@ -113,6 +113,7 @@ class SmStudentAdmissionController extends Controller
 
     public function store(SmStudentAdmissionRequest $request)
     {
+       
         $parentInfo = ($request->fathers_name || $request->fathers_phone || $request->mothers_name || $request->mothers_phone || $request->guardians_email || $request->guardians_phone)  ? true : false;
         // add student record
         if ($request->filled('phone_number') || $request->filled('email_address')) {
@@ -205,6 +206,7 @@ class SmStudentAdmissionController extends Controller
 
         try {
 
+     
             if (moduleStatusCheck('University')) {
                 $academic_year = UnAcademicYear::find($request->un_academic_id);
             } else {
@@ -428,10 +430,11 @@ class SmStudentAdmissionController extends Controller
             })
                 ->where('academic_id', getAcademicId())
                 ->where('school_id', auth()->user()->school_id)
+                ->with('teacher')
                 ->first();
             $data['class_id'] = $request->class;
             $data['section_id'] = $request->section;
-            if (!is_null($class_teacher)) {
+            if (!is_null($class_teacher) && !is_null($class_teacher->teacher)) {
                 $data['teacher_name'] = $class_teacher->teacher->full_name;
                 $this->sent_notifications('Student_Admission', (array)$class_teacher->teacher->user_id, $data, ['Teacher']);
             }
@@ -493,6 +496,7 @@ class SmStudentAdmissionController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollback();
+            dd($e->getMessage(),$e->getTraceAsString());
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }

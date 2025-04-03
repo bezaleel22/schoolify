@@ -77,7 +77,7 @@ trait ResultTrait
     private function generateLinks($timelines)
     {
         return $timelines->map(function ($timeline) {
-            $link = "https://school.llacademy.ng/{$timeline->file}";
+            $link = "https://school.beznet.org/{$timeline->file}";
             return ['label' => $timeline->title, 'url' => $link];
         });
     }
