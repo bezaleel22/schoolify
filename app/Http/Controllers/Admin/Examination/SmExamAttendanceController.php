@@ -184,7 +184,6 @@ class SmExamAttendanceController extends Controller
                     ->where('subject_id', $request->subject)
                     ->first();
 
-                    dd($request->toArray());
                 $exam_attendance = SmExamAttendance::where('exam_id', $exam->id)
                     ->when($request->class, function ($q) use ($request) {
                         $q->where('class_id', $request->class);
@@ -197,7 +196,7 @@ class SmExamAttendanceController extends Controller
                     })
                     ->first();
 
-                    
+
 
                 $exam_attendance_childs = $exam_attendance != "" ? $exam_attendance->examAttendanceChild : [];
                 $new_students = null;
@@ -226,7 +225,6 @@ class SmExamAttendanceController extends Controller
                         ->where('class_id', $request->class)
                         ->where('section_id', $request->section)
                         ->get();
-                        
                 }
 
                 // Debug new students detection
