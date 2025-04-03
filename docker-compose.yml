@@ -40,7 +40,7 @@ services:
       ADMINER_DEFAULT_SERVER: mariadb
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "8000:8080"
+      - "8080:8080"
 
   gotenberg:
     image: gotenberg/gotenberg:8
