@@ -1,10 +1,10 @@
  @php
- $params = ['id'=> $student->id, 'exam_id'=>$exam_id];
+//  $params = ['id'=> $student->id, 'exam_id'=>$exam_id];
  @endphp
 
 
  <div class="container-fluid">
-     <input type="hidden" name="student_id" id="studentId" value="{{ $student->id }}">
+     {{-- <input type="hidden" name="student_id" id="studentId" value="{{ $student->id }}"> --}}
      <input type="hidden" id="examTypeId" name="exam_type_id" value="{{ $exam_id }}">
 
      <div class="row">
@@ -13,15 +13,15 @@
              <div class="row mt-10">
                  <div class="col-lg-4">
                      <label>@lang('result::student.opened') <span>*</span></label>
-                     <input id="opened" value="{{ $student->opened }}" class="primary_input_field form-control" type="number" name="opened">
+                     <input id="opened" value="{{ $attendance->days_opened??0 }}" class="primary_input_field form-control" type="number" name="opened">
                  </div>
                  <div class="col-lg-4">
                      <label>@lang('result::student.present') <span>*</span></label>
-                     <input id="present" value="{{ $student->present }}" class="primary_input_field form-control" type="number" name="present">
+                     <input id="present" value="{{ $attendance->days_present??0 }}" class="primary_input_field form-control" type="number" name="present">
                  </div>
                  <div class="col-lg-4">
                      <label>@lang('result::student.absent') <span>*</span></label>
-                     <input id="absent" value="{{ $student->absent }}" class="primary_input_field form-control" type="number" name="absent">
+                     <input id="absent" value="{{ $attendance->days_absent??0 }}" class="primary_input_field form-control" type="number" name="absent">
                  </div>
              </div>
 

@@ -31,13 +31,13 @@ class SendResultEmail implements ShouldQueue
      *
      * @var int
      */
-    public $retryAfter = 60;
+    // public $retryAfter = 60;
 
     /**
      * Create a new job instance.
      *
      * @param string $body
-     * @param array $data
+     * @param object $data
      */
     public function __construct(object $data)
     {

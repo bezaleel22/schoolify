@@ -122,7 +122,8 @@ class StudentController extends Controller
                 });
             }
 
-            $student_info = $results[0]->student ?? null;
+            $student_info = $results[0]->student ?? $results[1]->student ?? $results[2]->student ?? null;
+            // dd($student_info);
 
             $emails = [];
             if (Storage::exists('uploaded_files/emails.json')) {

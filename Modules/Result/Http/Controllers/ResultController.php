@@ -338,7 +338,8 @@ class ResultController extends Controller
             $parent = SmParent::findOrFail($request->parent_id);
             $stu = SmStudent::findOrFail($id);
 
-            $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
+            $reciver_email = $parent->guardians_email;
+            // dd("Student ID: $id, Exam ID: $exam_id, Email: $reciver_email");
             $data = (object) [
                 'subject' => 'Result Notification',
                 'student_id' => $id,
