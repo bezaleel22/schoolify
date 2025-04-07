@@ -69,9 +69,21 @@
     <div class="avatar flex flex-col justify-center items-center ml-3">
         <div class="w-24 rounded-full ring ring-neutral print:ring-violet-900 ring-offset-2 mb-4">
             @if (!empty($student->student_photo))
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents("https://school.beznet.org/$student->student_photo")) }}" alt="Student Photo" />
+            @php
+                $photo_content = null;
+                try {
+                    $photo_content = file_get_contents("http://192.168.1.233:5555/$student->student_photo");
+                } catch (\Exception $e) {
+                    try {
+                        $photo_content = file_get_contents("https://school.beznet.org/$student->student_photo");
+                    } catch (\Exception $e) {
+                        $photo_content = file_get_contents("http://192.168.1.233:5555/public/uploads/staff/demo/staff.jpg");
+                    }
+                }
+            @endphp
+            <img src="data:image/png;base64,{{ base64_encode($photo_content) }}" alt="Student Photo" />
             @else
-            <img src="data:image/png;base64,{{ base64_encode(file_get_contents(asset("public/uploads/staff/staff.jpg"))) }}" alt="Student Photo" />
+            <img src="data:image/png;base64,{{ base64_encode(file_get_contents("http://192.168.1.233:5555/public/uploads/staff/demo/staff.jpg")) }}" alt="Student Photo" />
             @endif
         </div>
     </div>
