@@ -66,6 +66,15 @@
                         </div>
                     </a>
                 </div>
+
+                <div class="col-md-4 col-lg-3 col-sm-6">
+                    <a class="white-box single-summery fuchsia d-block btn-ajax" href="{{ route('result.download_student_uploads') }}">
+                        <div class="d-block mt-10 text-center ">
+                            <h3><i class="ti-import font_30"></i></h3>
+                            <h1 class="gradient-color2 total_purchase">Download Student Uploads</h1>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
         <div class="row mt-40">
@@ -105,7 +114,8 @@
                                             <span class="ti-check"></span>
                                             Upload
                                         </button>
-                                        <div id="progressBar" class="progress-bar violet mt-10" role="progressbar" style="width: 0%;"></div>
+                                        <div id="progwe need to add a card after " Send Result Emails" to archieve and download the public/uploads/student folder in Modules/Result/Resources/views/utilityView.blade.php and Modules/Result/Http/Controllers/UtilityController.php in performannt and streaming wayressBar" class="progress-bar violet mt-10" role="progressbar" style="width: 0%;"></div>
+
 
                                     </div>
                                 </div>
@@ -294,7 +304,7 @@
             , processData: false
             , contentType: false
             , success: function(response) {
-               console.log(`Chunk ${chunkIndex + 1}/${totalChunks}:`, response);
+                console.log(`Chunk ${chunkIndex + 1}/${totalChunks}:`, response);
 
                 // Update progress bar
                 const progress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
@@ -309,7 +319,7 @@
                 }
             }
             , error: function(error) {
-               console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
+                console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
                 toastr.error('An error occurred while uploading the file.', 'Failed')
             }
         });

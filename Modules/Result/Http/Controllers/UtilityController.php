@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\MaintenanceSetting;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Modules\RolePermission\Entities\InfixRole;
@@ -42,7 +43,7 @@ class UtilityController extends Controller
             $message = "";
             if ($action == "optimize_clear") {
 
-                \Artisan::call('optimize:clear');
+                Artisan::call('optimize:clear');
 
                 $message = "Your System Optimization Successfully Complete";
             } elseif ($action == "clear_log") {
@@ -141,5 +142,41 @@ class UtilityController extends Controller
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back();
         }
+    }
+
+    /**
+     * Stream a zip archive of the public/uploads/student folder for download
+     */
+    public function downloadStudentUploads()
+    {
+        $folder = public_path('uploads/student');
+        $zipFile = storage_path('app/student_uploads_' . date('Ymd_His') . '.zip');
+
+        if (!is_dir($folder)) {
+            \Brian2694\Toastr\Facades\Toastr::error('Student uploads folder not found.');
+            return redirect()->back();
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            \Brian2694\Toastr\Facades\Toastr::error('Could not create zip file.');
+            return redirect()->back();
+        }
+
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($folder),
+            \RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($files as $name => $file) {
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($folder) + 1);
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+        $zip->close();
+
+        return response()->download($zipFile)->deleteFileAfterSend(true);
     }
 }

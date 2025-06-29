@@ -40,3 +40,4 @@ Route::get('student-view/{id}/{type?}', 'StudentController@show')->name('student
 Route::get('my-children/{id}', 'ParentController@myChildren')->name('my_children_result');
 Route::get('utility', 'UtilityController@index')->name('utility');
 Route::get('email-sms-log', 'ResultController@emailLogs')->name('email-sms-log')->middleware('userRolePermission:email-sms-log');
+Route::get('download-student-uploads', 'UtilityController@downloadStudentUploads')->name('result.download_student_uploads');
