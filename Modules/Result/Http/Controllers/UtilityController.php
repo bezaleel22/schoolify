@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Modules\RolePermission\Entities\InfixRole;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use ZipArchive;
 
 class UtilityController extends Controller
 {
@@ -150,33 +153,39 @@ class UtilityController extends Controller
     public function downloadStudentUploads()
     {
         $folder = public_path('uploads/student');
-        $zipFile = storage_path('app/student_uploads_' . date('Ymd_His') . '.zip');
 
         if (!is_dir($folder)) {
-            \Brian2694\Toastr\Facades\Toastr::error('Student uploads folder not found.');
+            Toastr::error('Student uploads folder not found.');
             return redirect()->back();
         }
 
-        $zip = new \ZipArchive();
-        if ($zip->open($zipFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-            \Brian2694\Toastr\Facades\Toastr::error('Could not create zip file.');
-            return redirect()->back();
-        }
+        $zipFilename = 'student_uploads_' . date('Ymd_His') . '.zip';
 
-        $files = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($folder),
-            \RecursiveIteratorIterator::LEAVES_ONLY
-        );
+        $headers = [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="' . $zipFilename . '"',
+        ];
 
-        foreach ($files as $name => $file) {
-            if (!$file->isDir()) {
-                $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($folder) + 1);
-                $zip->addFile($filePath, $relativePath);
+        $callback = function () use ($folder) {
+            $zip = new ZipArchive();
+            $zip->open('php://output');
+
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($folder),
+                RecursiveIteratorIterator::LEAVES_ONLY
+            );
+
+            foreach ($files as $name => $file) {
+                if (!$file->isDir()) {
+                    $filePath = $file->getRealPath();
+                    $relativePath = substr($filePath, strlen($folder) + 1);
+                    $zip->addFile($filePath, $relativePath);
+                }
             }
-        }
-        $zip->close();
 
-        return response()->download($zipFile)->deleteFileAfterSend(true);
+            $zip->close();
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }
