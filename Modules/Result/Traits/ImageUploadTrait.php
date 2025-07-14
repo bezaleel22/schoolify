@@ -37,7 +37,10 @@ trait ImageUploadTrait
             }
 
             $forceReextraction = $request->input('force_reextraction', false);
-            return $this->extractCsvFromImage($request->file('marks_image'), $forceReextraction);
+            $examId = $request->input('exam_id');
+            $studentId = $request->input('student_id');
+            
+            return $this->extractCsvFromImage($request->file('marks_image'), $forceReextraction, $examId, $studentId);
         }
 
         throw new \Exception('Invalid upload type specified.');
@@ -77,7 +80,7 @@ trait ImageUploadTrait
      * @return string CSV data
      * @throws \Exception
      */
-    protected function extractCsvFromImage(UploadedFile $imageFile, $forceReextraction = false)
+    protected function extractCsvFromImage(UploadedFile $imageFile, $forceReextraction = false, $examId = null, $studentId = null)
     {
         try {
             // Validate image file
@@ -85,11 +88,10 @@ trait ImageUploadTrait
                 throw new \Exception('Invalid image format. Only JPEG, PNG, and GIF are supported.');
             }
 
-            // Generate cache key based on image hash and subject mapping
-            $imageContent = file_get_contents($imageFile->getPathname());
-            $imageHash = hash('sha256', $imageContent);
+            // Generate cache key using exam_id and student_id hash for better caching
             $subjectMapping = $this->generateSubjectMapping();
-            $cacheKey = "csv_extraction_{$imageHash}_" . hash('md5', $subjectMapping) . "_" . Auth::user()->school_id;
+            $examStudentHash = md5($examId . '_' . $studentId);
+            $cacheKey = "csv_extraction_{$examStudentHash}_" . md5($subjectMapping);
 
             // If force re-extraction is requested, forget the cache first
             if ($forceReextraction) {
@@ -97,7 +99,8 @@ trait ImageUploadTrait
             }
 
             // Use Cache::remember pattern with 24-hour expiry
-            return Cache::remember($cacheKey, now()->addDay(), function () use ($imageContent, $imageFile) {
+            return Cache::remember($cacheKey, now()->addDay(), function () use ($imageFile) {
+                $imageContent = file_get_contents($imageFile->getPathname());
                 return $this->performAiExtraction($imageContent, $imageFile->getMimeType());
             });
         } catch (\Exception $e) {
