@@ -20,11 +20,19 @@
 <div role="tabpanel" class="tab-pane fade" id="studentExam">
     @php
     $exam_count = count($exam_terms);
+    // Get the current term (last exam term) and check if it's null
+    $current_term_id = $exam_terms->last()->id;
+    $current_term_result = $results[$current_term_id] ?? null;
     @endphp
 
-    @if ($exam_count > 1 && $results[0]) <div class="no-search no-paginate no-table-info mb-2">
+
+    <hr />
+    @php
+    $first_result_with_data = collect($results)->filter()->first();
+    @endphp
+    @if ($exam_count > 1 && $first_result_with_data) <div class="no-search no-paginate no-table-info mb-2">
         @php
-        $records = $results[0]->records;
+        $records = $first_result_with_data->records;
         @endphp
         <div class="table-responsive">
             <table class="table school-table-style shadow-none pb-0" cellspacing="0" width="100%">
@@ -52,7 +60,7 @@
         $record_count = count($result->records);
         $params = ['id'=> $student_detail->id, 'exam_id'=>$exam->id];
         @endphp
-        <div class=@if($key !=0) mt-40 @endif>
+        <div class=@if($key !=1) mt-40 @endif>
             <div class="col-lg-12">
                 <div class="d-flex align-items-center mb-0">
                     <div class="main-title">
@@ -116,9 +124,19 @@
                     @endphp
                     <tfoot>
                         <tr>
+                            <th>
+                                @if($exam->id == $current_term_id)
+                                <div class="col-lg-12 mb-20">
+                                    <button onclick="showModal(this)" data-path="{{ route('score.book.modal') }}" data-exam-id="{{ $exam->id }}" class="btn btn-primary btn-sm open-score-modal">
+                                        Update Marks
+                                    </button>
+                                </div>
+                                @endif
+                            </th>
                             @if($student->type == 'GRADERS')
-                            <th colspan="3"></th>
+                            <th colspan="2"></th>
                             @endif
+
                             <th colspan="2" style="text-align: right;">
                                 @lang('result::student.total_score'): {{ @$score->total }}
                                 <br>
@@ -150,10 +168,21 @@
         </div>
         @endif
         @endforeach
+        @if(is_null($current_term_result))
+        <div class="col-lg-12 mb-20">
+            <hr />
+            <div class="d-flex align-items-center justify-content-end p-2">
+                <button onclick="showModal(this)" data-path="{{ route('score.book.modal') }}" data-exam-id="{{ $current_term_id }}" class="btn btn-primary btn-sm open-score-modal">
+                    Add Marks Book
+                </button>
+            </div>
+        </div>
+        @endif
+
     </div>
 
     <div class="modal fade admin-query" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">>
-        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document"" action="" method=" POST">
+        <form id="publishForm" class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document" action="" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -234,6 +263,7 @@
             , url: $(button).data("path")
             , data: {
                 student: @json($student_info)
+                , exam_id: $(button).data("exam-id")
             }
             , beforeSend: function() {
                 $footer.hide()

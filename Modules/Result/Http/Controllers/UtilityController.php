@@ -153,39 +153,33 @@ class UtilityController extends Controller
     public function downloadStudentUploads()
     {
         $folder = public_path('uploads/student');
+        $zipFile = storage_path('app/student_uploads_' . date('Ymd_His') . '.zip');
 
         if (!is_dir($folder)) {
             Toastr::error('Student uploads folder not found.');
             return redirect()->back();
         }
 
-        $zipFilename = 'student_uploads_' . date('Ymd_His') . '.zip';
+        $zip = new ZipArchive();
+        if ($zip->open($zipFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            Toastr::error('Could not create zip file.');
+            return redirect()->back();
+        }
 
-        $headers = [
-            'Content-Type' => 'application/zip',
-            'Content-Disposition' => 'attachment; filename="' . $zipFilename . '"',
-        ];
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($folder),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
 
-        $callback = function () use ($folder) {
-            $zip = new ZipArchive();
-            $zip->open('php://output');
-
-            $files = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($folder),
-                RecursiveIteratorIterator::LEAVES_ONLY
-            );
-
-            foreach ($files as $name => $file) {
-                if (!$file->isDir()) {
-                    $filePath = $file->getRealPath();
-                    $relativePath = substr($filePath, strlen($folder) + 1);
-                    $zip->addFile($filePath, $relativePath);
-                }
+        foreach ($files as $name => $file) {
+            if (!$file->isDir()) {
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($folder) + 1);
+                $zip->addFile($filePath, $relativePath);
             }
+        }
+        $zip->close();
 
-            $zip->close();
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return response()->download($zipFile)->deleteFileAfterSend(true);
     }
 }

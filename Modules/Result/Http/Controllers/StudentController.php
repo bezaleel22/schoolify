@@ -117,12 +117,12 @@ class StudentController extends Controller
             foreach ($exam_terms as $term) {
                 $cacheKey = "result_{$id}_{$term->id}";
                 Cache::forget($cacheKey);
-                $results[] = Cache::remember($cacheKey, now()->addDay(), function () use ($id, $term) {
+                $results[$term->id] = Cache::remember($cacheKey, now()->addDay(), function () use ($id, $term) {
                     return $this->getResultData($id, $term->id);
                 });
             }
 
-            $student_info = $results[0]->student ?? $results[1]->student ?? $results[2]->student ?? null;
+            $student_info = collect($results)->filter()->first()->student ?? null;
             // dd($results);
 
             $emails = [];

@@ -32,6 +32,13 @@ Route::any('preview/{id}/{exam_id}', 'ResultController@preview')->name('result.p
 Route::any('remark/{id}/{exam_id}', 'ResultController@remark')->name('result.remark');
 Route::any('comments/{id}{exam_id}', 'ResultController@comments')->name('result.comment');
 Route::any('rating/{id}/{exam_id}', 'ResultController@rating')->name('result.rating');
+Route::any('score-book/store', 'MarkRegisterController@store')->name('score.book.store');
+Route::any('score-book/modal', 'MarkRegisterController@showScoreBookModal')->name('score.book.modal');
+
+// Test route to verify score-book routing is working
+Route::get('score-book/test', function() {
+    return response()->json(['message' => 'Score-book test route working!']);
+})->name('score-book.test');
 
 Route::post('upload', 'ImportController@upload')->name('result.upload');
 

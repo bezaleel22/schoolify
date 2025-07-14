@@ -2,19 +2,15 @@
 
 namespace Modules\Result\Providers;
 
-use Illuminate\Console\Scheduling\Schedule;
 use Modules\Result\Console\InstallApp;
-use Modules\Result\Console\SeedStudents;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
 use Modules\Result\Console\ResultCleanup;
 use Modules\Result\Console\SeedApp;
-use Modules\Result\Console\SeedStaffs;
 use Modules\Result\Console\Setup;
-use Modules\Result\Http\Middleware\ResultMiddleware;
+use Modules\Result\Console\DataSyncCommand;
+use Modules\Result\Console\AdminerBackupCommand;
 
 class ResultServiceProvider extends ServiceProvider
 {
@@ -44,12 +40,20 @@ class ResultServiceProvider extends ServiceProvider
         $this->registerHelpers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
         if ($this->app->runningInConsole()) {
-            $this->commands([Setup::class, InstallApp::class, ResultCleanup::class, SeedApp::class]);
+            $this->commands([
+                Setup::class,
+                InstallApp::class,
+                ResultCleanup::class,
+                SeedApp::class,
+                DataSyncCommand::class,
+                AdminerBackupCommand::class
+            ]);
         }
 
         // $this->app->booted(function () {
         //     $schedule = app(Schedule::class);
         //     $schedule->command('result:cleanup')->daily();
+        // });
         // });
     }
 

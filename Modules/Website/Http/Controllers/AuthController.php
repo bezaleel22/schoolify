@@ -26,7 +26,7 @@ use Modules\RolePermission\Entities\InfixModuleInfo;
 
 class AuthController extends Controller
 {
-    use Authtrait;
+    // use Authtrait;
 
     /**
      * Create a new controller instance.

@@ -3,6 +3,7 @@
 /node_modules/
 .env
 .env.*.backup
+/backups
 
 # Laravel specific directories
 /storage/*.key
@@ -14,6 +15,9 @@
 
 # Ignore Composer files
 # composer.lock
+
+# Ignore tools files
+download_student.sh
 
 # Ignore Laravel Mix and Vite generated files
 /public/hot
