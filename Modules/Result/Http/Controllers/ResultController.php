@@ -26,6 +26,7 @@ use Modules\Result\Entities\CommentTag;
 use Modules\Result\Entities\StudentRating;
 use Modules\Result\Entities\TeacherRemark;
 use Modules\Result\Jobs\SendResultEmail;
+use Modules\Result\Jobs\SendGmailResultEmail;
 use Modules\Result\Traits\ResultTrait;
 
 class ResultController extends Controller
@@ -356,7 +357,12 @@ class ResultController extends Controller
                 'support' => $contacts['support'],
             ];
 
-            dispatch(new SendResultEmail($data))->onQueue('result-notice');
+            // Use Gmail integration if enabled, otherwise fallback to regular email
+            if (env('GMAIL_ENABLED', false)) {
+                dispatch(new SendGmailResultEmail($data))->onQueue('result-notice');
+            } else {
+                dispatch(new SendResultEmail($data))->onQueue('result-notice');
+            }
             $msg = "The result for {$data->full_name} has been successfully published and is queued to be sent via email.";
             $stu_exam = "{$data->student_id}-{$data->exam_id}";
             @logEmail('Published', $msg, $data->reciver_email, $stu_exam);
@@ -423,7 +429,12 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                // Use Gmail integration if enabled, otherwise fallback to regular email
+                if (env('GMAIL_ENABLED', false)) {
+                    dispatch(new SendGmailResultEmail($data))->onQueue('result-notice');
+                } else {
+                    dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                }
             }
 
             // Update the offset for the next request
@@ -495,7 +506,12 @@ class ResultController extends Controller
                 'links' => $this->generateLinks($timelines)
             ];
 
-            dispatch(new SendResultEmail($data))->onQueue('result-notice');
+            // Use Gmail integration if enabled, otherwise fallback to regular email
+            if (env('GMAIL_ENABLED', false)) {
+                dispatch(new SendGmailResultEmail($data))->onQueue('result-notice');
+            } else {
+                dispatch(new SendResultEmail($data))->onQueue('result-notice');
+            }
 
             Toastr::success('Emails sent successfully.', 'Success');
             return redirect()->back();
@@ -568,7 +584,12 @@ class ResultController extends Controller
                     'links' => $this->generateLinks($timelines)
                 ];
 
-                dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                // Use Gmail integration if enabled, otherwise fallback to regular email
+                if (env('GMAIL_ENABLED', false)) {
+                    dispatch(new SendGmailResultEmail($data))->onQueue('result-notice');
+                } else {
+                    dispatch(new SendResultEmail($data))->onQueue('result-notice');
+                }
             }
 
             return view('result::mail', ['student' => $data]);

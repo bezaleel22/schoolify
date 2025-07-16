@@ -14,9 +14,11 @@ use Modules\RolePermission\Entities\InfixRole;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ZipArchive;
+use Modules\Result\Traits\GmailTrait;
 
 class UtilityController extends Controller
 {
+    use GmailTrait;
 
     public function index()
     {
@@ -181,5 +183,79 @@ class UtilityController extends Controller
         $zip->close();
 
         return response()->download($zipFile)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Initialize Gmail OAuth2 authentication
+     */
+    public function gmailAuth()
+    {
+        try {
+            if (!env('GMAIL_CLIENT_ID') || !env('GMAIL_CLIENT_SECRET')) {
+                Toastr::error('Gmail API credentials not configured. Please add GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET to .env file.', 'Configuration Error');
+                return redirect()->back();
+            }
+
+            $authUrl = $this->getGmailAuthUrl();
+            return redirect($authUrl);
+        } catch (\Exception $e) {
+            Log::error('Gmail auth initialization failed: ' . $e->getMessage());
+            Toastr::error('Failed to initialize Gmail authentication: ' . $e->getMessage(), 'Error');
+            return redirect()->back();
+        }
+    }
+
+    /**
+     * Handle Gmail OAuth2 callback
+     */
+    public function gmailCallback(Request $request)
+    {
+        try {
+            if ($request->has('error')) {
+                Toastr::error('Gmail authorization was denied: ' . $request->get('error'), 'Authorization Failed');
+                return redirect()->route('result.utility');
+            }
+
+            if (!$request->has('code')) {
+                Toastr::error('No authorization code received from Gmail', 'Authorization Failed');
+                return redirect()->route('result.utility');
+            }
+
+            $result = $this->handleGmailCallback($request->get('code'));
+
+            if ($result) {
+                Toastr::success('Gmail integration configured successfully! You can now send emails via Gmail API.', 'Success');
+            } else {
+                Toastr::error('Failed to complete Gmail authorization', 'Error');
+            }
+
+            return redirect()->route('result.utility');
+        } catch (\Exception $e) {
+            Log::error('Gmail callback failed: ' . $e->getMessage());
+            Toastr::error('Gmail authorization failed: ' . $e->getMessage(), 'Error');
+            return redirect()->route('result.utility');
+        }
+    }
+
+    /**
+     * Check Gmail configuration status
+     */
+    public function gmailStatus()
+    {
+        try {
+            $isConfigured = $this->isGmailConfigured();
+            $hasCredentials = env('GMAIL_CLIENT_ID') && env('GMAIL_CLIENT_SECRET');
+
+            return response()->json([
+                'configured' => $isConfigured,
+                'has_credentials' => $hasCredentials,
+                'status' => $isConfigured ? 'ready' : ($hasCredentials ? 'needs_auth' : 'needs_credentials')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'configured' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

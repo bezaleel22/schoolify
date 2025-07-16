@@ -17,6 +17,7 @@ use Modules\Result\Http\Controllers\Api\GenerateController;
 
 Route::post('remark-filter', 'ResultController@filter')->name('result.remark.filter');
 Route::get('result/generate', [GenerateController::class, 'index']);
+Route::get('openrouter/limits', 'MarkRegisterController@checkApiLimits')->name('result.openrouter.limits');
 Route::middleware('auth:api')->get('/result', function (Request $request) {
     return $request->user();
 });

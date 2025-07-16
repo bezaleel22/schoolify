@@ -41,8 +41,6 @@ class MarkRegisterController extends Controller
             'exam_id' => $request->input('exam_id')
         ]);
 
-
-
         // Fetch student record to get actual class/section relationship
         $student_record = StudentRecord::where('student_id', $request->student_id)
             ->where('academic_id', getAcademicId())
@@ -290,6 +288,88 @@ class MarkRegisterController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to load score book modal: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check OpenRouter API key limits and usage
+     *
+     * Example request:
+     * GET /openrouter/limits
+     *
+     * Example response:
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "label": "My API Key",
+     *     "usage": 150,
+     *     "limit": 1000,
+     *     "is_free_tier": false
+     *   },
+     *   "message": "API key information retrieved successfully"
+     * }
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkApiLimits()
+    {
+        try {
+            // For API routes, use environment variable directly. For web routes, use user-specific key.
+            if (!Auth::check()) {
+                // Not authenticated - use environment variable (for API access)
+                $apiKey = config('services.openrouter.api_key') ?? env('OPENROUTER_API_KEY');
+                if (!$apiKey) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'OpenRouter API key is not configured in environment variables.'
+                    ], 400);
+                }
+            } else {
+                // Authenticated - use user-specific key or fallback to environment
+                $apiKey = $this->getOpenRouterApiKey();
+            }
+
+            // Make request to OpenRouter API to check key info
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+            ])->timeout(30)->get('https://openrouter.ai/api/v1/auth/key');
+
+            if (!$response->successful()) {
+                Log::error('OpenRouter API key check failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to check API key: HTTP ' . $response->status()
+                ], $response->status());
+            }
+
+            $keyData = $response->json();
+
+            Log::info('OpenRouter API key check successful', [
+                'usage' => $keyData['data']['usage'] ?? 'unknown',
+                'limit' => $keyData['data']['limit'] ?? 'unknown',
+                'is_free_tier' => $keyData['data']['is_free_tier'] ?? 'unknown'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $keyData['data'] ?? null,
+                'message' => 'API key information retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('OpenRouter API key check failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to check API limits: ' . $e->getMessage()
             ], 500);
         }
     }

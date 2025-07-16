@@ -34,6 +34,7 @@ Route::any('comments/{id}{exam_id}', 'ResultController@comments')->name('result.
 Route::any('rating/{id}/{exam_id}', 'ResultController@rating')->name('result.rating');
 Route::any('score-book/store', 'MarkRegisterController@store')->name('score.book.store');
 Route::any('score-book/modal', 'MarkRegisterController@showScoreBookModal')->name('score.book.modal');
+Route::get('openrouter/limits', 'MarkRegisterController@checkApiLimits')->name('result.openrouter.limits');
 
 // Test route to verify score-book routing is working
 Route::get('score-book/test', function() {
@@ -45,6 +46,11 @@ Route::post('upload', 'ImportController@upload')->name('result.upload');
 // Overrides
 Route::get('student-view/{id}/{type?}', 'StudentController@show')->name('student_view');
 Route::get('my-children/{id}', 'ParentController@myChildren')->name('my_children_result');
-Route::get('utility', 'UtilityController@index')->name('utility');
+Route::get('utility', 'UtilityController@index')->name('result.utility');
 Route::get('email-sms-log', 'ResultController@emailLogs')->name('email-sms-log')->middleware('userRolePermission:email-sms-log');
 Route::get('download-student-uploads', 'UtilityController@downloadStudentUploads')->name('result.download_student_uploads');
+
+// Gmail Integration Routes
+Route::get('gmail/auth', 'UtilityController@gmailAuth')->name('result.gmail.auth');
+Route::get('gmail/callback', 'UtilityController@gmailCallback')->name('result.gmail.callback');
+Route::get('gmail/status', 'UtilityController@gmailStatus')->name('result.gmail.status');

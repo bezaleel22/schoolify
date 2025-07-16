@@ -1,17 +1,31 @@
 {
     "name": "nwidart/website",
-    "description": "",
+    "description": "Modern School Website Module with comprehensive features including blog, events, gallery, and Google OAuth integration",
     "authors": [
         {
             "name": "Nicolas Widart",
             "email": "n.widart@gmail.com"
         }
     ],
+    "require": {
+        "laravel/socialite": "^5.0",
+        "spatie/laravel-sluggable": "^3.4",
+        "spatie/laravel-sitemap": "^6.0",
+        "spatie/laravel-feed": "^4.0",
+        "artesaos/seotools": "^0.22",
+        "league/commonmark": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "mockery/mockery": "^1.5"
+    },
     "extra": {
         "laravel": {
-            "providers": [],
+            "providers": [
+                "Modules\\Website\\Providers\\WebsiteServiceProvider"
+            ],
             "aliases": {
-
+                "Website": "Modules\\Website\\Facades\\Website"
             }
         }
     },
@@ -19,5 +33,30 @@
         "psr-4": {
             "Modules\\Website\\": ""
         }
-    }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Website\\Tests\\": "Tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "keywords": [
+        "laravel",
+        "module",
+        "website",
+        "cms",
+        "blog",
+        "events",
+        "gallery",
+        "seo",
+        "google-oauth",
+        "school-website"
+    ]
 }

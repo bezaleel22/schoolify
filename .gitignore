@@ -4,6 +4,7 @@
 .env
 .env.*.backup
 /backups
+/llaweb
 
 # Laravel specific directories
 /storage/*.key

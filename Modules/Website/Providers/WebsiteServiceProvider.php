@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Factory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Config;
 use Laravel\Passport\Passport;
 
 class WebsiteServiceProvider extends ServiceProvider
@@ -48,6 +49,11 @@ class WebsiteServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->register(RouteServiceProvider::class);
+        
+        // Register commands
+        $this->commands([
+            \Modules\Website\Console\PublishAssetsCommand::class,
+        ]);
     }
 
     /**
@@ -63,6 +69,13 @@ class WebsiteServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(
             module_path($this->moduleName, 'Config/config.php'), $this->moduleNameLower
         );
+        
+        // Register socialite config for the services config
+        if (file_exists(module_path($this->moduleName, 'Config/socialite.php'))) {
+            $this->mergeConfigFrom(
+                module_path($this->moduleName, 'Config/socialite.php'), 'services'
+            );
+        }
     }
 
     /**
@@ -112,10 +125,31 @@ class WebsiteServiceProvider extends ServiceProvider
         }
     }
 
-    public function registerResource (){
+    public function registerResource()
+    {
+        // Publish all frontend assets
         $this->publishes([
-            __DIR__ . '/../Resources/assets/js' => public_path('modules/website/js'),
-        ], 'public');
+            __DIR__ . '/../Resources/assets/css' => public_path('css'),
+            __DIR__ . '/../Resources/assets/js' => public_path('js'),
+            __DIR__ . '/../Resources/assets/fonts' => public_path('fonts'),
+            __DIR__ . '/../Resources/assets/images' => public_path('images'),
+        ], 'website-assets');
+
+        // Publish PWA files to root public directory
+        $this->publishes([
+            __DIR__ . '/../Resources/assets/manifest.json' => public_path('manifest.json'),
+            __DIR__ . '/../Resources/assets/sw.js' => public_path('sw.js'),
+        ], 'website-pwa');
+
+        // Publish all assets together
+        $this->publishes([
+            __DIR__ . '/../Resources/assets/css' => public_path('css'),
+            __DIR__ . '/../Resources/assets/js' => public_path('js'),
+            __DIR__ . '/../Resources/assets/fonts' => public_path('fonts'),
+            __DIR__ . '/../Resources/assets/images' => public_path('images'),
+            __DIR__ . '/../Resources/assets/manifest.json' => public_path('manifest.json'),
+            __DIR__ . '/../Resources/assets/sw.js' => public_path('sw.js'),
+        ], 'website-all');
     }
 
     /**
@@ -131,7 +165,7 @@ class WebsiteServiceProvider extends ServiceProvider
     private function getPublishableViewPaths(): array
     {
         $paths = [];
-        foreach (\Config::get('view.paths') as $path) {
+        foreach (Config::get('view.paths') as $path) {
             if (is_dir($path . '/modules/' . $this->moduleNameLower)) {
                 $paths[] = $path . '/modules/' . $this->moduleNameLower;
             }

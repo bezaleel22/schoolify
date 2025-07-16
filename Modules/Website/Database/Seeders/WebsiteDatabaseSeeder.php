@@ -16,6 +16,18 @@ class WebsiteDatabaseSeeder extends Seeder
     {
         Model::unguard();
 
-        // $this->call("OthersTableSeeder");
+        $this->command->info('Starting Website module database seeding...');
+
+        // Seed in order of dependencies
+        $this->call([
+            BlogCategorySeeder::class,
+            WebsitePageSeeder::class,
+            BlogPostSeeder::class,
+            EventSeeder::class,
+            StaffMemberSeeder::class,
+            GallerySeeder::class,
+        ]);
+
+        $this->command->info('Website module database seeding completed successfully!');
     }
 }

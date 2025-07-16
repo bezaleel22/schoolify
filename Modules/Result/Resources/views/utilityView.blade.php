@@ -75,6 +75,26 @@
                         </div>
                     </a>
                 </div>
+
+                <div class="col-md-4 col-lg-3 col-sm-6">
+                    <a class="white-box single-summery fuchsia d-block btn-ajax" href="#" id="gmail-integration-card">
+                        <div class="d-block mt-10 text-center">
+                            <h3><i class="ti-import font_30"></i></h3>
+                            <h1 class="gradient-color2 total_purchase">Gmail Integration</h1>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-4 col-lg-3 col-sm-6">
+                    <a class="white-box single-summery fuchsia d-block btn-ajax" href="#" id="api-limits-card">
+                        <div class="d-block mt-10 text-center">
+                            <h3><i class="ti-import font_30"></i></h3>
+
+                            <h1 class="gradient-color2 total_purchase">Check API Limits</h1>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
         <div class="row mt-40">
@@ -115,8 +135,6 @@
                                             Upload
                                         </button>
                                         <div id="progwe need to add a card after " Send Result Emails" to archieve and download the public/uploads/student folder in Modules/Result/Resources/views/utilityView.blade.php and Modules/Result/Http/Controllers/UtilityController.php in performannt and streaming wayressBar" class="progress-bar violet mt-10" role="progressbar" style="width: 0%;"></div>
-
-
                                     </div>
                                 </div>
                             </div>
@@ -245,114 +263,21 @@
 
 
 </section>
-
-<script>
-    const CHUNK_SIZE = 1 * 1024 * 1024; // 2MB per chunk
-    // const CHUNK_SIZE = 100 * 1024; // 100KB per chunk
-    let filename = $("#dataUploadFileInput");
-    let fileChunks = [];
-    let fileHash;
-
-    document.getElementById('upload_student_file').addEventListener('change', function(e) {
-        file = e.target.files[0];
-        if (file) {
-            let totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-            fileChunks = [];
-            $('#file_loader').addClass('pre_loader');
-            $('#file_loader').removeClass('loader');
-
-            // Compute the hash of the entire file
-            computeFileHash(file).then((hash) => {
-                fileHash = hash;
-                console.log('File Hash (SHA-256):', fileHash); // Log the hash
-                filename.val(file.name)
-                $('#file_loader').removeClass('pre_loader');
-                $('#file_loader').addClass('loader');
-
-                // Prepare the file chunks for upload
-                for (let i = 0; i < totalChunks; i++) {
-                    fileChunks.push({
-                        chunk: file.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
-                        , chunkIndex: i
-                        , totalChunks: totalChunks
-                    });
-                }
-            });
-        }
-    });
-
-
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        uploadChunk(0);
-    });
-
-    function uploadChunk(chunkIndex) {
-        let chunk = fileChunks[chunkIndex];
-        let totalChunks = chunk.totalChunks
-        let formData = new FormData();
-        formData.append('file', chunk.chunk);
-        formData.append('chunkIndex', chunk.chunkIndex);
-        formData.append('totalChunks', totalChunks);
-        formData.append('filename', file.name);
-        formData.append('fileHash', fileHash);
-
-        $.ajax({
-            url: '{{ route("result.upload") }}'
-            , type: 'POST'
-            , data: formData
-            , processData: false
-            , contentType: false
-            , success: function(response) {
-                console.log(`Chunk ${chunkIndex + 1}/${totalChunks}:`, response);
-
-                // Update progress bar
-                const progress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
-                $('#progressBar').css('width', progress + '%').text(progress + '%');
-
-                if (response.success) {
-                    $('#progressBar').css('width', '100%').text('100%');
-                    toastr.success(response.message, 'Success')
-                    return;
-                } else {
-                    uploadChunk(response.nextIndex);
-                }
-            }
-            , error: function(error) {
-                console.error(`Error uploading chunk ${chunkIndex + 1}:`, error);
-                toastr.error('An error occurred while uploading the file.', 'Failed')
-            }
-        });
-    };
-
-
-    function computeFileHash(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const buffer = e.target.result;
-                crypto.subtle.digest('SHA-256', buffer).then(function(hashBuffer) {
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-                    resolve(hashHex); // Return the SHA-256 hash
-                }).catch(reject);
-            };
-            reader.readAsArrayBuffer(file);
-        });
-    }
-
-</script>
-
-
 @endsection
 
 @section('script')
+<script>
+    // Set global variables for the external JS file
+    window.uploadUrl = '{{ route("result.upload") }}';
+    window.gmailStatusUrl = '{{ route("result.gmail.status") }}';
+    window.gmailAuthUrl = '{{ route("result.gmail.auth") }}';
+    window.apiLimitsUrl = '{{ route("result.openrouter.limits") }}';
+</script>
+<script src="{{asset('Modules/Result/Resources/assets/js/utilityView.js')}}"></script>
 <script language="JavaScript">
     $('#selectAll').click(function() {
         $('input:checkbox').prop('checked', this.checked);
-
     });
-
 </script>
 @endsection
 
@@ -362,6 +287,6 @@
         getFileName($(this).val(), '#placeholderFileFourName');
         imageChangeWithFile($(this)[0], '#blahImg');
     });
-
 </script>
 @endpush
+

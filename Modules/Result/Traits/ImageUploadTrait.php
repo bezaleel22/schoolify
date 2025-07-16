@@ -123,19 +123,8 @@ trait ImageUploadTrait
             $imageData = base64_encode($imageContent);
             $imageUrl = "data:{$mimeType};base64,{$imageData}";
 
-            // Get OpenRouter API key from SmStaff experience field
-            $apiKey = SmStaff::where('user_id', Auth::user()->id)
-                ->where('school_id', Auth::user()->school_id)
-                ->select('experience')
-                ->value('experience');
-
-            if (!$apiKey) {
-                // Fallback to environment variable
-                $apiKey = config('services.openrouter.api_key') ?? env('OPENROUTER_API_KEY');
-                if (!$apiKey) {
-                    throw new \Exception('OpenRouter API key is not configured. Please set the API key in your staff experience field or OPENROUTER_API_KEY in your .env file.');
-                }
-            }
+            // Get OpenRouter API key using helper method
+            $apiKey = $this->getOpenRouterApiKey();
 
             // Generate dynamic subject mapping
             $subjectMapping = $this->generateSubjectMapping();
@@ -145,7 +134,7 @@ trait ImageUploadTrait
 
 Determine the headers based on the presence of the phrase **\"Learning Areas\"** in the image:
 
-- If the image **contains \"Learning Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `EXAM`.
+- If the image **contains \"Learning Areas\" OR \"L.Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `EXAM`.
 - Otherwise, use these headers: `subject_id`, `subject_code`, `MT1`, `MT2`, `CA`, `EXAM`.
 
 Ignore all metadata or student information such as name, admission number, class, attendance, and term. Also ignore `TOTAL` and `GRADE`.
@@ -269,5 +258,30 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
         $cleanedCsv = implode("\n", $csvLines);
 
         return $cleanedCsv;
+    }
+
+    /**
+     * Get OpenRouter API key from SmStaff experience field or environment
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function getOpenRouterApiKey()
+    {
+        // Get OpenRouter API key from SmStaff experience field
+        $apiKey = SmStaff::where('user_id', Auth::user()->id)
+            ->where('school_id', Auth::user()->school_id)
+            ->select('experience')
+            ->value('experience');
+
+        if (!$apiKey) {
+            // Fallback to environment variable
+            $apiKey = config('services.openrouter.api_key') ?? env('OPENROUTER_API_KEY');
+            if (!$apiKey) {
+                throw new \Exception('OpenRouter API key is not configured. Please set the API key in your staff experience field or OPENROUTER_API_KEY in your .env file.');
+            }
+        }
+
+        return $apiKey;
     }
 }
