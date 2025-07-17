@@ -39,7 +39,7 @@ trait ImageUploadTrait
             $forceReextraction = $request->input('force_reextraction', false);
             $examId = $request->input('exam_id');
             $studentId = $request->input('student_id');
-            
+
             return $this->extractCsvFromImage($request->file('marks_image'), $forceReextraction, $examId, $studentId);
         }
 
@@ -69,7 +69,7 @@ trait ImageUploadTrait
             return implode("  \n", $subjectMapping);
         } catch (\Exception $e) {
             // Fallback to a basic mapping if database query fails
-           throw $e;
+            throw $e;
         }
     }
 
@@ -132,10 +132,10 @@ trait ImageUploadTrait
             // Build the AI prompt
             $promptText = "Extract all visible structured data from this student report card image. Return only the CSV content and nothing else—no explanations, descriptions, or additional text before or after the CSV.
 
-Determine the headers based on the presence of the phrase **\"Learning Areas\"** in the image:
+Determine the headers based on the presence of the word **\"Areas\"** in the image:
 
-- If the image **contains \"Learning Areas\" OR \"L.Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `EXAM`.
-- Otherwise, use these headers: `subject_id`, `subject_code`, `MT1`, `MT2`, `CA`, `EXAM`.
+- If the image **contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `EXAM`.
+- If the image **does not contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `MT1`, `MT2`, `CA`, `EXAM`.
 
 Ignore all metadata or student information such as name, admission number, class, attendance, and term. Also ignore `TOTAL` and `GRADE`.
 
@@ -152,7 +152,7 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $apiKey,
             ])->timeout(60)->post('https://openrouter.ai/api/v1/chat/completions', [
-                'model' => 'qwen/qwen2.5-vl-32b-instruct:free',
+                'model' => 'qwen/qwen2.5-vl-72b-instruct:free',
                 'messages' => [
                     [
                         'role' => 'user',
@@ -171,12 +171,12 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
                     ]
                 ],
                 'stream' => false,     // Disable streaming
-                'temperature' => 0.1,  // Low temperature for more predictable responses
-                'max_tokens' => 2000,  // Limit response length
-                'top_p' => 0.9,        // Focus on most likely tokens
-                'frequency_penalty' => 0.3,  // Reduce repetition
-                'presence_penalty' => 0.2,   // Encourage staying on topic
-                'stop' => ['```', 'Note:', 'Example:', 'Here', 'The']  // Stop on explanatory words
+                // 'temperature' => 0.1,  // Low temperature for more predictable responses
+                // 'max_tokens' => 2000,  // Limit response length
+                // 'top_p' => 0.9,        // Focus on most likely tokens
+                // 'frequency_penalty' => 0.3,  // Reduce repetition
+                // 'presence_penalty' => 0.2,   // Encourage staying on topic
+                // 'stop' => ['```', 'Note:', 'Example:', 'Here', 'The']  // Stop on explanatory words
             ]);
 
             if (!$response->successful()) {
@@ -214,6 +214,7 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
      */
     private function cleanCsvResponse($response)
     {
+
         // Remove any markdown formatting
         $response = preg_replace('/```csv\s*\n?/', '', $response);
         $response = preg_replace('/```\s*$/', '', $response);
@@ -256,7 +257,6 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
         }
 
         $cleanedCsv = implode("\n", $csvLines);
-
         return $cleanedCsv;
     }
 
