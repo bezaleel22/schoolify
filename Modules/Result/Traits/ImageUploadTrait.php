@@ -64,7 +64,7 @@ trait ImageUploadTrait
                 ->where('section_id', $section_id)
                 ->where('academic_id', $academic_id)
                 ->where('school_id', $school_id)
-                ->pluck('subject_id')->toArray();
+                ->pluck('subject_id')->unique()->toArray();
 
             $subjects = SmSubject::where('active_status', 1)
                 ->where('school_id', Auth::user()->school_id)
@@ -72,7 +72,7 @@ trait ImageUploadTrait
                 ->whereIn('id', $subject_ids)
                 ->select('id', 'subject_name', 'subject_code')
                 ->get();
-          
+
             $subjectMapping = [];
             foreach ($subjects as $subject) {
                 $subjectCode = $subject->subject_code ?: strtoupper(substr($subject->subject_name, 0, 3));
@@ -82,6 +82,7 @@ trait ImageUploadTrait
             return implode("  \n", $subjectMapping);
         } catch (\Exception $e) {
             // Fallback to a basic mapping if database query fails
+            dd($e->getMessage());
             throw $e;
         }
     }
