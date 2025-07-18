@@ -89,9 +89,9 @@
                             <th>REPORT</th>
                             <th>EXAM</th>
                             @else
-                            @foreach ($records[0]->marks as $exam_title => $record)
-                            <th>{{ $exam_title }}</th>
-                            @endforeach
+                            @endphp
+                            <th>CA</th>
+                            <th>EXAM</th>
                             @endif
                             <th>@lang('result::student.score')</th>
                             <th>@lang('result::student.grade')</th>
@@ -107,9 +107,8 @@
                             <td>{{ $record->marks["REPORT"]?? 0 }}</td>
                             <td>{{ $record->marks["EXAM"]?? 0 }}</td>
                             @else
-                            @foreach ($record->marks as $mark)
-                            <td>{{ $mark }}</td>
-                            @endforeach
+                            <td>{{ $record->marks["CA"] ?? 0 }}</td>
+                            <td>{{ $record->marks["EXAM"]?? 0 }}</td>
                             @endif
                             <td>{{ @$record->total_score }}</td>
                             <td>{{ @$record->grade }}</td>

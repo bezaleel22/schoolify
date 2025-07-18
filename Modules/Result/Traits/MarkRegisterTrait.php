@@ -34,7 +34,7 @@ trait MarkRegisterTrait
             if (!$csvData['success']) {
                 return $csvData;
             }
-
+            
             $csvFormat = $this->detectCsvFormat($csvData['headers']);
             $processedMarks = [];
             $currentIndex = 1;
@@ -178,9 +178,25 @@ trait MarkRegisterTrait
                 break;
 
             case 'EYFS':
-                if (isset($rowData['EXAM']) && is_numeric($rowData['EXAM'])) {
-                    $marks[] = (float)$rowData['EXAM'];
-                    $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, 'EXAM');
+                $examTypes = [
+                    'CA',
+                    'ORAL',
+                    'PSYCHOMOTTOR',
+                    'HOMEWORK',
+                ];
+                $ca = 0;
+                foreach ($examTypes as $examType) {
+                    if (isset($rowData[$examType]) && is_numeric($rowData[$examType])) {
+                        $ca += (float)$rowData[$examType];
+                    }
+                }
+                $examTypes = [
+                    'CA' => $ca,
+                    'EXAM' => (float)$rowData['EXAM'],
+                ];
+                foreach ($examTypes as $key => $examType) {
+                    $marks[] = $examType;
+                    $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, $key);
                 }
                 break;
 
@@ -195,10 +211,11 @@ trait MarkRegisterTrait
                 break;
         }
 
-        return [
+        $marks_data = [
             'marks' => $marks,
             'exam_setup_ids' => $examSetupIds
         ];
+        return $marks_data;
     }
 
     /**

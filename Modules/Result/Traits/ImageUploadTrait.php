@@ -134,7 +134,7 @@ trait ImageUploadTrait
 
 Determine the headers based on the presence of the word **\"Areas\"** in the image:
 
-- If the image **contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `EXAM`.
+- If the image **contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `CA`, ``ORAL`,`, `PSYCHOMOTTOR`, `HOMEWORK`, `EXAM`.
 - If the image **does not contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `MT1`, `MT2`, `CA`, `EXAM`.
 
 Ignore all metadata or student information such as name, admission number, class, attendance, and term. Also ignore `TOTAL` and `GRADE`.
@@ -199,7 +199,7 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
             if (empty($csvContent)) {
                 throw new \Exception('No valid CSV data could be extracted from the image');
             }
-
+// dd($csvContent);
             return $csvContent;
         } catch (RequestException $e) {
             throw new \Exception('Network error while processing image: ' . $e->getMessage());
