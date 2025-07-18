@@ -2,6 +2,8 @@
 
 namespace Modules\Result\Traits;
 
+use App\SmExamSetup;
+use App\SmExamType;
 use App\SmStaff;
 use App\SmSubject;
 use Illuminate\Support\Facades\Auth;
@@ -36,11 +38,7 @@ trait ImageUploadTrait
                 throw new \Exception('Image file is required when upload type is Image.');
             }
 
-            $forceReextraction = $request->input('force_reextraction', false);
-            $examId = $request->input('exam_id');
-            $studentId = $request->input('student_id');
-
-            return $this->extractCsvFromImage($request->file('marks_image'), $forceReextraction, $examId, $studentId);
+            return $this->extractCsvFromImage($request);
         }
 
         throw new \Exception('Invalid upload type specified.');
@@ -51,15 +49,30 @@ trait ImageUploadTrait
      *
      * @return string
      */
-    private function generateSubjectMapping()
+    private function generateSubjectMapping($request)
     {
         try {
+            $examId = $request->input('exam_id');
+            $class_id = $request->input('class_id');
+            $section_id = $request->input('section_id');
+
+            $academic_id = getAcademicId();
+            $school_id = Auth::user()->school_id;
+
+            $subject_ids = SmExamSetup::where('exam_term_id', $examId)
+                ->where('class_id', $class_id)
+                ->where('section_id', $section_id)
+                ->where('academic_id', $academic_id)
+                ->where('school_id', $school_id)
+                ->pluck('subject_id')->toArray();
+
             $subjects = SmSubject::where('active_status', 1)
                 ->where('school_id', Auth::user()->school_id)
                 ->where('academic_id', getAcademicId())
+                ->whereIn('id', $subject_ids)
                 ->select('id', 'subject_name', 'subject_code')
                 ->get();
-
+          
             $subjectMapping = [];
             foreach ($subjects as $subject) {
                 $subjectCode = $subject->subject_code ?: strtoupper(substr($subject->subject_name, 0, 3));
@@ -80,16 +93,21 @@ trait ImageUploadTrait
      * @return string CSV data
      * @throws \Exception
      */
-    protected function extractCsvFromImage(UploadedFile $imageFile, $forceReextraction = false, $examId = null, $studentId = null)
+    protected function extractCsvFromImage($request)
     {
         try {
+            $examId = $request->input('exam_id');
+            $studentId = $request->input('student_id');
+            $imageFile = $request->file('marks_image');
+            $forceReextraction = $request->input('force_reextraction', false);
+
             // Validate image file
             if (!in_array($imageFile->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'])) {
                 throw new \Exception('Invalid image format. Only JPEG, PNG, and GIF are supported.');
             }
 
             // Generate cache key using exam_id and student_id hash for better caching
-            $subjectMapping = $this->generateSubjectMapping();
+            $subjectMapping = $this->generateSubjectMapping($request);
             $examStudentHash = md5($examId . '_' . $studentId);
             $cacheKey = "csv_extraction_{$examStudentHash}_" . md5($subjectMapping);
 
@@ -99,9 +117,9 @@ trait ImageUploadTrait
             }
 
             // Use Cache::remember pattern with 24-hour expiry
-            return Cache::remember($cacheKey, now()->addDay(), function () use ($imageFile) {
+            return Cache::remember($cacheKey, now()->addDay(), function () use ($imageFile, $subjectMapping) {
                 $imageContent = file_get_contents($imageFile->getPathname());
-                return $this->performAiExtraction($imageContent, $imageFile->getMimeType());
+                return $this->performAiExtraction($imageContent, $imageFile->getMimeType(), $subjectMapping);
             });
         } catch (\Exception $e) {
             throw $e;
@@ -116,7 +134,7 @@ trait ImageUploadTrait
      * @return string
      * @throws \Exception
      */
-    private function performAiExtraction($imageContent, $mimeType)
+    private function performAiExtraction($imageContent, $mimeType, $subjectMapping)
     {
         try {
             // Convert image to base64
@@ -125,9 +143,6 @@ trait ImageUploadTrait
 
             // Get OpenRouter API key using helper method
             $apiKey = $this->getOpenRouterApiKey();
-
-            // Generate dynamic subject mapping
-            $subjectMapping = $this->generateSubjectMapping();
 
             // Build the AI prompt
             $promptText = "Extract all visible structured data from this student report card image. Return only the CSV content and nothing else—no explanations, descriptions, or additional text before or after the CSV.
@@ -199,7 +214,7 @@ Return clean, valid CSV format only. No surrounding text, markdown, or commentar
             if (empty($csvContent)) {
                 throw new \Exception('No valid CSV data could be extracted from the image');
             }
-// dd($csvContent);
+
             return $csvContent;
         } catch (RequestException $e) {
             throw new \Exception('Network error while processing image: ' . $e->getMessage());

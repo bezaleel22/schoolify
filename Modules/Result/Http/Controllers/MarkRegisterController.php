@@ -263,14 +263,24 @@ class MarkRegisterController extends Controller
             $student = $request->input('student', []);
 
             // Get student details for hidden fields
-            // Get student details for hidden fields
             $student_id = $student['id'] ?? null;
             $exam_id = $request->input('exam_id', 1); // Default exam_id
 
+            $student_record = StudentRecord::where('student_id', $student_id)
+                ->where('academic_id', getAcademicId())
+                ->where('school_id', Auth::user()->school_id)
+                ->first();
+
+            $class_id = $student_record->class_id;
+            $section_id = $student_record->section_id;
+
             $content = view('result::partials.score_book_modal', compact(
                 'student_id',
-                'exam_id'
+                'exam_id',
+                'class_id',
+                'section_id'
             ))->render();
+            
             return response()->json([
                 'success' => true,
                 'title' => 'Add Score Book',
