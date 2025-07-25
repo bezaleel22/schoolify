@@ -33,10 +33,16 @@
                                 Send Emails
                             </a>
                         </div>
-                        <div class=" no-gutters mb-2">
+                        <div class=" no-gutters mb-2 mr-2">
                             <a href="{{route('result.resend_emails')}}" class="primary-btn small fix-gr-bg">
                                 Resend Emails
                             </a>
+                        </div>
+                        <div class=" no-gutters mb-2">
+                            <button id="refresh-delivery-status" class="primary-btn small fix-gr-bg">
+                                <span class="ti-reload pr-2"></span>
+                                Refresh Delivery Status
+                            </button>
                         </div>
                     </div>
 
@@ -51,6 +57,8 @@
                                             <th> @lang('common.description')</th>
                                             <th> @lang('common.date')</th>
                                             <th> @lang('common.type')</th>
+                                            <th> Gmail Message ID</th>
+                                            <th> Delivery Status</th>
                                             @if(moduleStatusCheck('University'))
                                             <th>@lang('common.session')</th>
                                             <th>@lang('university::un.faculty')</th>
@@ -112,6 +120,16 @@
                 , {
                     data: 'send_via'
                     , name: 'type'
+                }
+                , {
+                    data: 'gmail_message_id'
+                    , name: 'gmail_message_id'
+                    , defaultContent: '-'
+                }
+                , {
+                    data: 'delivery_status'
+                    , name: 'delivery_status'
+                    , defaultContent: 'unknown'
                 }
                 , @if(moduleStatusCheck('University')) {
                     data: 'un_session'
@@ -264,6 +282,16 @@
                     data: 'send_via'
                     , name: 'send_via'
                 }
+                , {
+                    data: 'gmail_message_id'
+                    , name: 'gmail_message_id'
+                    , defaultContent: '-'
+                }
+                , {
+                    data: 'delivery_status'
+                    , name: 'delivery_status'
+                    , defaultContent: 'unknown'
+                }
             , ]
             , bLengthChange: false
             , bDestroy: true
@@ -350,6 +378,48 @@
         , });
     });
 
+</script>
+
+<script>
+$(document).ready(function() {
+    // Refresh Delivery Status functionality
+    $('#refresh-delivery-status').on('click', function() {
+        var button = $(this);
+        var originalText = button.html();
+        
+        // Disable button and show loading state
+        button.prop('disabled', true);
+        button.html('<span class="ti-reload"></span> Checking...');
+        
+        // Make AJAX request to refresh delivery status
+        $.ajax({
+            url: '{{ route("result.refresh_delivery_status") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Reload DataTable to show updated status
+                    $('.data-table').DataTable().ajax.reload();
+                    
+                    // Show success message
+                    toastr.success(response.message || 'Delivery status updated successfully');
+                } else {
+                    toastr.error(response.message || 'Failed to update delivery status');
+                }
+            },
+            error: function(xhr, status, error) {
+                toastr.error('Error refreshing delivery status: ' + error);
+            },
+            complete: function() {
+                // Re-enable button and restore original text
+                button.prop('disabled', false);
+                button.html(originalText);
+            }
+        });
+    });
+});
 </script>
 @endif
 @endpush

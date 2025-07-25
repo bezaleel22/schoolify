@@ -258,4 +258,114 @@ class UtilityController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Refresh delivery status for Gmail emails by checking for bounces
+     */
+    public function refreshDeliveryStatus()
+    {
+        try {
+            // Get Gmail messages with Message IDs from our database
+            $emailLogs = \App\SmEmailSmsLog::whereNotNull('gmail_message_id')
+                ->where('delivery_status', 'sent')
+                ->get();
+
+            if ($emailLogs->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No Gmail messages found to check.'
+                ]);
+            }
+
+            if (!$this->isGmailConfigured()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gmail is not configured properly.'
+                ]);
+            }
+
+            $this->initializeGmailClient();
+            $accessToken = $this->client->getAccessToken()['access_token'];
+            $updatedCount = 0;
+
+            foreach ($emailLogs as $log) {
+                try {
+                    // First, get the message to retrieve thread ID if not stored
+                    $response = \Illuminate\Support\Facades\Http::withHeaders([
+                        'Authorization' => 'Bearer ' . $accessToken,
+                    ])->get('https://gmail.googleapis.com/gmail/v1/users/me/messages/' . $log->gmail_message_id);
+
+                    if ($response->successful()) {
+                        $messageData = $response->json();
+                        $threadId = $log->gmail_thread_id ?? $messageData['threadId'];
+                        
+                        // Update thread ID if missing
+                        if (!$log->gmail_thread_id && isset($messageData['threadId'])) {
+                            $log->gmail_thread_id = $messageData['threadId'];
+                        }
+
+                        // Check thread for bounce messages
+                        $threadResponse = \Illuminate\Support\Facades\Http::withHeaders([
+                            'Authorization' => 'Bearer ' . $accessToken,
+                        ])->get('https://gmail.googleapis.com/gmail/v1/users/me/threads/' . $threadId);
+
+                        if ($threadResponse->successful()) {
+                            $threadData = $threadResponse->json();
+                            $newStatus = 'delivered'; // Default to delivered
+                            
+                            // Check for bounce indicators in thread messages
+                            foreach ($threadData['messages'] as $msg) {
+                                if (isset($msg['payload']['headers'])) {
+                                    foreach ($msg['payload']['headers'] as $header) {
+                                        if ($header['name'] === 'Subject') {
+                                            $subject = strtolower($header['value']);
+                                            
+                                            // Check for bounce keywords in subject
+                                            if (strpos($subject, 'delivery status notification') !== false ||
+                                                strpos($subject, 'undelivered mail') !== false ||
+                                                strpos($subject, 'failure') !== false ||
+                                                strpos($subject, 'bounced') !== false ||
+                                                strpos($subject, 'returned mail') !== false) {
+                                                $newStatus = 'bounced';
+                                                break 2;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Update status if it changed
+                            if ($log->delivery_status !== $newStatus) {
+                                $log->delivery_status = $newStatus;
+                                $updatedCount++;
+                            }
+                        }
+                        
+                        $log->save();
+                        
+                    } else if ($response->status() === 404) {
+                        // Message not found, might have bounced or been deleted
+                        $log->delivery_status = 'failed';
+                        $log->save();
+                        $updatedCount++;
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Failed to check delivery status for message {$log->gmail_message_id}: " . $e->getMessage());
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'updated_count' => $updatedCount,
+                'message' => "Checked delivery status. Updated {$updatedCount} records."
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gmail delivery status refresh failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to refresh delivery status: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

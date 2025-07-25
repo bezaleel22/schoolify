@@ -31,7 +31,7 @@ if (!function_exists('showDocumentName')) {
 }
 
 if (!function_exists('logEmail')) {
-    function logEmail($title, $dsc, $send_to, $stu_exam)
+    function logEmail($title, $dsc, $send_to, $stu_exam, $gmail_message_id = null, $delivery_status = 'sent', $gmail_thread_id = null)
     {
 
         $emailSmsData = SmEmailSmsLog::where('academic_id', getAcademicId())
@@ -49,6 +49,16 @@ if (!function_exists('logEmail')) {
         $emailSmsData->send_to = $send_to;
         $emailSmsData->school_id = 1;
         $emailSmsData->academic_id = getAcademicId();
+        
+        // Add Gmail-specific fields if provided
+        if ($gmail_message_id) {
+            $emailSmsData->gmail_message_id = $gmail_message_id;
+        }
+        if ($gmail_thread_id) {
+            $emailSmsData->gmail_thread_id = $gmail_thread_id;
+        }
+        $emailSmsData->delivery_status = $delivery_status;
+        
         $success = $emailSmsData->save();
 
         return $success;
@@ -109,6 +119,66 @@ if (!function_exists('generatePDF')) {
 
         $response = Gotenberg::send($req);
         return $response->withHeader('Content-Disposition', "inline; filename='$fileName.pdf'");
+    }
+}
+
+if (!function_exists('generatePDFWithPrince')) {
+    function generatePDFWithPrince($result_data, $id, $exam_id)
+    {
+        $school = $result_data->school;
+        $student = $result_data->student;
+        $records = $result_data->records;
+        $score = $result_data->score;
+        $ratings = $result_data->ratings;
+        $remark = $result_data->remark;
+
+        $compact = compact('student', 'school', 'ratings', 'records', 'score', 'remark');
+        $html = view('result::template.result', $compact)->render();
+
+        $fileName = md5($id . $exam_id);
+        
+        // Create temporary HTML file
+        $tempHtmlPath = storage_path('app/temp/' . $fileName . '.html');
+        $tempPdfPath = storage_path('app/temp/' . $fileName . '.pdf');
+        
+        // Ensure temp directory exists
+        if (!file_exists(dirname($tempHtmlPath))) {
+            mkdir(dirname($tempHtmlPath), 0755, true);
+        }
+        
+        // Write HTML to temporary file
+        file_put_contents($tempHtmlPath, $html);
+        
+        // Use PrinceXML to convert HTML to PDF
+        $princeCommand = 'prince --style-pdf-page-margins="4mm 2mm 2mm 2mm" --verbose "' . $tempHtmlPath . '" -o "' . $tempPdfPath . '"';
+        
+        $output = [];
+        $return_code = 0;
+        exec($princeCommand, $output, $return_code);
+        
+        if ($return_code !== 0) {
+            // Fallback to original Gotenberg method if PrinceXML fails
+            \Illuminate\Support\Facades\Log::warning('PrinceXML failed, falling back to Gotenberg', ['output' => $output, 'return_code' => $return_code]);
+            
+            // Clean up temp files
+            if (file_exists($tempHtmlPath)) unlink($tempHtmlPath);
+            if (file_exists($tempPdfPath)) unlink($tempPdfPath);
+            
+            return generatePDF($result_data, $id, $exam_id);
+        }
+        
+        // Read the generated PDF
+        $pdfContent = file_get_contents($tempPdfPath);
+        
+        // Clean up temporary files
+        if (file_exists($tempHtmlPath)) unlink($tempHtmlPath);
+        if (file_exists($tempPdfPath)) unlink($tempPdfPath);
+        
+        // Return response with PDF content
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "inline; filename='{$fileName}.pdf'"
+        ]);
     }
 }
 

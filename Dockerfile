@@ -7,6 +7,16 @@ ENV PHP_DISMOD=bz2,exif,ffi,gettext,ldap,imap,pdo_pgsql,pgsql,soap,sockets,sysvm
 WORKDIR ${DOCUMENT_ROOT}
 RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
 
+# Install PrinceXML v16 for production
+RUN apk add --no-cache curl \
+    && curl -L -o prince-16.1-linux-generic-x86_64.tar.gz \
+       "https://www.princexml.com/download/prince-16.1-linux-generic-x86_64.tar.gz" \
+    && tar -xzf prince-16.1-linux-generic-x86_64.tar.gz \
+    && cd prince-16.1-linux-generic-x86_64 \
+    && yes | ./install.sh \
+    && cd .. \
+    && rm -rf prince-16.1-linux-generic-x86_64 prince-16.1-linux-generic-x86_64.tar.gz
+
 COPY --chown=application:www-data . .
 COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.conf
 # COPY docker/default.conf /opt/docker/etc/nginx/vhost.conf

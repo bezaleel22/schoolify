@@ -89,7 +89,7 @@
                             <th>REPORT</th>
                             <th>EXAM</th>
                             @else
-                            @endphp
+                      
                             <th>CA</th>
                             <th>EXAM</th>
                             @endif
@@ -154,7 +154,7 @@
                     <div class="input-effect">
                         <div class="d-flex justify-content-between align-items-center mb-0">
                             <label class="mb-0">@lang('result::student.remark')<span></span></label>
-                            <button onclick="showModal(this)" data-path="{{ route('result.remark', $params) }}" class="btn btn-link btn-sm open-result-modal">
+                            <button {{ $exam->id == $current_term_id ? '' : 'disabled' }} onclick="showModal(this)" data-path="{{ route('result.remark', $params) }}" class="btn btn-link btn-sm open-result-modal">
                                 @lang('result::student.add_remark')
                             </button>
                         </div>

@@ -40,3 +40,9 @@ README.md
 *.bak
 *.tmp
 *.temp
+
+# Ignore PrinceXML binaries and libraries for development
+/bin/prince
+/bin/lib/
+/bin/*.tar.gz
+/bin/prince-*-linux-generic-x86_64/

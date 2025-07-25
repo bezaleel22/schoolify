@@ -140,15 +140,17 @@ trait GmailTrait
             if ($response->successful()) {
                 $responseData = $response->json();
                 $messageId = $responseData['id'];
+                $threadId = $responseData['threadId'];
                 
-                // Log success
-                $this->logGmailDelivery($data, $messageId, 'sent');
+                // Log success with thread ID
+                $this->logGmailDelivery($data, $messageId, 'sent', null, $threadId);
                 
-                Log::info("Gmail email sent successfully. Message ID: {$messageId}");
+                Log::info("Gmail email sent successfully. Message ID: {$messageId}, Thread ID: {$threadId}");
                 
                 return [
                     'success' => true,
                     'message_id' => $messageId,
+                    'thread_id' => $threadId,
                     'status' => 'sent'
                 ];
             } else {
@@ -233,15 +235,24 @@ trait GmailTrait
     /**
      * Log Gmail delivery status
      */
-    protected function logGmailDelivery($data, $messageId, $status, $error = null)
+    protected function logGmailDelivery($data, $messageId, $status, $error = null, $threadId = null)
     {
         try {
             $stu_exam = "{$data->student_id}-{$data->exam_id}";
-            $message = $status === 'sent' 
-                ? "Gmail email sent successfully to {$data->reciver_email}. Message ID: {$messageId}"
+            $message = $status === 'sent'
+                ? "Gmail email sent successfully to {$data->reciver_email}. Message ID: {$messageId}, Thread ID: {$threadId}"
                 : "Gmail email failed: {$error}";
             
-            logEmail($status === 'sent' ? 'Gmail-Success' : 'Gmail-Failed', $message, $data->reciver_email, $stu_exam);
+            // Use the enhanced logEmail function with Gmail-specific parameters
+            logEmail(
+                $status === 'sent' ? 'Gmail-Success' : 'Gmail-Failed',
+                $message,
+                $data->reciver_email,
+                $stu_exam,
+                $messageId, // Gmail message ID
+                $status === 'sent' ? 'sent' : 'failed', // Delivery status
+                $threadId // Gmail thread ID
+            );
         } catch (\Exception $e) {
             Log::error('Failed to log Gmail delivery: ' . $e->getMessage());
         }

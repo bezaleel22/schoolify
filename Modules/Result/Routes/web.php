@@ -54,3 +54,4 @@ Route::get('download-student-uploads', 'UtilityController@downloadStudentUploads
 Route::get('gmail/auth', 'UtilityController@gmailAuth')->name('result.gmail.auth');
 Route::get('gmail/callback', 'UtilityController@gmailCallback')->name('result.gmail.callback');
 Route::get('gmail/status', 'UtilityController@gmailStatus')->name('result.gmail.status');
+Route::post('gmail/refresh-delivery-status', 'UtilityController@refreshDeliveryStatus')->name('result.refresh_delivery_status');

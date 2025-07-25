@@ -14,10 +14,11 @@ class AddGmailColumnsToEmailLogs extends Migration
     public function up()
     {
         Schema::table('sm_email_sms_logs', function (Blueprint $table) {
-            $table->string('gmail_message_id')->nullable()->after('message');
+            $table->string('gmail_message_id')->nullable()->after('description');
+            $table->string('gmail_thread_id')->nullable()->after('gmail_message_id');
             $table->enum('delivery_status', ['sent', 'delivered', 'read', 'bounced', 'failed'])
                   ->default('sent')
-                  ->after('gmail_message_id');
+                  ->after('gmail_thread_id');
         });
     }
 
@@ -29,7 +30,7 @@ class AddGmailColumnsToEmailLogs extends Migration
     public function down()
     {
         Schema::table('sm_email_sms_logs', function (Blueprint $table) {
-            $table->dropColumn(['gmail_message_id', 'delivery_status']);
+            $table->dropColumn(['gmail_message_id', 'gmail_thread_id', 'delivery_status']);
         });
     }
 }

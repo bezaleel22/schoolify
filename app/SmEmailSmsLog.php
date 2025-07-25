@@ -12,13 +12,13 @@ class SmEmailSmsLog extends Model
 {
     use HasFactory;
 
-    public  static function saveEmailSmsLogData($request){
+    public  static function saveEmailSmsLogData($request)
+    {
 
-    	$selectTabb = '';
-        if(empty($request->selectTab)){
+        $selectTabb = '';
+        if (empty($request->selectTab)) {
             $selectTabb = 'G';
-        }
-        else{
+        } else {
             $selectTabb = $request->selectTab;
         }
 
@@ -28,8 +28,8 @@ class SmEmailSmsLog extends Model
         $emailSmsData->send_through = $request->send_through;
         $emailSmsData->send_date = date('Y-m-d');
         $emailSmsData->send_to = $selectTabb;
-        $emailSmsData->school_id =Auth::user()->school_id;
-        $emailSmsData->academic_id =getAcademicId();
+        $emailSmsData->school_id = Auth::user()->school_id;
+        $emailSmsData->academic_id = getAcademicId();
         $success = $emailSmsData->save();
     }
 
@@ -40,12 +40,12 @@ class SmEmailSmsLog extends Model
 
         $common = App::make(UnCommonRepositoryInterface::class);
         $common->storeUniversityData($emailSmsData, $request);
-        
+
         $emailSmsData->description = $request->description;
         $emailSmsData->send_through = $request->send_through;
         $emailSmsData->send_date = date('Y-m-d');
         $emailSmsData->send_to = $request->selectTab;
-        $emailSmsData->school_id =Auth::user()->school_id;
+        $emailSmsData->school_id = Auth::user()->school_id;
         $success = $emailSmsData->save();
     }
 
@@ -83,6 +83,4 @@ class SmEmailSmsLog extends Model
     {
         return $this->belongsTo('App\SmSection', 'un_semester_label_id', 'id')->withDefault();
     }
-
-
 }
