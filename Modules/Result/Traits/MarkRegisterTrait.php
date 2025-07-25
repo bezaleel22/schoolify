@@ -34,7 +34,7 @@ trait MarkRegisterTrait
             if (!$csvData['success']) {
                 return $csvData;
             }
-            
+
             $csvFormat = $this->detectCsvFormat($csvData['headers']);
             $processedMarks = [];
             $currentIndex = 1;
@@ -122,8 +122,12 @@ trait MarkRegisterTrait
             return 'GRADERS';
         }
 
-        if (in_array('EXAM', $headers) && !in_array('MT1', $headers)) {
+        if (in_array('ORAL', $headers) && !in_array('MT1', $headers)) {
             return 'EYFS';
+        }
+
+        if (in_array('CA1', $headers) && in_array('CA2', $headers)) {
+            return 'GRADEK';
         }
 
         return 'GENERIC';
@@ -168,10 +172,10 @@ trait MarkRegisterTrait
 
         switch ($csvFormat) {
             case 'GRADERS':
-                $examTypes = ['MT1' => 'MTA', 'MT2' => 'CA', 'CA' => 'REPORT', 'EXAM' => 'EXAM'];
-                foreach ($examTypes as $key => $examType) {
-                    if (isset($rowData[$key]) && is_numeric($rowData[$key])) {
-                        $marks[] = (float)$rowData[$key];
+                $examTypes = ['MTA', 'CA', 'REPORT', 'EXAM'];
+                foreach ($examTypes as $examType) {
+                    if (isset($rowData[$examType]) && is_numeric($rowData[$examType])) {
+                        $marks[] = (float)$rowData[$examType];
                         $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, $examType);
                     }
                 }
@@ -201,12 +205,26 @@ trait MarkRegisterTrait
                 break;
 
             default:
-                $excludeColumns = ['subject_id', 'subject_code'];
-                foreach ($rowData as $column => $value) {
-                    if (!in_array($column, $excludeColumns) && is_numeric($value)) {
-                        $marks[] = (float)$value;
-                        $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, $column);
+                $examTypes = [
+                    'CA1',
+                    'CA2',
+                    'REPORT',
+                    'HOMEWORK',
+                    'PSYCHOMOTTOR',
+                ];
+                $ca = 0;
+                foreach ($examTypes as $examType) {
+                    if (isset($rowData[$examType]) && is_numeric($rowData[$examType])) {
+                        $ca += (float)$rowData[$examType];
                     }
+                }
+                $examTypes = [
+                    'CA' => $ca,
+                    'EXAM' => (float)$rowData['EXAM'],
+                ];
+                foreach ($examTypes as $key => $examType) {
+                    $marks[] = $examType;
+                    $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, $key);
                 }
                 break;
         }

@@ -150,10 +150,11 @@ trait ImageUploadTrait
 
 Determine the headers based on the presence of the word **\"Areas\"** in the image:
 
-- If the image **contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `CA`, ``ORAL`,`, `PSYCHOMOTTOR`, `HOMEWORK`, `EXAM`.
-- If the image **does not contains the word \"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `MT1`, `MT2`, `CA`, `EXAM`.
+- If the image **contains the word **\"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `CA`, ``ORAL`,`, `PSYCHOMOTTOR`, `HOMEWORK`, `EXAM`.
+- If the image **does not contains the word **\"Areas\"**, use the following CSV headers: `subject_id`, `subject_code`, `MTA`, `CA`, `REPORT`, `EXAM`.
+- If the image contains the word **\"GRADEK\"**, use the following CSV headers: subject_id, subject_code, CA1, CA2, REPORT, HOMEWORK, PSYCHOMOTTOR, EXAM.
 
-Ignore all metadata or student information such as name, admission number, class, attendance, and term. Also ignore `TOTAL` and `GRADE`.
+Ignore all metadata or student information such as name, admission number, class, attendance, and term. Also ignore `TOTAL` and `GRADE` columns.
 
 Match subjects using this subject map and use only the `subject_code` in the output:
 
@@ -162,6 +163,8 @@ Match subjects using this subject map and use only the `subject_code` in the out
 Only include subjects that exist in the map.
 Convert any fractional scores (like 29½) to decimals (e.g., 29.5).
 Return clean, valid CSV format only. No surrounding text, markdown, or commentary.";
+
+// dd($promptText);
 
             // Send request to OpenRouter API with optimized parameters
             $response = Http::withHeaders([
