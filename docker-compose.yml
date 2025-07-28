@@ -17,8 +17,6 @@ services:
     volumes:
       - ./:/var/www
       - ./docker/default.conf:/opt/docker/etc/nginx/vhost.conf
-      - ./bin/prince-16.1-linux-generic-x86_64/bin:/usr/local/bin
-      - ./bin/prince-16.1-linux-generic-x86_64:/usr/local/lib/prince
 
   mariadb:
     image: mariadb:latest

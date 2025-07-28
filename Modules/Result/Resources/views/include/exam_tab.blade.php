@@ -89,7 +89,7 @@
                             <th>REPORT</th>
                             <th>EXAM</th>
                             @else
-                      
+
                             <th>CA</th>
                             <th>EXAM</th>
                             @endif
@@ -118,8 +118,8 @@
                     @php
                     $score = $result->score;
                     $teacher_remark = $result->remark;
-                    $min_average = $score->min_average->value;
-                    $max_average = $score->max_average->value;
+                    $min_average = $score->min_average;
+                    $max_average = $score->max_average;
                     @endphp
                     <tfoot>
                         <tr>
@@ -142,9 +142,13 @@
                                 @lang('result::student.average'): {{ @$score->average }}
                             </th>
                             <th colspan="2" style="text-align: right;">
-                                @lang('result::student.max_average'): {{ $max_average }}
+                                <a target="_blank" href="{{ route('student_view', $max_average->student_id) }}">
+                                    @lang('result::student.max_average'): {{ $max_average->value }}
+                                </a>
                                 <br>
-                                @lang('result::student.min_average'): {{ $min_average }}
+                                <a target="_blank" href="{{ route('student_view', $min_average->student_id) }}">
+                                    @lang('result::student.min_average'): {{ $min_average->value }}
+                                </a>
                             </th>
                         </tr>
                     </tfoot>
