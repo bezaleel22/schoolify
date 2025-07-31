@@ -374,7 +374,7 @@ class ResultController extends Controller
             Toastr::error($e->validator->errors()->first(), 'Validation Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
-            dd($e->getTraceAsString());
+            dd($e->getMessage(), $e->getTraceAsString());
             Log::error('Failed to publish timeline: ' . $e->getMessage());
             Toastr::error('Operation failed: ' . $e->getMessage(), 'Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
