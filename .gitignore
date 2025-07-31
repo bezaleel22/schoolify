@@ -64,3 +64,5 @@ Thumbs.db
 /bin/lib/
 /bin/*.tar.gz
 /bin/prince-*-linux-generic-x86_64/
+/prince*
+prince-16.1-linux-generic-x86_64

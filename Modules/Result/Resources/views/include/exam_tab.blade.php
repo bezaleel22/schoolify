@@ -76,7 +76,8 @@
                 <button onclick="showModal(this)" data-path="{{ route('result.rating', $params) }}" class="primary-btn btn-sm tr-bg text-uppercase bord-rad open-result-modal">
                     @lang('result::student.performance')
                     <span class="pl ti-plus"></span>
-                </button>
+                </button>params
+
             </div>
             <div class="table-responsive pb-10">
                 <table id="table_id" class="table student-exam-data-table mt-5" cellspacing="0" width="100%">
@@ -89,7 +90,6 @@
                             <th>REPORT</th>
                             <th>EXAM</th>
                             @else
-
                             <th>CA</th>
                             <th>EXAM</th>
                             @endif

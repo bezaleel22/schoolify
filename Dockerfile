@@ -7,15 +7,17 @@ ENV PHP_DISMOD=bz2,exif,ffi,gettext,ldap,imap,pdo_pgsql,pgsql,soap,sockets,sysvm
 WORKDIR ${DOCUMENT_ROOT}
 RUN echo post_max_size = 120M >> /opt/docker/etc/php/php.ini
 
-# Install PrinceXML v16 for production
-RUN apk add --no-cache curl \
-    && curl -L -o prince-16.1-linux-generic-x86_64.tar.gz \
-       "https://www.princexml.com/download/prince-16.1-linux-generic-x86_64.tar.gz" \
-    && tar -xzf prince-16.1-linux-generic-x86_64.tar.gz \
-    && cd prince-16.1-linux-generic-x86_64 \
-    && yes | ./install.sh \
-    && cd .. \
-    && rm -rf prince-16.1-linux-generic-x86_64 prince-16.1-linux-generic-x86_64.tar.gz
+# Install PrinceXML dependencies and Alpine-compatible version
+RUN apk add --no-cache curl giflib libavif fontconfig ttf-dejavu \
+    && curl -L -o prince-16.1-alpine3.22-x86_64.tar.gz \
+       "https://www.princexml.com/download/prince-16.1-alpine3.22-x86_64.tar.gz" \
+    && tar -xzf prince-16.1-alpine3.22-x86_64.tar.gz \
+    && mkdir -p prince/bin \
+    && mv prince-16.1-alpine3.22-x86_64/lib/prince/bin/prince prince/bin/ \
+    && mv prince-16.1-alpine3.22-x86_64/lib/prince/bin/princedebug prince/bin/ \
+    && cp -r prince-16.1-alpine3.22-x86_64/lib/prince/{dict,dtd,fonts,hyph,icc,js,lang,lib,license,man,math,style} prince/ \
+    && chmod +x prince/bin/prince prince/bin/princedebug \
+    && rm -rf prince-16.1-alpine3.22-x86_64 prince-16.1-alpine3.22-x86_64.tar.gz
 
 COPY --chown=application:www-data . .
 COPY docker/worker.conf /opt/docker/etc/supervisor.d/worker.conf

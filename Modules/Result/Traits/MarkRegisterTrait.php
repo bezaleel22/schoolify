@@ -118,11 +118,11 @@ trait MarkRegisterTrait
             throw new \Exception('Missing required column: subject_id');
         }
 
-        if (in_array('MT1', $headers) && in_array('MT2', $headers) && in_array('CA', $headers)) {
+        if (in_array('MTA', $headers) && in_array('REPORT', $headers) && in_array('CA', $headers)) {
             return 'GRADERS';
         }
 
-        if (in_array('ORAL', $headers) && !in_array('MT1', $headers)) {
+        if (in_array('ORAL', $headers) && !in_array('MTA', $headers)) {
             return 'EYFS';
         }
 
@@ -206,7 +206,6 @@ trait MarkRegisterTrait
 
             default:
                 $examTypes = [
-                    'CA1',
                     'CA2',
                     'REPORT',
                     'HOMEWORK',
@@ -219,9 +218,11 @@ trait MarkRegisterTrait
                     }
                 }
                 $examTypes = [
-                    'CA' => $ca,
+                    'CA1' => (float)$rowData['CA1'],
+                    'CA2' => $ca,
                     'EXAM' => (float)$rowData['EXAM'],
                 ];
+                dd($examSetups->toArray());
                 foreach ($examTypes as $key => $examType) {
                     $marks[] = $examType;
                     $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, $key);
@@ -241,6 +242,7 @@ trait MarkRegisterTrait
      */
     private function findExamSetupId($examSetups, $subjectId, $examType = null)
     {
+        // dd($examSetups->groupBy('subject_id')->toArray());
         $subjectSetups = $examSetups->where('subject_id', $subjectId);
 
         if (!$examType) {
@@ -265,6 +267,7 @@ trait MarkRegisterTrait
      */
     private function buildSuccessResponse($processedMarks, $format, $studentData = null)
     {
+        // dd($processedMarks);
         $message = 'CSV converted to markStore format successfully';
 
         Log::info('Data conversion completed', [

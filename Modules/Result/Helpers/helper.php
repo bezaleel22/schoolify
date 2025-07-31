@@ -49,7 +49,7 @@ if (!function_exists('logEmail')) {
         $emailSmsData->send_to = $send_to;
         $emailSmsData->school_id = 1;
         $emailSmsData->academic_id = getAcademicId();
-        
+
         // Add Gmail-specific fields if provided
         if ($gmail_message_id) {
             $emailSmsData->gmail_message_id = $gmail_message_id;
@@ -58,7 +58,7 @@ if (!function_exists('logEmail')) {
             $emailSmsData->gmail_thread_id = $gmail_thread_id;
         }
         $emailSmsData->delivery_status = $delivery_status;
-        
+
         $success = $emailSmsData->save();
 
         return $success;
@@ -136,53 +136,91 @@ if (!function_exists('generatePDFWithPrince')) {
         $html = view('result::template.result', $compact)->render();
 
         $fileName = md5($id . $exam_id);
-        
+
         // Create temporary HTML file
         $tempHtmlPath = storage_path('app/temp/' . $fileName . '.html');
         $tempPdfPath = storage_path('app/temp/' . $fileName . '.pdf');
-        
+
         // Ensure temp directory exists
         if (!file_exists(dirname($tempHtmlPath))) {
             mkdir(dirname($tempHtmlPath), 0755, true);
         }
-        
+
         // Write HTML to temporary file
         file_put_contents($tempHtmlPath, $html);
-        
-        // Use PrinceXML to convert HTML to PDF
-        $princeCommand = 'prince --style-pdf-page-margins="4mm 2mm 2mm 2mm" --verbose "' . $tempHtmlPath . '" -o "' . $tempPdfPath . '"';
-        
-        $output = [];
-        $return_code = 0;
-        exec($princeCommand, $output, $return_code);
-        
-        if ($return_code !== 0) {
-            // Fallback to original Gotenberg method if PrinceXML fails
-            \Illuminate\Support\Facades\Log::warning('PrinceXML failed, falling back to Gotenberg', ['output' => $output, 'return_code' => $return_code]);
-            
+
+        // Use PrinceXML to convert HTML to PDF - call the binary directly
+        // Determine the correct path based on environment (development vs production)
+        $appPath = env('APP_ENV') === 'production' ? '/app' : '/var/www';
+        $princeBinaryPath = $appPath . '/prince/bin/prince';
+        $princePrefixPath = $appPath . '/prince';
+
+        // Check if Prince binary exists
+        if (!file_exists($princeBinaryPath)) {
+            \Illuminate\Support\Facades\Log::error('PrinceXML binary not found at: ' . $princeBinaryPath);
+
             // Clean up temp files
             if (file_exists($tempHtmlPath)) unlink($tempHtmlPath);
             if (file_exists($tempPdfPath)) unlink($tempPdfPath);
-            
+
             return generatePDF($result_data, $id, $exam_id);
         }
-        
+
+        // Build the Prince command with proper escaping and prefix
+        $princeCommand = escapeshellarg($princeBinaryPath) . ' --prefix=' . escapeshellarg($princePrefixPath) . ' --page-margin=' . escapeshellarg('4mm 2mm 2mm 2mm') . ' --verbose ' . escapeshellarg($tempHtmlPath) . ' -o ' . escapeshellarg($tempPdfPath);
+
+        $output = [];
+        $return_code = 0;
+        exec($princeCommand, $output, $return_code);
+
+        if ($return_code !== 0) {
+            // Log the error with command details for debugging
+            \Illuminate\Support\Facades\Log::error('PrinceXML failed', [
+                'command' => $princeCommand,
+                'output' => $output,
+                'return_code' => $return_code,
+                'prince_binary_path' => $princeBinaryPath,
+                'prince_exists' => file_exists($princeBinaryPath),
+                'prince_executable' => is_executable($princeBinaryPath)
+            ]);
+
+            // Clean up temp files
+            if (file_exists($tempHtmlPath)) unlink($tempHtmlPath);
+            if (file_exists($tempPdfPath)) unlink($tempPdfPath);
+
+            return generatePDF($result_data, $id, $exam_id);
+        }
+
+        // Check if PDF was actually created
+        if (!file_exists($tempPdfPath) || filesize($tempPdfPath) === 0) {
+            \Illuminate\Support\Facades\Log::error('PrinceXML did not create PDF file or file is empty', [
+                'temp_pdf_path' => $tempPdfPath,
+                'file_exists' => file_exists($tempPdfPath),
+                'file_size' => file_exists($tempPdfPath) ? filesize($tempPdfPath) : 'N/A'
+            ]);
+
+            // Clean up temp files
+            if (file_exists($tempHtmlPath)) unlink($tempHtmlPath);
+            if (file_exists($tempPdfPath)) unlink($tempPdfPath);
+
+            return generatePDF($result_data, $id, $exam_id);
+        }
         // Read the generated PDF
         $pdfContent = file_get_contents($tempPdfPath);
-        
+
         // Clean up temporary files
         if (file_exists($tempHtmlPath)) unlink($tempHtmlPath);
         if (file_exists($tempPdfPath)) unlink($tempPdfPath);
-        
-        // Return response with PDF content
-        return response($pdfContent, 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => "inline; filename='{$fileName}.pdf'"
-        ]);
+
+        // Create a PSR-7 compatible response similar to Gotenberg
+        $stream = \GuzzleHttp\Psr7\Utils::streamFor($pdfContent);
+        $response = new \GuzzleHttp\Psr7\Response(200, [
+            'Content-Type' => 'application/pdf'
+        ], $stream);
+
+        return $response->withHeader('Content-Disposition', "inline; filename='{$fileName}.pdf'");
     }
 }
-
-
 if (!function_exists('emailConfig')) {
     function emailConfig(object $data)
     {

@@ -292,7 +292,7 @@ class ResultController extends Controller
     }
 
     public function publish(Request $request, $id, $exam_id)
-    {
+    { 
         try {
             $request->validate([
                 'parent_email' => 'required|email',
@@ -339,7 +339,7 @@ class ResultController extends Controller
             $parent = SmParent::findOrFail($request->parent_id);
             $stu = SmStudent::findOrFail($id);
 
-            $reciver_email = $parent->guardians_email;
+            $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
             // dd("Student ID: $id, Exam ID: $exam_id, Email: $reciver_email");
             $data = (object) [
                 'subject' => 'Result Notification',
@@ -370,9 +370,11 @@ class ResultController extends Controller
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (ValidationException $e) {
+            dd($e->validator->errors()->first());
             Toastr::error($e->validator->errors()->first(), 'Validation Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         } catch (\Exception $e) {
+            dd($e->getTraceAsString());
             Log::error('Failed to publish timeline: ' . $e->getMessage());
             Toastr::error('Operation Failed', 'Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
