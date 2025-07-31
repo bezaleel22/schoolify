@@ -90,7 +90,7 @@ trait ResultTrait
             ->get()->keyBy('designation_id');
         $principal = $staffMembers->get($principal_desig->id);
         $support = $staffMembers->get($supports_desig->id);
-        dd($support, $category, $staffMembers, $supports_desig);
+
         return [
             'principal' => $principal->full_name,
             'contact' => $principal->mobile,
