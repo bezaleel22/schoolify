@@ -365,7 +365,7 @@ class ResultController extends Controller
             // }
             $msg = "The result for {$data->full_name} has been successfully published and is queued to be sent via email.";
             $stu_exam = "{$data->student_id}-{$data->exam_id}";
-            @logEmail('Published', $msg, $data->reciver_email, $stu_exam);
+            // @logEmail('Published', $msg, $data->reciver_email, $stu_exam);
 
             Toastr::success('Operation successful', 'Success');
             return redirect()->back()->with(['studentExam' => 'active']);
