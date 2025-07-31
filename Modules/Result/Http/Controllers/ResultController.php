@@ -292,7 +292,7 @@ class ResultController extends Controller
     }
 
     public function publish(Request $request, $id, $exam_id)
-    { 
+    {
         try {
             $request->validate([
                 'parent_email' => 'required|email',
@@ -323,7 +323,7 @@ class ResultController extends Controller
             $timeline->staff_student_id = $id;
             $timeline->type = $type;
             $timeline->title = $request->title;
-            $timeline->date = Carbon::create(2024, 8, 12)->toDateString();
+            $timeline->date = Carbon::create(2025, 8, 12)->toDateString();
             $timeline->description = 'TERMLY SUMMARY OF PROGRESS REPORT';
             $timeline->visible_to_student = 1;
             $timeline->file = route('result.download', $params);
@@ -339,7 +339,7 @@ class ResultController extends Controller
             $parent = SmParent::findOrFail($request->parent_id);
             $stu = SmStudent::findOrFail($id);
 
-            $reciver_email = env('TEST_RECIEVER_EMAIL', $parent->guardians_email);
+            $reciver_email = $parent->guardians_email;
             // dd("Student ID: $id, Exam ID: $exam_id, Email: $reciver_email");
             $data = (object) [
                 'subject' => 'Result Notification',
@@ -376,7 +376,7 @@ class ResultController extends Controller
         } catch (\Exception $e) {
             dd($e->getTraceAsString());
             Log::error('Failed to publish timeline: ' . $e->getMessage());
-            Toastr::error('Operation Failed', 'Failed');
+            Toastr::error('Operation failed: ' . $e->getMessage(), 'Failed');
             return redirect()->back()->with(['studentExam' => 'active']);
         }
     }
