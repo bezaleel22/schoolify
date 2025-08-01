@@ -21,15 +21,6 @@ if (!function_exists('showTimelineDocName')) {
     }
 }
 
-if (!function_exists('showDocumentName')) {
-    function showDocumentName($data)
-    {
-        $name = explode('/', $data);
-        $number = count($name);
-        return $name[$number - 1];
-    }
-}
-
 if (!function_exists('logEmail')) {
     function logEmail($title, $dsc, $send_to, $stu_exam, $gmail_message_id = null, $delivery_status = 'sent', $gmail_thread_id = null)
     {
