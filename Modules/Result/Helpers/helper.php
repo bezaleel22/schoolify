@@ -57,7 +57,7 @@ if (!function_exists('logEmail')) {
         if ($gmail_thread_id) {
             $emailSmsData->gmail_thread_id = $gmail_thread_id;
         }
-        $emailSmsData->delivery_status = $delivery_status;
+        // $emailSmsData->delivery_status = $delivery_status;
 
         $success = $emailSmsData->save();
 
