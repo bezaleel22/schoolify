@@ -4,22 +4,28 @@
 
 use App\SmEmailSetting;
 use App\SmEmailSmsLog;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Gotenberg\Stream;
 use Gotenberg\Gotenberg;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Modules\Result\Jobs\SendResultEmail;
 
-if (!function_exists('showTimelineDocName')) {
-    function showTimelineDocName($data)
-    {
-        $name = explode('/', $data);
-        $number = count($name);
-        return $name[$number - 1];
-    }
-}
+
+// if (!function_exists('showTimelineDocName')) {
+//     function showTimelineDocName($data)
+//     {
+//         $name = explode('/', $data);
+//         $number = count($name);
+//         return $name[$number - 1];
+//     }
+// }
+
+// if (!function_exists('showDocumentName')) {
+//     function showDocumentName($data)
+//     {
+//         $name = explode('/', $data);
+//         $number = count($name);
+//         return $name[$number - 1];
+//     }
+// }
 
 if (!function_exists('logEmail')) {
     function logEmail($title, $dsc, $send_to, $stu_exam, $gmail_message_id = null, $delivery_status = 'sent', $gmail_thread_id = null)
