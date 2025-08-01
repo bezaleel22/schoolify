@@ -142,13 +142,13 @@
                                 @lang('result::student.average'): {{ @$score->average }}
                             </th>
                             <th colspan="2" style="text-align: right;">
-                                <a target="_blank" href="{{ route('student_view', $max_average->student_id) }}">
+                                {{-- <a target="_blank" href="{{ route('student_view', $max_average->student_id) }}">
                                     @lang('result::student.max_average'): {{ $max_average->value }}
                                 </a>
                                 <br>
                                 <a target="_blank" href="{{ route('student_view', $min_average->student_id) }}">
                                     @lang('result::student.min_average'): {{ $min_average->value }}
-                                </a>
+                                </a> --}}
                             </th>
                         </tr>
                     </tfoot>
