@@ -172,7 +172,6 @@ trait ResultTrait
                 ];
             }
         }
-        dd($rows);
         $class_average = $this->getClassAverages($result_data->results);
         $score = (object) [
             'total' => $over_all,
