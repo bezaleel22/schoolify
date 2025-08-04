@@ -224,7 +224,7 @@ trait MarkRegisterTrait
                     'CA2' => $ca,
                     'EXAM' => (float)$rowData['EXAM'],
                 ];
-                dd($examSetups->toArray());
+
                 foreach ($examTypes as $key => $examType) {
                     $marks[] = $examType;
                     $examSetupIds[] = $this->findExamSetupId($examSetups, $subjectId, $key);
