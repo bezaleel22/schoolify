@@ -117,7 +117,6 @@ trait ImageUploadTrait
                 Cache::forget($cacheKey);
             }
 
-            Cache::forget($cacheKey);
             // Use Cache::remember pattern with 24-hour expiry
             return Cache::remember($cacheKey, now()->addDay(), function () use ($imageFile, $subjectMapping) {
                 $imageContent = file_get_contents($imageFile->getPathname());

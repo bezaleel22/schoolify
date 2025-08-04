@@ -139,6 +139,7 @@ trait MarkRegisterTrait
     private function processDataRow($rowData, $csvFormat, $examSetups, $rowNumber)
     {
         $subjectId = trim($rowData['subject_id'] ?? '');
+        $subjectCode = trim($rowData['subject_code'] ?? '');
 
         if (empty($subjectId) || !is_numeric($subjectId)) {
             return ['success' => false];
@@ -154,6 +155,7 @@ trait MarkRegisterTrait
             'success' => true,
             'data' => [
                 'subject_id' => $subjectId,
+                'subject_code' => $subjectCode,
                 'marks' => $marksData['marks'],
                 'exam_Sids' => array_filter($marksData['exam_setup_ids']),
                 'absent_students' => [],

@@ -123,7 +123,7 @@ class StudentController extends Controller
             }
 
             $student_info = collect($results)->filter()->first()->student ?? null;
-            // dd($results);
+            dd($results);
 
             $emails = [];
             if (Storage::exists('uploaded_files/emails.json')) {
